@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Artifacts — Order Builder</title>
+<style>
+  :root {
+    --cyan:#0FA8DF; --yellow:#E1FF01; --black:#020c1a; --off:#101010;
+    --mid:#161616; --border:#1e2329; --muted:#6b7280; --white:#f5f5f5;
+    --green:#22c55e; --red:#ef4444;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{background:var(--black);color:var(--white);font-family:'DM Mono',ui-monospace,monospace;font-size:14px;padding:16px;max-width:540px;margin:0 auto;}
+  h1{font-family:Georgia,serif;font-size:26px;letter-spacing:0.02em;margin-bottom:4px;color:var(--white);}
+  .sub{color:var(--muted);font-size:11px;margin-bottom:24px;}
+  section{background:var(--off);border:1px solid var(--border);border-radius:8px;padding:16px;margin-bottom:14px;}
+  section h2{font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);margin-bottom:12px;}
+
+  /* Products */
+  .product{border-bottom:1px solid var(--border);padding-bottom:12px;margin-bottom:12px;}
+  .product:last-child{border-bottom:none;margin-bottom:0;padding-bottom:0;}
+  .p-name{font-size:13px;font-weight:bold;color:var(--white);margin-bottom:8px;}
+  .p-name span{font-size:10px;color:var(--muted);margin-left:6px;font-weight:normal;}
+  .size-row{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;}
+  .sz{padding:5px 10px;border:1px solid var(--border);background:var(--mid);color:var(--muted);cursor:pointer;font-size:12px;border-radius:4px;font-family:inherit;}
+  .sz.active{border-color:var(--cyan);color:var(--cyan);background:#0fa8df12;}
+  .sz.active.y{border-color:var(--yellow);color:var(--yellow);background:#e1ff0112;}
+  .qty-row{display:flex;align-items:center;gap:10px;}
+  .qty-btn{width:28px;height:28px;border:1px solid var(--border);background:var(--mid);color:var(--white);cursor:pointer;border-radius:4px;font-size:16px;display:flex;align-items:center;justify-content:center;}
+  .qty-num{min-width:24px;text-align:center;font-size:15px;}
+  .p-subtotal{margin-left:auto;font-size:13px;color:var(--cyan);}
+
+  /* Fields */
+  .field{margin-bottom:10px;}
+  .field label{display:block;font-size:11px;color:var(--muted);margin-bottom:4px;letter-spacing:0.06em;text-transform:uppercase;}
+  .field input,.field select,.field textarea{width:100%;background:var(--mid);border:1px solid var(--border);color:var(--white);padding:10px 12px;font-family:inherit;font-size:13px;border-radius:4px;outline:none;}
+  .field input:focus,.field select:focus{border-color:var(--cyan);}
+  .field textarea{resize:vertical;min-height:60px;}
+
+  /* Toggles */
+  .toggle-row{display:flex;gap:8px;margin-bottom:10px;}
+  .toggle{flex:1;padding:10px;border:1px solid var(--border);background:var(--mid);color:var(--muted);cursor:pointer;border-radius:4px;text-align:center;font-size:12px;font-family:inherit;transition:all 0.15s;}
+  .toggle.active{border-color:var(--cyan);color:var(--cyan);background:#0fa8df12;}
+  .toggle.active.cash{border-color:var(--green);color:var(--green);background:#22c55e12;}
+  .toggle.active.eft{border-color:var(--yellow);color:var(--yellow);background:#e1ff0112;}
+
+  /* Summary */
+  .summary-line{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border);font-size:13px;}
+  .summary-line:last-child{border-bottom:none;}
+  .summary-total{display:flex;justify-content:space-between;padding:10px 0 0;font-size:18px;font-weight:bold;color:var(--white);}
+
+  /* Buttons */
+  .btn{width:100%;padding:14px;border:none;cursor:pointer;font-family:inherit;font-size:15px;font-weight:bold;border-radius:4px;margin-top:8px;letter-spacing:0.06em;}
+  .btn-payfast{background:var(--cyan);color:var(--black);}
+  .btn-eft{background:var(--yellow);color:var(--black);}
+  .btn-cash{background:var(--green);color:var(--black);}
+  .btn-wa{background:#25D366;color:#fff;}
+  .btn:disabled{opacity:0.4;cursor:not-allowed;}
+
+  /* Output */
+  #output{display:none;}
+  .invoice{background:var(--off);border:1px solid var(--border);border-radius:8px;padding:20px;margin-top:14px;}
+  .inv-header{border-bottom:2px solid var(--border);padding-bottom:12px;margin-bottom:14px;}
+  .inv-logo{font-size:20px;font-family:Georgia,serif;letter-spacing:0.05em;margin-bottom:2px;}
+  .inv-title{font-size:11px;color:var(--muted);letter-spacing:0.1em;text-transform:uppercase;}
+  .inv-ref{font-size:11px;color:var(--cyan);margin-top:8px;}
+  .inv-section{margin-bottom:14px;}
+  .inv-section-title{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:6px;}
+  .inv-line{display:flex;justify-content:space-between;font-size:13px;padding:3px 0;}
+  .inv-total{display:flex;justify-content:space-between;font-size:17px;font-weight:bold;border-top:1px solid var(--border);padding-top:10px;margin-top:6px;}
+  .bank-box{background:var(--mid);border:1px solid var(--border);border-radius:6px;padding:14px;margin-top:10px;}
+  .bank-row{display:flex;justify-content:space-between;padding:4px 0;font-size:13px;}
+  .bank-label{color:var(--muted);}
+  .bank-ref{color:var(--yellow);font-weight:bold;}
+  .note{font-size:11px;color:var(--muted);margin-top:10px;line-height:1.5;}
+  .status-badge{display:inline-block;padding:3px 10px;border-radius:12px;font-size:11px;font-weight:bold;letter-spacing:0.08em;}
+  .badge-cash{background:#22c55e22;color:var(--green);border:1px solid var(--green);}
+  .badge-payfast{background:#0fa8df22;color:var(--cyan);border:1px solid var(--cyan);}
+  .badge-eft{background:#e1ff0122;color:var(--yellow);border:1px solid var(--yellow);}
+
+  @media print {
+    body{background:white;color:black;max-width:100%;}
+    .no-print{display:none!important;}
+    .invoice{background:white;border:1px solid #ccc;color:black;}
+    .inv-logo,.inv-total{color:black;}
+    .bank-box{background:#f5f5f5;border:1px solid #ccc;}
+    .bank-ref{color:#333;}
+    .note{color:#555;}
+  }
+</style>
+</head>
+<body>
+
+<h1>Artifacts Coffee</h1>
+<p class="sub">Admin Order Builder — not linked from the site</p>
+
+<!-- PRODUCTS -->
+<section>
+  <h2>Products</h2>
+  <div id="products-list"></div>
+</section>
+
+<!-- CUSTOMER -->
+<section>
+  <h2>Customer</h2>
+  <div class="field"><label>Name</label><input id="c-name" type="text" placeholder="Full name" autocomplete="off"></div>
+  <div class="field"><label>Email</label><input id="c-email" type="email" placeholder="email@example.com"></div>
+  <div class="field"><label>Phone</label><input id="c-phone" type="tel" placeholder="0XX XXX XXXX"></div>
+  <div class="field"><label>Notes (optional)</label><textarea id="c-notes" placeholder="Special requests, address for delivery, etc."></textarea></div>
+</section>
+
+<!-- FULFILLMENT -->
+<section>
+  <h2>Fulfillment</h2>
+  <div class="toggle-row">
+    <button class="toggle active" onclick="setFulfillment('collection',this)">Collection</button>
+    <button class="toggle" onclick="setFulfillment('delivery',this)">Delivery</button>
+  </div>
+  <div id="delivery-fields" style="display:none;">
+    <div class="field"><label>Shipping amount (R)</label><input id="ship-amount" type="number" value="100" min="0" oninput="updateSummary()"></div>
+    <div class="field"><label>Delivery address</label><textarea id="ship-address" placeholder="Street, suburb, city, postal code"></textarea></div>
+  </div>
+</section>
+
+<!-- DISCOUNT -->
+<section>
+  <h2>Discount (optional)</h2>
+  <div class="field">
+    <label>Discount amount (R) — leave 0 for none</label>
+    <input id="discount" type="number" value="0" min="0" oninput="updateSummary()">
+  </div>
+</section>
+
+<!-- PAYMENT -->
+<section>
+  <h2>Payment Method</h2>
+  <div class="toggle-row">
+    <button class="toggle active" onclick="setPayment('payfast',this)">PayFast</button>
+    <button class="toggle eft" onclick="setPayment('eft',this)">EFT</button>
+    <button class="toggle cash" onclick="setPayment('cash',this)">Cash</button>
+  </div>
+  <p id="payment-hint" style="font-size:11px;color:var(--muted);margin-top:6px;">Redirects to PayFast. Hand device to customer or process in-person.</p>
+</section>
+
+<!-- ORDER SUMMARY -->
+<section>
+  <h2>Order Summary</h2>
+  <div id="summary-lines"></div>
+  <div class="summary-total"><span>Total</span><span id="summary-total">R 0.00</span></div>
+</section>
+
+<!-- ACTION -->
+<div class="no-print">
+  <button class="btn btn-payfast" id="action-btn" onclick="generateOrder()">Process PayFast Payment</button>
+</div>
+
+<!-- OUTPUT -->
+<div id="output">
+  <!-- PayFast hidden form -->
+  <form id="payfast-form" action="https://www.payfast.co.za/eng/process" method="post" style="display:none;">
+    <input type="hidden" name="merchant_id" value="34420469">
+    <input type="hidden" name="merchant_key" value="q6qjvvpwgddvi">
+    <input type="hidden" name="return_url" value="https://artifactscoffee.co.za/success">
+    <input type="hidden" name="cancel_url" value="https://artifactscoffee.co.za/cancel">
+    <input type="hidden" name="notify_url" value="https://artifactscoffee.co.za/.netlify/functions/payfast-notify">
+    <input type="hidden" name="name_first" id="pf_name">
+    <input type="hidden" name="email_address" id="pf_email">
+    <input type="hidden" name="m_payment_id" id="pf_payment_id">
+    <input type="hidden" name="amount" id="pf_amount">
+    <input type="hidden" name="item_name" value="Artifacts Coffee Order">
+    <input type="hidden" name="item_description" id="pf_item_desc">
+  </form>
+
+  <!-- Invoice / Receipt -->
+  <div class="invoice" id="invoice-box"></div>
+
+  <div class="no-print" style="display:flex;gap:8px;margin-top:10px;" id="post-action-btns"></div>
+</div>
+
+<script>
+const PRODUCTS = [
+  { id:'gt', name:'Guatemala Blue Ayarza', color:'cyan',
+    sizes:[{label:'1kg',price:600},{label:'200g',price:150},{label:'80g',price:75}] },
+  { id:'mx', name:'Mexico Ki Saya Organic', color:'yellow',
+    sizes:[{label:'1kg',price:592},{label:'200g',price:148},{label:'80g',price:75}] },
+  { id:'ni', name:'Nicaragua Rajuanse', color:'white',
+    sizes:[{label:'1kg',price:560},{label:'200g',price:140},{label:'80g',price:75}] },
+  { id:'dp', name:'Discovery Pack', color:'cyan',
+    sizes:[{label:'3×80g',price:170}] },
+];
+
+const BANK = {
+  bank: 'FNB',
+  holder: 'Artifacts Coffee Roastery',
+  account: '62929285692',
+  branch: '250655',
+  type: 'Cheque / Current'
+};
+
+let state = {
+  fulfillment: 'collection',
+  payment: 'payfast',
+  qtys: {},
+  selectedSizes: {},
+};
+
+// Init
+PRODUCTS.forEach(p => {
+  state.qtys[p.id] = 0;
+  state.selectedSizes[p.id] = p.sizes[0];
+});
+
+function buildProductUI() {
+  const el = document.getElementById('products-list');
+  el.innerHTML = PRODUCTS.map(p => `
+    <div class="product">
+      <div class="p-name">${p.name} <span>${p.sizes.map(s=>s.label+' R'+s.price).join(' · ')}</span></div>
+      <div class="size-row" id="sizes-${p.id}">
+        ${p.sizes.map((s,i) => `<button class="sz${i===0?' active'+(p.color==='yellow'?' y':''):''}" onclick="selectSize('${p.id}',${i},this)">${s.label} — R${s.price}</button>`).join('')}
+      </div>
+      <div class="qty-row">
+        <button class="qty-btn" onclick="changeQty('${p.id}',-1)">−</button>
+        <span class="qty-num" id="qty-${p.id}">0</span>
+        <button class="qty-btn" onclick="changeQty('${p.id}',1)">+</button>
+        <span class="p-subtotal" id="sub-${p.id}"></span>
+      </div>
+    </div>
+  `).join('');
+}
+
+function selectSize(id, idx, btn) {
+  const p = PRODUCTS.find(x=>x.id===id);
+  state.selectedSizes[id] = p.sizes[idx];
+  document.querySelectorAll(`#sizes-${id} .sz`).forEach(b=>b.className='sz');
+  btn.className = 'sz active' + (p.color==='yellow'?' y':'');
+  updateSummary();
+}
+
+function changeQty(id, d) {
+  state.qtys[id] = Math.max(0, (state.qtys[id]||0) + d);
+  document.getElementById('qty-'+id).textContent = state.qtys[id];
+  const sub = document.getElementById('sub-'+id);
+  const total = state.qtys[id] * state.selectedSizes[id].price;
+  sub.textContent = total > 0 ? 'R '+total.toFixed(2) : '';
+  updateSummary();
+}
+
+function setFulfillment(val, btn) {
+  state.fulfillment = val;
+  document.querySelectorAll('.toggle-row')[0].querySelectorAll('.toggle').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('delivery-fields').style.display = val==='delivery' ? 'block' : 'none';
+  updateSummary();
+}
+
+function setPayment(val, btn) {
+  state.payment = val;
+  const hints = {
+    payfast: 'Redirects to PayFast. Hand device to customer or process in-person.',
+    eft: 'Generates an invoice with your banking details. Send via WhatsApp or print.',
+    cash: 'Mark as cash paid. Generates a receipt to show or screenshot.'
+  };
+  const labels = { payfast:'Process PayFast Payment', eft:'Generate EFT Invoice', cash:'Mark as Cash Paid ✓' };
+  const classes = { payfast:'btn btn-payfast', eft:'btn btn-eft', cash:'btn btn-cash' };
+  document.querySelectorAll('.toggle-row')[2].querySelectorAll('.toggle').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('payment-hint').textContent = hints[val];
+  const ab = document.getElementById('action-btn');
+  ab.textContent = labels[val];
+  ab.className = classes[val];
+  updateSummary();
+}
+
+function getCartItems() {
+  return PRODUCTS.filter(p => state.qtys[p.id] > 0).map(p => ({
+    name: p.name,
+    size: state.selectedSizes[p.id].label,
+    price: state.selectedSizes[p.id].price,
+    qty: state.qtys[p.id],
+    total: state.selectedSizes[p.id].price * state.qtys[p.id]
+  }));
+}
+
+function calcTotals() {
+  const items = getCartItems();
+  const sub = items.reduce((s,i)=>s+i.total, 0);
+  const ship = state.fulfillment === 'delivery' ? parseFloat(document.getElementById('ship-amount').value||0) : 0;
+  const disc = parseFloat(document.getElementById('discount').value||0);
+  const total = Math.max(0, sub + ship - disc);
+  return { sub, ship, disc, total, items };
+}
+
+function updateSummary() {
+  const { sub, ship, disc, total, items } = calcTotals();
+  const lines = document.getElementById('summary-lines');
+  let html = items.map(i=>`<div class="summary-line"><span>${i.qty}× ${i.name} (${i.size})</span><span>R ${i.total.toFixed(2)}</span></div>`).join('');
+  if (ship > 0) html += `<div class="summary-line"><span>Delivery</span><span>R ${ship.toFixed(2)}</span></div>`;
+  if (disc > 0) html += `<div class="summary-line"><span>Discount</span><span style="color:var(--green)">−R ${disc.toFixed(2)}</span></div>`;
+  if (!items.length) html = '<div style="color:var(--muted);font-size:12px;padding:4px 0;">No items added yet.</div>';
+  lines.innerHTML = html;
+  document.getElementById('summary-total').textContent = 'R ' + total.toFixed(2);
+}
+
+function genRef() {
+  const d = new Date();
+  const ymd = d.getFullYear().toString().slice(2) + String(d.getMonth()+1).padStart(2,'0') + String(d.getDate()).padStart(2,'0');
+  const rnd = Math.random().toString(36).slice(2,6).toUpperCase();
+  return 'AC-'+ymd+'-'+rnd;
+}
+
+function generateOrder() {
+  const { sub, ship, disc, total, items } = calcTotals();
+  if (!items.length) { alert('Add at least one product.'); return; }
+  const name = document.getElementById('c-name').value.trim() || 'Customer';
+  const email = document.getElementById('c-email').value.trim();
+  const phone = document.getElementById('c-phone').value.trim();
+  const notes = document.getElementById('c-notes').value.trim();
+  const ref = genRef();
+  const now = new Date().toLocaleDateString('en-ZA',{day:'2-digit',month:'long',year:'numeric'});
+  const itemDesc = items.map(i=>`${i.qty}× ${i.name} (${i.size})`).join(', ');
+  const fulfillLabel = state.fulfillment === 'collection' ? 'Collection (no charge)' : (document.getElementById('ship-address').value.trim() || 'Delivery');
+
+  document.getElementById('output').style.display = 'block';
+
+  if (state.payment === 'payfast') {
+    document.getElementById('pf_name').value = name;
+    document.getElementById('pf_email').value = email || 'noemail@artifactscoffee.co.za';
+    document.getElementById('pf_payment_id').value = ref;
+    document.getElementById('pf_amount').value = total.toFixed(2);
+    document.getElementById('pf_item_desc').value = itemDesc.slice(0,255);
+    document.getElementById('invoice-box').innerHTML = `
+      <div class="inv-header">
+        <div class="inv-logo">Artifacts Coffee</div>
+        <div class="inv-title">PayFast Payment</div>
+        <div class="inv-ref">Ref: ${ref}</div>
+      </div>
+      <div class="inv-section">
+        <div class="inv-section-title">Customer</div>
+        <div class="inv-line"><span>${name}</span>${email ? `<span style="color:var(--muted)">${email}</span>` : ''}</div>
+        ${phone ? `<div class="inv-line"><span style="color:var(--muted)">${phone}</span></div>` : ''}
+      </div>
+      <div class="inv-section">
+        <div class="inv-section-title">Items</div>
+        ${items.map(i=>`<div class="inv-line"><span>${i.qty}× ${i.name} (${i.size})</span><span>R ${i.total.toFixed(2)}</span></div>`).join('')}
+        ${ship>0?`<div class="inv-line"><span>Delivery</span><span>R ${ship.toFixed(2)}</span></div>`:''}
+        ${disc>0?`<div class="inv-line"><span>Discount</span><span style="color:var(--green)">−R ${disc.toFixed(2)}</span></div>`:''}
+      </div>
+      <div class="inv-total"><span>Total</span><span>R ${total.toFixed(2)}</span></div>
+      <div style="margin-top:14px;"><span class="status-badge badge-payfast">PAYFAST</span></div>`;
+    document.getElementById('post-action-btns').innerHTML = `
+      <button class="btn btn-payfast" style="margin-top:0" onclick="document.getElementById('payfast-form').submit()">▶ Submit to PayFast Now</button>`;
+  }
+
+  else if (state.payment === 'eft') {
+    document.getElementById('invoice-box').innerHTML = `
+      <div class="inv-header">
+        <div class="inv-logo">Artifacts Coffee</div>
+        <div class="inv-title">Tax Invoice / EFT Request</div>
+        <div class="inv-ref">Ref: ${ref} &nbsp;·&nbsp; ${now}</div>
+      </div>
+      <div class="inv-section">
+        <div class="inv-section-title">Billed To</div>
+        <div class="inv-line"><span>${name}</span></div>
+        ${email?`<div class="inv-line"><span style="color:var(--muted)">${email}</span></div>`:''}
+        ${phone?`<div class="inv-line"><span style="color:var(--muted)">${phone}</span></div>`:''}
+      </div>
+      <div class="inv-section">
+        <div class="inv-section-title">Order Details</div>
+        ${items.map(i=>`<div class="inv-line"><span>${i.qty}× ${i.name} (${i.size})</span><span>R ${i.total.toFixed(2)}</span></div>`).join('')}
+        <div class="inv-line"><span style="color:var(--muted)">Fulfillment</span><span style="color:var(--muted)">${fulfillLabel}</span></div>
+        ${ship>0?`<div class="inv-line"><span>Delivery</span><span>R ${ship.toFixed(2)}</span></div>`:''}
+        ${disc>0?`<div class="inv-line"><span>Discount</span><span style="color:var(--green)">−R ${disc.toFixed(2)}</span></div>`:''}
+      </div>
+      <div class="inv-total"><span>Total Due</span><span>R ${total.toFixed(2)}</span></div>
+      <div class="bank-box">
+        <div class="inv-section-title" style="margin-bottom:8px;">Payment Instructions</div>
+        <div class="bank-row"><span class="bank-label">Bank</span><span>${BANK.bank}</span></div>
+        <div class="bank-row"><span class="bank-label">Account Holder</span><span>${BANK.holder}</span></div>
+        <div class="bank-row"><span class="bank-label">Account Number</span><span>${BANK.account}</span></div>
+        <div class="bank-row"><span class="bank-label">Branch Code</span><span>${BANK.branch}</span></div>
+        <div class="bank-row"><span class="bank-label">Account Type</span><span>${BANK.type}</span></div>
+        <div class="bank-row"><span class="bank-label">Reference</span><span class="bank-ref">${ref}</span></div>
+      </div>
+      ${notes?`<div class="note">Note: ${notes}</div>`:''}
+      <div class="note" style="margin-top:8px;">Please use <strong>${ref}</strong> as your payment reference. EFT within 24 hours to secure your order. Once payment reflects your order will be roasted and dispatched.</div>
+      <div style="margin-top:12px;"><span class="status-badge badge-eft">AWAITING EFT</span></div>`;
+
+    const wa = `Hi ${name},%0A%0AHere are the banking details for your Artifacts Coffee order:%0A%0A*${items.map(i=>`${i.qty}× ${i.name} (${i.size})`).join('%0A')}*%0ATotal: *R ${total.toFixed(2)}*%0A%0A*Bank:* FNB%0A*Account:* ${BANK.account}%0A*Branch:* ${BANK.branch}%0A*Ref:* ${ref}%0A%0APlease use ${ref} as your reference. Order roasts once payment reflects 🙏`;
+    document.getElementById('post-action-btns').innerHTML = `
+      <button class="btn btn-wa" style="margin-top:0;flex:1" onclick="window.open('https://wa.me/${phone?phone.replace(/\D/g,'').replace(/^0/,'27'):''}?text=${wa}','_blank')">Send via WhatsApp</button>
+      <button class="btn" style="margin-top:0;flex:0 0 auto;width:auto;padding:14px 18px;background:var(--mid);border:1px solid var(--border)" onclick="window.print()">🖨 Print</button>`;
+  }
+
+  else if (state.payment === 'cash') {
+    document.getElementById('invoice-box').innerHTML = `
+      <div class="inv-header">
+        <div class="inv-logo">Artifacts Coffee</div>
+        <div class="inv-title">Cash Receipt</div>
+        <div class="inv-ref">Ref: ${ref} &nbsp;·&nbsp; ${now}</div>
+      </div>
+      <div class="inv-section">
+        <div class="inv-section-title">Customer</div>
+        <div class="inv-line"><span>${name}</span></div>
+        ${phone?`<div class="inv-line"><span style="color:var(--muted)">${phone}</span></div>`:''}
+      </div>
+      <div class="inv-section">
+        <div class="inv-section-title">Items</div>
+        ${items.map(i=>`<div class="inv-line"><span>${i.qty}× ${i.name} (${i.size})</span><span>R ${i.total.toFixed(2)}</span></div>`).join('')}
+        <div class="inv-line"><span style="color:var(--muted)">Fulfillment</span><span style="color:var(--muted)">${fulfillLabel}</span></div>
+        ${disc>0?`<div class="inv-line"><span>Discount</span><span style="color:var(--green)">−R ${disc.toFixed(2)}</span></div>`:''}
+      </div>
+      <div class="inv-total"><span>Cash Received</span><span style="color:var(--green)">R ${total.toFixed(2)}</span></div>
+      ${notes?`<div class="note" style="margin-top:10px;">Note: ${notes}</div>`:''}
+      <div style="margin-top:12px;"><span class="status-badge badge-cash">CASH PAID ✓</span></div>`;
+    document.getElementById('post-action-btns').innerHTML = `
+      <button class="btn" style="margin-top:0;background:var(--mid);border:1px solid var(--border)" onclick="window.print()">🖨 Print Receipt</button>`;
+  }
+
+  document.getElementById('output').scrollIntoView({behavior:'smooth'});
+}
+
+buildProductUI();
+updateSummary();
+</script>
+</body>
+</html>

@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Payment Successful — Artifacts Coffee</title>
+<meta name="description" content="Your Artifacts Coffee order is confirmed. We'll roast fresh and ship within days.">
+<meta name="robots" content="noindex">
+<link rel="icon" href="images/favicon.ico" type="image/x-icon">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@300;400;500&family=Barlow+Condensed:ital,wght@0,400;0,600;0,700;0,900;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --cyan: #0FA8DF;
+    --yellow: #E1FF01;
+    --black: #020c1a;
+    --off: #101010;
+    --border: #1E1E1E;
+    --white: #F2F2F2;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--black);
+    color: var(--white);
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    line-height: 1.6;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 24px;
+    text-align: center;
+  }
+  .container {
+    max-width: 600px;
+    width: 100%;
+    border: 1px solid var(--border);
+    padding: 60px 40px;
+    background: var(--off);
+  }
+  .icon {
+    width: 64px;
+    height: 64px;
+    margin: 0 auto 24px;
+    color: var(--cyan);
+    display: block;
+  }
+  h1 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 48px;
+    letter-spacing: 0.04em;
+    color: var(--white);
+    margin-bottom: 12px;
+  }
+  .sub {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 18px;
+    color: #888;
+    margin-bottom: 36px;
+  }
+
+  /* ── DELIVERY BLOCK (default: shipping) ── */
+  .delivery-block {
+    border: 1px solid var(--border);
+    padding: 24px;
+    margin-bottom: 28px;
+    text-align: left;
+  }
+  .delivery-label {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+  .delivery-label.shipping { color: var(--cyan); }
+  .delivery-label.collection { color: var(--yellow); }
+
+  .delivery-steps {
+    list-style: none;
+    padding: 0;
+  }
+  .delivery-steps li {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    font-size: 13px;
+    color: #aaa;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border);
+    line-height: 1.5;
+  }
+  .delivery-steps li:last-child { border-bottom: none; }
+  .step-num {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 18px;
+    color: var(--cyan);
+    flex-shrink: 0;
+    width: 20px;
+    line-height: 1.3;
+  }
+  .step-num.yellow { color: var(--yellow); }
+
+  /* ── COLLECTION BLOCK ── */
+  .collect-block {
+    background: rgba(225,255,1,0.04);
+    border: 1px solid rgba(225,255,1,0.2);
+    padding: 24px;
+    margin-bottom: 28px;
+    text-align: left;
+  }
+  .collect-wa {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    width: 100%;
+    padding: 14px 24px;
+    background: #25D366;
+    color: white;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 20px;
+    letter-spacing: 0.1em;
+    text-decoration: none;
+    margin-top: 16px;
+    transition: opacity 0.2s;
+  }
+  .collect-wa:hover { opacity: 0.9; }
+
+  /* ── BREW CIRCLE NOTE ── */
+  .points-note {
+    background: rgba(15,168,223,0.05);
+    border: 1px solid rgba(15,168,223,0.15);
+    padding: 16px 20px;
+    margin-bottom: 28px;
+    font-size: 12px;
+    color: #777;
+    text-align: left;
+  }
+  .points-note span { color: var(--cyan); font-weight: 500; }
+
+  .btn {
+    display: inline-block;
+    background: var(--cyan);
+    color: var(--black);
+    padding: 14px 32px;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 20px;
+    letter-spacing: 0.1em;
+    text-decoration: none;
+    transition: all 0.2s;
+  }
+  .btn:hover { opacity: 0.85; transform: translateY(-2px); }
+</style>
+</head>
+<body>
+  <div class="container">
+
+    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+      <polyline points="22 4 12 14.01 9 11.01"></polyline>
+    </svg>
+
+    <h1>Thank You!</h1>
+    <p class="sub">Your payment was successful. Your order is being processed.</p>
+
+    <!-- SHIPPING BLOCK (default) -->
+    <div class="delivery-block" id="block-shipping">
+      <p class="delivery-label shipping">What Happens Next</p>
+      <ul class="delivery-steps">
+        <li>
+          <span class="step-num">1</span>
+          <span>You'll receive an order confirmation email shortly with your invoice.</span>
+        </li>
+        <li>
+          <span class="step-num">2</span>
+          <span>Your coffee is roasted fresh on the next roast day. The roast date is hand-written on your bag before dispatch.</span>
+        </li>
+        <li>
+          <span class="step-num">3</span>
+          <span>Your order ships via The Courier Guy. Tracking details will be sent to your email once booked.</span>
+        </li>
+        <li>
+          <span class="step-num">4</span>
+          <span>Once your bag arrives — let it rest 10–14 days from the roast date before brewing. That's when it's at its best.</span>
+        </li>
+      </ul>
+    </div>
+
+    <!-- COLLECTION BLOCK (shown when collect selected) -->
+    <div class="collect-block" id="block-collection" style="display:none;">
+      <p class="delivery-label collection">&#127968; Collection Order</p>
+      <ul class="delivery-steps">
+        <li>
+          <span class="step-num yellow">1</span>
+          <span>You'll receive an order confirmation email shortly.</span>
+        </li>
+        <li>
+          <span class="step-num yellow">2</span>
+          <span>Your coffee is roasted fresh. We'll WhatsApp you once it's ready to collect — usually within 2–3 business days.</span>
+        </li>
+        <li>
+          <span class="step-num yellow">3</span>
+          <span>Collection is from Johannesburg. We'll confirm the exact address and time via WhatsApp before you come through.</span>
+        </li>
+        <li>
+          <span class="step-num yellow">4</span>
+          <span>Once you have your bag — rest it 10–14 days from the roast date before your first brew.</span>
+        </li>
+      </ul>
+      <a class="collect-wa" href="https://wa.me/27613832478?text=Hi%2C%20I%20just%20placed%20a%20collection%20order%20on%20artifactscoffee.co.za" target="_blank">
+        <svg style="width:20px;height:20px;fill:currentColor;flex-shrink:0" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.414 0 .004 5.41.001 12.045c0 2.12.554 4.189 1.602 6.04L0 24l6.117-1.605a11.837 11.837 0 005.925 1.577h.005c6.632 0 12.042-5.41 12.046-12.045a11.83 11.83 0 00-3.536-8.509"/></svg>
+        WhatsApp Us to Confirm
+      </a>
+    </div>
+
+    <!-- BREW CIRCLE NOTE -->
+    <div class="points-note">
+      <span>Brew Circle</span> — points for this order have been added to your account automatically. Sign in at <a href="rewards.html" style="color:var(--cyan)">artifactscoffee.co.za/rewards</a> to check your balance.
+    </div>
+
+    <a href="index.html" class="btn">Back to Store</a>
+
+  </div>
+
+  <script>
+    // Detect collection order from localStorage (set by index.html before PayFast redirect)
+    const shippingCode = localStorage.getItem('last_shipping_code') || '';
+    if (shippingCode === 'collect') {
+      document.getElementById('block-shipping').style.display = 'none';
+      document.getElementById('block-collection').style.display = 'block';
+    }
+    // Clear cart and shipping data
+    localStorage.removeItem('coffee_cart');
+    localStorage.removeItem('last_shipping_code');
+    localStorage.removeItem('last_shipping_label');
+  </script>
+</body>
+</html>

@@ -1,0 +1,1233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>The Brew Circle — enTheos</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@300;400;500;600&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    /* ── BRAND TOKENS (mirrors enTheos styles.css) ── */
+    :root {
+      --cyan:    #0FA8DF;
+      --yellow:  #E1FF01;
+      --black:   #080808;
+      --white:   #F2F2F2;
+      --off:     #101010;
+      --border:  #1E1E1E;
+      --mid:     #161616;
+      --muted:   #888;
+      --font-display: 'Bebas Neue', sans-serif;
+      --font-body:    'Barlow Condensed', sans-serif;
+      --font-mono:    'DM Mono', monospace;
+      --tier-origin:  #888;
+      --tier-single:  var(--cyan);
+      --tier-reserve: var(--yellow);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--black);
+      color: var(--white);
+      font-family: var(--font-body);
+      font-size: 16px;
+      line-height: 1.5;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ── GRAIN OVERLAY ── */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 0;
+      opacity: 0.4;
+    }
+
+    /* ── NAV ── */
+    nav {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(10,10,10,0.92);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      padding: 0 2rem;
+      height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .nav-logo {
+      font-family: var(--font-display);
+      font-size: 1.6rem;
+      letter-spacing: 0.12em;
+      color: var(--white);
+      text-decoration: none;
+    }
+
+    .nav-logo span { color: var(--cyan); }
+
+    .nav-links {
+      display: flex;
+      gap: 2rem;
+      list-style: none;
+    }
+
+    .nav-links a {
+      font-family: var(--font-body);
+      font-size: 0.85rem;
+      font-weight: 500;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--muted);
+      text-decoration: none;
+      transition: color 0.2s;
+      outline: none;
+    }
+
+    .nav-links a:hover, .nav-links a:focus { color: var(--white); }
+    .nav-links a:focus-visible { outline: 2px solid var(--cyan); outline-offset: 4px; }
+
+    /* ── HERO STRIP ── */
+    .hero-strip {
+      position: relative;
+      z-index: 1;
+      padding: 5rem 2rem 3rem;
+      text-align: center;
+      border-bottom: 1px solid var(--border);
+      overflow: hidden;
+    }
+
+    .hero-strip::after {
+      content: 'BREW CIRCLE';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-family: var(--font-display);
+      font-size: clamp(6rem, 20vw, 14rem);
+      letter-spacing: 0.04em;
+      color: transparent;
+      -webkit-text-stroke: 1px rgba(255,255,255,0.04);
+      white-space: nowrap;
+      pointer-events: none;
+      user-select: none;
+    }
+
+    .hero-eyebrow {
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--cyan);
+      margin-bottom: 1rem;
+    }
+
+    .hero-title {
+      font-family: var(--font-display);
+      font-size: clamp(3rem, 8vw, 6rem);
+      letter-spacing: 0.06em;
+      line-height: 1;
+      margin-bottom: 1.2rem;
+    }
+
+    .hero-sub {
+      font-size: 1.1rem;
+      font-weight: 300;
+      color: #777;
+      max-width: 480px;
+      margin: 0 auto 2.5rem;
+      letter-spacing: 0.04em;
+    }
+
+    /* ── AUTH BUTTONS ── */
+    .auth-bar {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      flex-wrap: wrap;
+      position: relative;
+      z-index: 2;
+    }
+
+    .btn {
+      font-family: var(--font-body);
+      font-size: 0.85rem;
+      font-weight: 600;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      padding: 0.75rem 2rem;
+      border: none;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .btn-primary {
+      background: var(--cyan);
+      color: var(--black);
+    }
+
+    .btn-primary:hover {
+      background: var(--white);
+    }
+
+    .btn-outline {
+      background: transparent;
+      color: var(--white);
+      border: 1px solid var(--border);
+    }
+
+    .btn-outline:hover {
+      border-color: var(--white);
+    }
+
+    .btn-danger {
+      background: transparent;
+      color: #e55;
+      border: 1px solid #e55;
+      font-size: 0.75rem;
+      padding: 0.5rem 1.2rem;
+    }
+
+    .btn-danger:hover { background: rgba(238,85,85,0.1); }
+    .btn:focus-visible { outline: 2px solid var(--white); outline-offset: 2px; }
+
+    /* ── MAIN LAYOUT ── */
+    main {
+      position: relative;
+      z-index: 1;
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 3rem 2rem 6rem;
+    }
+
+    /* ── AUTH PANELS ── */
+    .panel {
+      display: none;
+    }
+
+    .panel.active { display: block; }
+
+    /* ── DASHBOARD ── */
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1px;
+      background: var(--border);
+      border: 1px solid var(--border);
+      margin-bottom: 1px;
+    }
+
+    @media (max-width: 680px) {
+      .dashboard-grid { grid-template-columns: 1fr; }
+    }
+
+    .dash-card {
+      background: var(--off);
+      padding: 2rem;
+    }
+
+    .dash-card.full-width {
+      grid-column: 1 / -1;
+    }
+
+    .dash-label {
+      font-family: var(--font-mono);
+      font-size: 0.68rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: #888;
+      margin-bottom: 0.6rem;
+    }
+
+    .dash-value {
+      font-family: var(--font-display);
+      font-size: 3.5rem;
+      letter-spacing: 0.04em;
+      line-height: 1;
+      color: var(--white);
+    }
+
+    .dash-value.cyan  { color: var(--cyan); }
+    .dash-value.yellow { color: var(--yellow); }
+
+    .dash-sub {
+      font-size: 0.85rem;
+      color: #777;
+      margin-top: 0.4rem;
+      font-weight: 300;
+      letter-spacing: 0.06em;
+    }
+
+    /* ── TIER BADGE ── */
+    .tier-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      padding: 0.35rem 0.9rem;
+      border: 1px solid currentColor;
+      margin-top: 0.5rem;
+    }
+
+    .tier-badge.Origin  { color: var(--tier-origin); }
+    .tier-badge.Single  { color: var(--tier-single); }
+    .tier-badge.Reserve { color: var(--tier-reserve); }
+
+    .tier-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: currentColor;
+    }
+
+    /* ── PROGRESS BAR ── */
+    .progress-wrap {
+      margin-top: 1.5rem;
+    }
+
+    .progress-meta {
+      display: flex;
+      justify-content: space-between;
+      font-family: var(--font-mono);
+      font-size: 0.68rem;
+      letter-spacing: 0.1em;
+      color: #777;
+      margin-bottom: 0.5rem;
+    }
+
+    .progress-track {
+      height: 3px;
+      background: var(--border);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: var(--cyan);
+      transition: width 1.2s cubic-bezier(0.16, 1, 0.3, 1);
+      width: 0%;
+    }
+
+    .progress-fill.gold { background: var(--yellow); }
+
+    /* ── SECTION HEADERS ── */
+    .section-header {
+      display: flex;
+      align-items: baseline;
+      gap: 1.5rem;
+      padding: 2.5rem 0 1.2rem;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 0;
+    }
+
+    .section-title {
+      font-family: var(--font-display);
+      font-size: 2rem;
+      letter-spacing: 0.08em;
+    }
+
+    .section-count {
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      color: var(--muted);
+      letter-spacing: 0.14em;
+    }
+
+    /* ── EARNING RULES TABLE ── */
+    .rules-table {
+      width: 100%;
+      border-collapse: collapse;
+      border: 1px solid var(--border);
+      margin-top: 0;
+    }
+
+    .rules-table tr {
+      border-bottom: 1px solid var(--border);
+      transition: background 0.15s;
+    }
+
+    .rules-table tr:last-child { border-bottom: none; }
+    .rules-table tr:hover { background: rgba(255,255,255,0.02); }
+
+    .rules-table td {
+      padding: 1.1rem 1.5rem;
+      vertical-align: middle;
+    }
+
+    .rule-name {
+      font-family: var(--font-body);
+      font-weight: 500;
+      font-size: 1rem;
+      letter-spacing: 0.06em;
+    }
+
+    .rule-desc {
+      font-size: 0.82rem;
+      color: var(--muted);
+      margin-top: 0.15rem;
+      letter-spacing: 0.04em;
+    }
+
+    .rule-badge {
+      font-family: var(--font-mono);
+      font-size: 0.9rem;
+      font-weight: 500;
+      color: var(--cyan);
+      text-align: right;
+      white-space: nowrap;
+    }
+
+    .rule-once {
+      font-family: var(--font-mono);
+      font-size: 0.6rem;
+      letter-spacing: 0.14em;
+      color: var(--muted);
+      border: 1px solid var(--border);
+      padding: 0.2rem 0.5rem;
+      margin-left: 0.5rem;
+      vertical-align: middle;
+    }
+
+    /* ── TIER CARDS ── */
+    .tier-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1px;
+      background: var(--border);
+      border: 1px solid var(--border);
+      margin-top: 0;
+    }
+
+    @media (max-width: 600px) {
+      .tier-grid { grid-template-columns: 1fr; }
+    }
+
+    .tier-card {
+      background: var(--off);
+      padding: 2rem 1.5rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .tier-card.active-tier::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      background: var(--tier-color, var(--cyan));
+    }
+
+    .tier-card-name {
+      font-family: var(--font-display);
+      font-size: 2.2rem;
+      letter-spacing: 0.08em;
+      margin-bottom: 0.3rem;
+    }
+
+    .tier-card-range {
+      font-family: var(--font-mono);
+      font-size: 0.68rem;
+      letter-spacing: 0.14em;
+      color: var(--muted);
+      margin-bottom: 1.5rem;
+    }
+
+    .tier-perk {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.75rem;
+      font-size: 0.88rem;
+      color: rgba(245,240,232,0.7);
+      margin-bottom: 0.6rem;
+      letter-spacing: 0.03em;
+    }
+
+    .tier-perk-dot {
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: var(--tier-color, var(--muted));
+      margin-top: 0.45rem;
+      flex-shrink: 0;
+    }
+
+    /* ── ACTIVITY FEED ── */
+    .feed-wrap {
+      border: 1px solid var(--border);
+      margin-top: 0;
+    }
+
+    .feed-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1rem 1.5rem;
+      border-bottom: 1px solid var(--border);
+      gap: 1rem;
+      animation: fadeSlideIn 0.4s ease both;
+    }
+
+    .feed-item:last-child { border-bottom: none; }
+
+    @keyframes fadeSlideIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .feed-type {
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+
+    .feed-desc {
+      flex: 1;
+      font-size: 0.9rem;
+      letter-spacing: 0.03em;
+    }
+
+    .feed-date {
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+
+    .feed-pts {
+      font-family: var(--font-mono);
+      font-size: 0.9rem;
+      font-weight: 500;
+      white-space: nowrap;
+    }
+
+    .feed-pts.earn { color: var(--cyan); }
+    .feed-pts.spend { color: var(--yellow); }
+
+    .feed-empty {
+      padding: 3rem;
+      text-align: center;
+      color: var(--muted);
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      letter-spacing: 0.14em;
+    }
+
+    /* ── VOUCHERS ── */
+    .voucher-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 1px;
+      background: var(--border);
+      border: 1px solid var(--border);
+      margin-top: 0;
+    }
+
+    .voucher-card {
+      background: var(--off);
+      padding: 1.8rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .voucher-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--yellow), transparent);
+    }
+
+    .voucher-value {
+      font-family: var(--font-display);
+      font-size: 3rem;
+      color: var(--yellow);
+      letter-spacing: 0.04em;
+      line-height: 1;
+    }
+
+    .voucher-code {
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      letter-spacing: 0.18em;
+      color: var(--muted);
+      margin: 0.8rem 0 0.4rem;
+    }
+
+    .voucher-expiry {
+      font-size: 0.75rem;
+      color: #777;
+      letter-spacing: 0.06em;
+    }
+
+    .voucher-used {
+      position: absolute;
+      top: 1rem; right: 1rem;
+      font-family: var(--font-mono);
+      font-size: 0.6rem;
+      letter-spacing: 0.16em;
+      color: var(--muted);
+      border: 1px solid var(--border);
+      padding: 0.2rem 0.5rem;
+    }
+
+    /* ── REDEEM SECTION ── */
+    .redeem-bar {
+      background: var(--off);
+      border: 1px solid var(--border);
+      padding: 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 2rem;
+      flex-wrap: wrap;
+      margin-top: 0;
+    }
+
+    .redeem-info {}
+    .redeem-title {
+      font-family: var(--font-display);
+      font-size: 1.8rem;
+      letter-spacing: 0.06em;
+    }
+
+    .redeem-sub {
+      font-size: 0.85rem;
+      color: var(--muted);
+      margin-top: 0.2rem;
+      letter-spacing: 0.04em;
+    }
+
+    /* ── AUTH FORMS ── */
+    .auth-panel {
+      max-width: 480px;
+      margin: 3rem auto 0;
+      border: 1px solid var(--border);
+      background: var(--off);
+      padding: 2.5rem;
+    }
+
+    .auth-panel h2 {
+      font-family: var(--font-display);
+      font-size: 2.2rem;
+      letter-spacing: 0.08em;
+      margin-bottom: 0.4rem;
+    }
+
+    .auth-panel p {
+      font-size: 0.88rem;
+      color: var(--muted);
+      margin-bottom: 2rem;
+      letter-spacing: 0.04em;
+    }
+
+    .form-group {
+      margin-bottom: 1.2rem;
+    }
+
+    .form-group label {
+      display: block;
+      font-family: var(--font-mono);
+      font-size: 0.68rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 0.5rem;
+    }
+
+    .form-group input {
+      width: 100%;
+      background: var(--black);
+      border: 1px solid var(--border);
+      color: var(--white);
+      font-family: var(--font-mono);
+      font-size: 0.88rem;
+      padding: 0.85rem 1rem;
+      outline: none;
+      transition: border-color 0.2s;
+      letter-spacing: 0.06em;
+    }
+
+    .form-group input:focus {
+      border-color: var(--cyan);
+    }
+
+    .form-group input::placeholder {
+      color: var(--border);
+    }
+
+    .auth-toggle {
+      margin-top: 1.5rem;
+      text-align: center;
+      font-size: 0.82rem;
+      color: var(--muted);
+    }
+
+    .auth-toggle a {
+      color: var(--cyan);
+      text-decoration: none;
+      cursor: pointer;
+    }
+
+    .auth-toggle a:hover { text-decoration: underline; }
+
+    /* ── TOAST ── */
+    .toast {
+      position: fixed;
+      bottom: 2rem;
+      right: 2rem;
+      background: var(--off);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--cyan);
+      padding: 1rem 1.5rem;
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      letter-spacing: 0.1em;
+      z-index: 999;
+      transform: translateY(100px);
+      opacity: 0;
+      transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+      max-width: 320px;
+    }
+
+    .toast.show {
+      transform: translateY(0);
+      opacity: 1;
+    }
+
+    .toast.error { border-left-color: #e55; }
+
+    /* ── LOADING SKELETON ── */
+    .skeleton {
+      background: linear-gradient(90deg, var(--border) 25%, var(--off) 50%, var(--border) 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.4s infinite;
+      height: 1em;
+      border-radius: 2px;
+    }
+
+    @keyframes shimmer {
+      0%   { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+
+    /* ── SIGN OUT BAR ── */
+    .signout-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.8rem 0;
+      margin-bottom: 2rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .signout-user {
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      letter-spacing: 0.14em;
+      color: var(--muted);
+    }
+
+    /* ── SCROLL REVEAL ── */
+    .reveal {
+      opacity: 0;
+      transform: translateY(20px);
+      transition: opacity 0.6s ease, transform 0.6s ease;
+    }
+
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav>
+    <a href="index.html" class="nav-logo">en<span>T</span>heos</a>
+    <ul class="nav-links">
+      <li><a href="index.html">Shop</a></li>
+      <li><a href="rewards.html" style="color:var(--yellow)">Brew Circle</a></li>
+    </ul>
+  </nav>
+
+  <!-- HERO -->
+  <section class="hero-strip">
+    <p class="hero-eyebrow">enTheos Loyalty</p>
+    <h1 class="hero-title">The Brew Circle</h1>
+    <p class="hero-sub">Earn points with every bag. Rise through the tiers. Redeem rewards worth drinking to.</p>
+    <div class="auth-bar" id="hero-auth-bar">
+      <button class="btn btn-primary" onclick="showPanel('signup')">Join the Circle</button>
+      <button class="btn btn-outline" onclick="showPanel('login')">Sign In</button>
+    </div>
+  </section>
+
+  <!-- MAIN -->
+  <main>
+
+    <!-- ── SIGN IN PANEL ── -->
+    <div class="panel" id="panel-login">
+      <div class="auth-panel">
+        <h2>Welcome Back</h2>
+        <p>Sign in to view your points and rewards.</p>
+        <div class="form-group">
+          <label>Email address</label>
+          <input type="email" id="login-email" placeholder="you@example.com" />
+        </div>
+        <div class="form-group">
+          <label>Password</label>
+          <input type="password" id="login-password" placeholder="••••••••" />
+        </div>
+        <button class="btn btn-primary" style="width:100%" onclick="handleLogin()">Sign In</button>
+        <p class="auth-toggle">No account? <a onclick="showPanel('signup')">Join the Brew Circle</a></p>
+      </div>
+    </div>
+
+    <!-- ── SIGN UP PANEL ── -->
+    <div class="panel" id="panel-signup">
+      <div class="auth-panel">
+        <h2>Join the Circle</h2>
+        <p>Create your account and earn 150 points instantly.</p>
+        <div class="form-group">
+          <label>Full name</label>
+          <input type="text" id="signup-name" placeholder="Your name" />
+        </div>
+        <div class="form-group">
+          <label>Email address</label>
+          <input type="email" id="signup-email" placeholder="you@example.com" />
+        </div>
+        <div class="form-group">
+          <label>Password</label>
+          <input type="password" id="signup-password" placeholder="Min. 8 characters" />
+        </div>
+        <div class="form-group">
+          <label>Birthday <span style="color:var(--border)">— for 150 bonus points</span></label>
+          <input type="date" id="signup-birthdate" />
+        </div>
+        <button class="btn btn-primary" style="width:100%" onclick="handleSignup()">Create Account</button>
+        <p class="auth-toggle">Already a member? <a onclick="showPanel('login')">Sign in</a></p>
+      </div>
+    </div>
+
+    <!-- ── DASHBOARD PANEL ── -->
+    <div class="panel" id="panel-dashboard">
+
+      <div class="signout-bar">
+        <span class="signout-user" id="dash-email">—</span>
+        <button class="btn btn-danger" onclick="handleSignout()">Sign out</button>
+      </div>
+
+      <!-- Points + Tier -->
+      <div class="dashboard-grid reveal">
+        <div class="dash-card">
+          <p class="dash-label">Points balance</p>
+          <p class="dash-value cyan" id="dash-points">—</p>
+          <p class="dash-sub" id="dash-to-next">Loading...</p>
+        </div>
+        <div class="dash-card">
+          <p class="dash-label">Current tier</p>
+          <p class="dash-value" id="dash-tier-name">—</p>
+          <div id="dash-tier-badge"></div>
+          <div class="progress-wrap">
+            <div class="progress-meta">
+              <span id="prog-label-left">—</span>
+              <span id="prog-label-right">—</span>
+            </div>
+            <div class="progress-track">
+              <div class="progress-fill" id="progress-fill"></div>
+            </div>
+          </div>
+        </div>
+        <div class="dash-card">
+          <p class="dash-label">Total orders</p>
+          <p class="dash-value" id="dash-orders">—</p>
+          <p class="dash-sub">Paid orders placed</p>
+        </div>
+        <div class="dash-card">
+          <p class="dash-label">Member since</p>
+          <p class="dash-value" id="dash-since" style="font-size:2rem">—</p>
+          <p class="dash-sub">Brew Circle member</p>
+        </div>
+      </div>
+
+      <!-- Redeem -->
+      <div class="redeem-bar reveal" id="redeem-bar" style="display:none">
+        <div class="redeem-info">
+          <p class="redeem-title">Redeem a Voucher</p>
+          <p class="redeem-sub" id="redeem-sub">500 points = R50 off your next order</p>
+        </div>
+        <button class="btn btn-primary" onclick="handleRedeem()">Redeem 500 pts → R50</button>
+      </div>
+
+      <!-- Vouchers -->
+      <div id="vouchers-section" style="display:none">
+        <div class="section-header reveal">
+          <h2 class="section-title">Your Vouchers</h2>
+          <span class="section-count" id="voucher-count">0 active</span>
+        </div>
+        <div class="voucher-grid" id="voucher-grid"></div>
+      </div>
+
+      <!-- Activity feed -->
+      <div class="section-header reveal">
+        <h2 class="section-title">Activity</h2>
+        <span class="section-count" id="activity-count"></span>
+      </div>
+      <div class="feed-wrap" id="feed-wrap">
+        <div class="feed-empty">Loading activity...</div>
+      </div>
+
+      <!-- Earning rules -->
+      <div class="section-header reveal">
+        <h2 class="section-title">How to Earn</h2>
+      </div>
+      <table class="rules-table" id="rules-table">
+        <tbody id="rules-body">
+          <tr><td colspan="2"><div class="skeleton" style="width:60%;margin:1rem"></div></td></tr>
+        </tbody>
+      </table>
+
+      <!-- Tier breakdown -->
+      <div class="section-header reveal">
+        <h2 class="section-title">The Tiers</h2>
+      </div>
+      <div class="tier-grid reveal" id="tier-grid">
+        <div class="tier-card" style="--tier-color:var(--tier-origin)">
+          <p class="tier-card-name">Origin</p>
+          <p class="tier-card-range">0 – 999 pts</p>
+          <div class="tier-perk"><span class="tier-perk-dot"></span><span>Access to the Brew Circle</span></div>
+          <div class="tier-perk"><span class="tier-perk-dot"></span><span>Earn points on every order</span></div>
+          <div class="tier-perk"><span class="tier-perk-dot"></span><span>Redeem vouchers from 500 pts</span></div>
+        </div>
+        <div class="tier-card" style="--tier-color:var(--tier-single)">
+          <p class="tier-card-name">Single</p>
+          <p class="tier-card-range">1,000 – 2,999 pts</p>
+          <div class="tier-perk"><span class="tier-perk-dot"></span><span>5% discount on all orders</span></div>
+          <div class="tier-perk"><span class="tier-perk-dot"></span><span>Early access to new roasts</span></div>
+          <div class="tier-perk"><span class="tier-perk-dot"></span><span>Everything in Origin</span></div>
+        </div>
+        <div class="tier-card" style="--tier-color:var(--tier-reserve)">
+          <p class="tier-card-name">Reserve</p>
+          <p class="tier-card-range">3,000+ pts</p>
+          <div class="tier-perk"><span class="tier-perk-dot"></span><span>10% discount on all orders</span></div>
+          <div class="tier-perk"><span class="tier-perk-dot"></span><span>Free shipping on every order</span></div>
+          <div class="tier-perk"><span class="tier-perk-dot"></span><span>Reserve-only drops & birthday bag</span></div>
+        </div>
+      </div>
+
+    </div><!-- /panel-dashboard -->
+
+  </main>
+
+  <!-- TOAST -->
+  <div class="toast" id="toast"></div>
+
+  <script>
+    // ── CONFIG — replace with your Supabase credentials ──
+    const SUPABASE_URL = 'https://xpxbldyrigqjkdmrfhvh.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhweGJsZHlyaWdxamtkbXJmaHZoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYxNTA0OTcsImV4cCI6MjA5MTcyNjQ5N30.5dClUhDfHZ_IXs5b3ZEh6Zyg7WkZi04VZOBeqR4jOsk';
+
+    const { createClient } = supabase;
+    const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    // ── PANEL ROUTER ──
+    const panels = ['login','signup','dashboard'];
+
+    function showPanel(name) {
+      panels.forEach(p => {
+        document.getElementById('panel-' + p).classList.toggle('active', p === name);
+      });
+      document.getElementById('hero-auth-bar').style.display =
+        name === 'dashboard' ? 'none' : 'flex';
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // ── TOAST ──
+    function toast(msg, type = 'info') {
+      const el = document.getElementById('toast');
+      el.textContent = msg;
+      el.className = 'toast show' + (type === 'error' ? ' error' : '');
+      setTimeout(() => el.classList.remove('show'), 3500);
+    }
+
+    // ── AUTH HANDLERS ──
+    async function handleLogin() {
+      const email = document.getElementById('login-email').value.trim();
+      const pass  = document.getElementById('login-password').value;
+      if (!email || !pass) return toast('Please fill in all fields.', 'error');
+
+      const { error } = await sb.auth.signInWithPassword({ email, password: pass });
+      if (error) return toast(error.message, 'error');
+      toast('Welcome back!');
+    }
+
+    async function handleSignup() {
+      const name      = document.getElementById('signup-name').value.trim();
+      const email     = document.getElementById('signup-email').value.trim();
+      const pass      = document.getElementById('signup-password').value;
+      const birthdate = document.getElementById('signup-birthdate').value;
+
+      if (!name || !email || !pass) return toast('Name, email and password are required.', 'error');
+      if (pass.length < 8) return toast('Password must be at least 8 characters.', 'error');
+
+      const { data, error } = await sb.auth.signUp({
+        email,
+        password: pass,
+        options: { data: { name, birthdate } }
+      });
+
+      if (error) return toast(error.message, 'error');
+
+      // ── NOTE ──
+      // Customer row and signup bonus are now handled by database triggers 
+      // (service-role) on the auth.users table, as per the new RLS policies.
+      
+      toast('Account created! Check your email to confirm.');
+    }
+
+    async function handleSignout() {
+      await sb.auth.signOut();
+      showPanel('login');
+      toast('Signed out.');
+    }
+
+    // ── LOAD DASHBOARD ──
+    async function loadDashboard(user) {
+      document.getElementById('dash-email').textContent = user.email;
+
+      // Customer rewards summary
+      const { data: reward } = await sb
+        .from('v_customer_rewards')
+        .select('*')
+        .eq('id', user.id)
+        .single();
+
+      if (reward) renderDashboard(reward);
+
+      // Activity feed
+      const { data: events } = await sb
+        .from('v_recent_point_events')
+        .select('*')
+        .eq('customer_id', user.id)
+        .limit(12);
+
+      renderFeed(events || []);
+
+      // Vouchers
+      const { data: vouchers } = await sb
+        .from('vouchers')
+        .select('*')
+        .eq('customer_id', user.id)
+        .order('created_at', { ascending: false });
+
+      renderVouchers(vouchers || []);
+
+      // Earning rules
+      loadRules();
+
+      // Highlight active tier card
+      if (reward) highlightTier(reward.tier);
+
+      // Scroll reveals
+      initReveal();
+    }
+
+    function renderDashboard(r) {
+      document.getElementById('dash-points').textContent  = r.points_balance.toLocaleString();
+      document.getElementById('dash-orders').textContent  = r.total_orders || 0;
+      document.getElementById('dash-tier-name').textContent = r.tier;
+
+      // Member since
+      const since = r.member_since ? new Date(r.member_since) : null;
+      document.getElementById('dash-since').textContent =
+        since ? since.toLocaleDateString('en-ZA', { month:'short', year:'numeric' }) : '—';
+
+      // Tier badge
+      const badgeEl = document.getElementById('dash-tier-badge');
+      badgeEl.innerHTML = `<span class="tier-badge ${r.tier}"><span class="tier-dot"></span>${r.tier}</span>`;
+
+      // Progress bar
+      let pct = 0, left = '', right = '';
+      if (r.tier === 'Origin') {
+        pct   = Math.min((r.points_balance / 1000) * 100, 100);
+        left  = `${r.points_balance} pts`;
+        right = `1,000 pts → Single`;
+        document.getElementById('dash-to-next').textContent =
+          `${r.points_to_next_tier} pts to Single tier`;
+      } else if (r.tier === 'Single') {
+        pct   = Math.min(((r.points_balance - 1000) / 2000) * 100, 100);
+        left  = `${r.points_balance} pts`;
+        right = `3,000 pts → Reserve`;
+        document.getElementById('dash-to-next').textContent =
+          `${r.points_to_next_tier} pts to Reserve tier`;
+        document.getElementById('progress-fill').classList.add('gold');
+      } else {
+        pct   = 100;
+        left  = `${r.points_balance} pts`;
+        right = `Reserve ✦`;
+        document.getElementById('dash-to-next').textContent = 'Maximum tier reached';
+        document.getElementById('progress-fill').classList.add('gold');
+      }
+
+      document.getElementById('prog-label-left').textContent  = left;
+      document.getElementById('prog-label-right').textContent = right;
+      setTimeout(() => {
+        document.getElementById('progress-fill').style.width = pct + '%';
+      }, 300);
+
+      // Redeem bar
+      if (r.vouchers_available > 0) {
+        const redeemBar = document.getElementById('redeem-bar');
+        redeemBar.style.display = 'flex';
+        document.getElementById('redeem-sub').textContent =
+          `You have enough points for ${r.vouchers_available} voucher${r.vouchers_available > 1 ? 's' : ''} · ${r.points_remainder} pts remaining after redemption`;
+      }
+    }
+
+    function renderFeed(events) {
+      const wrap = document.getElementById('feed-wrap');
+      document.getElementById('activity-count').textContent = `${events.length} recent`;
+
+      if (!events.length) {
+        wrap.innerHTML = '<div class="feed-empty">No activity yet — place your first order to start earning</div>';
+        return;
+      }
+
+      const typeLabels = {
+        signup: 'Signup', purchase: 'Purchase', instagram_follow: 'Instagram',
+        review: 'Review', referral: 'Referral', birthday: 'Birthday',
+        redemption: 'Redemption', manual_credit: 'Credit', manual_debit: 'Debit', expiry: 'Expiry'
+      };
+
+      wrap.innerHTML = events.map((e, i) => `
+        <div class="feed-item" style="animation-delay:${i * 0.05}s">
+          <span class="feed-type">${typeLabels[e.event_type] || e.event_type}</span>
+          <span class="feed-desc">${e.description || '—'}</span>
+          <span class="feed-date">${new Date(e.created_at).toLocaleDateString('en-ZA', { day:'numeric', month:'short' })}</span>
+          <span class="feed-pts ${e.points > 0 ? 'earn' : 'spend'}">
+            ${e.points > 0 ? '+' : ''}${e.points} pts
+          </span>
+        </div>
+      `).join('');
+    }
+
+    function renderVouchers(vouchers) {
+      if (!vouchers.length) return;
+
+      const section = document.getElementById('vouchers-section');
+      section.style.display = 'block';
+
+      const active = vouchers.filter(v => !v.redeemed && new Date(v.expires_at) > new Date());
+      document.getElementById('voucher-count').textContent =
+        `${active.length} active`;
+
+      document.getElementById('voucher-grid').innerHTML = vouchers.map(v => `
+        <div class="voucher-card">
+          ${v.redeemed ? '<span class="voucher-used">Used</span>' : ''}
+          <p class="voucher-value">R${v.value_rand / 100}</p>
+          <p class="voucher-code">${v.code}</p>
+          <p class="voucher-expiry">Expires ${new Date(v.expires_at).toLocaleDateString('en-ZA', { day:'numeric', month:'short', year:'numeric' })}</p>
+        </div>
+      `).join('');
+    }
+
+    async function loadRules() {
+      const { data } = await sb
+        .from('point_action_config')
+        .select('*')
+        .eq('active', true)
+        .order('points', { ascending: false });
+
+      const tbody = document.getElementById('rules-body');
+      if (!data || !data.length) { tbody.innerHTML = ''; return; }
+
+      tbody.innerHTML = data.map(r => `
+        <tr>
+          <td>
+            <p class="rule-name">${formatRuleName(r.event_type)}${r.one_time ? '<span class="rule-once">One-time</span>' : ''}</p>
+            <p class="rule-desc">${r.description}</p>
+          </td>
+          <td class="rule-badge">+${r.points} pts</td>
+        </tr>
+      `).join('');
+    }
+
+    function formatRuleName(t) {
+      return { signup:'Sign Up', purchase:'Purchase', instagram_follow:'Follow on Instagram',
+               review:'Leave a Review', referral:'Refer a Friend', birthday:'Birthday Bonus' }[t] || t;
+    }
+
+    function highlightTier(tier) {
+      document.querySelectorAll('.tier-card').forEach(card => {
+        const name = card.querySelector('.tier-card-name').textContent;
+        if (name === tier) card.classList.add('active-tier');
+      });
+    }
+
+    // ── REDEEM ──
+    async function handleRedeem() {
+      const { data: { user } } = await sb.auth.getUser();
+      if (!user) return;
+
+      // ── NOTE ──
+      // Redemption is now handled by a service-role Edge Function to 
+      // ensure atomic transactions and prevent unauthorized point manipulation.
+      
+      const { data, error } = await sb.functions.invoke('redeem-voucher', {
+        body: { 
+          customer_id: user.id,
+          points_cost: 500,
+          value_rand: 5000 
+        }
+      });
+
+      if (error) {
+        console.error('Redemption error:', error);
+        return toast('Redemption failed. Please try again.', 'error');
+      }
+
+      toast(`Voucher created successfully — check your list!`);
+      setTimeout(() => loadDashboard(user), 1000);
+    }
+
+    // ── SCROLL REVEAL ──
+    function initReveal() {
+      const els = document.querySelectorAll('.reveal');
+      const obs = new IntersectionObserver(entries => {
+        entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+      }, { threshold: 0.1 });
+      els.forEach(el => obs.observe(el));
+    }
+
+    // ── AUTH STATE LISTENER ──
+    sb.auth.onAuthStateChange(async (event, session) => {
+      if (session?.user) {
+        showPanel('dashboard');
+        await loadDashboard(session.user);
+      } else {
+        showPanel('login');
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,6 @@
+FROM node:18-alpine
+WORKDIR /app
+RUN npm install -g netlify-cli
+COPY . .
+EXPOSE 8888
+CMD ["netlify", "dev", "--port", "8888", "--host", "0.0.0.0"]

@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Payment Cancelled — Artifacts Coffee</title>
+<meta name="description" content="Your payment was cancelled. No funds were debited. Return to the store to try again.">
+<meta name="robots" content="noindex">
+<link rel="icon" href="images/favicon.ico" type="image/x-icon">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@300;400;500&family=Barlow+Condensed:ital,wght@0,400;0,600;0,700;0,900;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --cyan: #0FA8DF;
+    --yellow: #E1FF01;
+    --black: #080808;
+    --off: #101010;
+    --border: #1E1E1E;
+    --white: #F2F2F2;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--black);
+    color: var(--white);
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    line-height: 1.6;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 24px;
+    text-align: center;
+  }
+  .container {
+    max-width: 600px;
+    border: 1px solid var(--border);
+    padding: 60px 40px;
+    background: var(--off);
+  }
+  .icon {
+    width: 64px;
+    height: 64px;
+    margin-bottom: 24px;
+    color: var(--yellow);
+  }
+  h1 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 48px;
+    letter-spacing: 0.04em;
+    color: var(--white);
+    margin-bottom: 16px;
+  }
+  p {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 18px;
+    color: #888;
+    margin-bottom: 32px;
+  }
+  .btn {
+    display: inline-block;
+    background: var(--yellow);
+    color: var(--black);
+    padding: 14px 32px;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 20px;
+    letter-spacing: 0.1em;
+    text-decoration: none;
+    transition: all 0.2s;
+  }
+  .btn:hover {
+    opacity: 0.85;
+    transform: translateY(-2px);
+  }
+</style>
+</head>
+<body>
+  <div class="container">
+    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>
+    <h1>Payment Cancelled</h1>
+    <p>Your transaction has been cancelled. No funds were debited.</p>
+    <a href="index.html" class="btn">Back to Store</a>
+  </div>
+</body>
+</html>

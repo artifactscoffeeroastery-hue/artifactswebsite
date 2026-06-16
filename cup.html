@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="dark">
+<title>The Origin Cup &mdash; Artifacts Coffee</title>
+<meta name="description" content="The Origin Cup. 12oz matte ceramic. Designed in Johannesburg. Coming soon from Artifacts Coffee.">
+<meta property="og:title" content="The Origin Cup &mdash; Artifacts Coffee">
+<meta property="og:image" content="https://artifactscoffee.co.za/images/og/og-main.png">
+<link rel="icon" href="images/favicon.ico" type="image/x-icon">
+<link rel="apple-touch-icon" href="images/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@300;400;500&family=Barlow+Condensed:ital,wght@0,400;0,600;0,700;0,900;1,400&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+<noscript><link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@300;400;500&family=Barlow+Condensed:ital,wght@0,400;0,600;0,700;0,900;1,400&display=swap" rel="stylesheet"></noscript>
+<style>
+  :root {
+    color-scheme: dark;
+    --cyan:#0FA8DF;--yellow:#E1FF01;--black:#020c1a;--off:#071222;--mid:#0a1828;
+    --border:#122035;--white:#F2F2F2;--muted:#888;
+  }
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+  html{scroll-behavior:smooth;background:var(--black);forced-color-adjust:none;-webkit-forced-color-adjust:none;}
+  body{forced-color-adjust:none;-webkit-forced-color-adjust:none;background:var(--black);color:var(--white);font-family:'DM Mono',monospace;font-size:13px;line-height:1.6;overflow-x:hidden;min-height:100vh;}
+
+  /* NAV */
+  nav{position:sticky;top:0;z-index:300;width:100%;background:var(--black);border-bottom:2px solid var(--cyan);display:grid;grid-template-columns:1fr auto 1fr;align-items:center;padding:0 48px;height:66px;}
+  .nav-logo{display:flex;align-items:center;text-decoration:none;}
+  .nav-logo img{height:36px;display:block;}
+  .nav-back{font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:var(--muted);text-decoration:none;transition:color 0.2s;justify-self:start;}
+  .nav-back:hover{color:var(--cyan);}
+  .nav-shop{font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:var(--muted);text-decoration:none;transition:color 0.2s;justify-self:end;}
+  .nav-shop:hover{color:var(--yellow);}
+  @media(max-width:600px){nav{padding:0 20px;}nav .nav-logo img{height:28px;}}
+
+  /* HERO SPLIT */
+  .cup-hero{display:grid;grid-template-columns:1fr 1fr;min-height:calc(100vh - 66px);border-bottom:1px solid var(--border);}
+  @media(max-width:860px){.cup-hero{grid-template-columns:1fr;min-height:auto;}}
+
+  /* VISUAL SIDE */
+  .cup-visual{position:relative;background:var(--off);display:flex;align-items:center;justify-content:center;overflow:hidden;min-height:500px;}
+  .cup-visual-glow{position:absolute;width:500px;height:300px;border-radius:50%;background:radial-gradient(ellipse,rgba(15,168,223,0.22) 0%,rgba(225,255,1,0.06) 50%,transparent 70%);top:50%;left:50%;transform:translate(-50%,-50%);filter:blur(60px);pointer-events:none;}
+  .cup-visual-inner{position:relative;z-index:1;width:100%;max-width:460px;padding:60px 40px;}
+  .cup-visual-inner img{width:100%;object-fit:contain;display:block;animation:float 7s ease-in-out infinite;filter:drop-shadow(0 40px 80px rgba(0,0,0,0.6));}
+  @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-14px)}}
+  .cup-badge-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:28px;}
+  .cup-badge-new{background:var(--yellow);color:var(--black);font-family:'Bebas Neue',sans-serif;font-size:11px;letter-spacing:2.5px;padding:5px 12px;}
+  .cup-badge-ltd{font-size:10px;color:rgba(255,255,255,0.28);letter-spacing:2.5px;text-transform:uppercase;font-family:'Barlow Condensed',sans-serif;font-weight:600;}
+  .cup-visual::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--cyan),var(--yellow) 60%,transparent);}
+
+  /* INFO SIDE */
+  .cup-info{padding:72px 60px;display:flex;flex-direction:column;justify-content:center;border-left:1px solid var(--border);}
+  @media(max-width:860px){.cup-info{padding:56px 28px;border-left:none;border-top:1px solid var(--border);}}
+
+  .cup-kicker{font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;letter-spacing:0.28em;text-transform:uppercase;color:var(--cyan);margin-bottom:8px;}
+  .cup-title{font-family:'Bebas Neue',sans-serif;font-size:clamp(72px,9vw,120px);line-height:0.88;letter-spacing:0.02em;margin-bottom:12px;}
+  .cup-subtitle{font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:600;letter-spacing:0.15em;text-transform:uppercase;color:var(--cyan);margin-bottom:32px;}
+
+  .cup-desc{font-size:13px;color:#888;line-height:1.9;margin-bottom:40px;max-width:460px;}
+
+  /* SPECS GRID */
+  .cup-specs{display:grid;grid-template-columns:1fr 1fr;gap:20px 32px;margin-bottom:40px;padding:28px;background:var(--off);border:1px solid var(--border);}
+  .cup-spec-item{display:flex;flex-direction:column;gap:4px;}
+  .cup-spec-l{font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;letter-spacing:0.22em;text-transform:uppercase;color:#444;}
+  .cup-spec-v{font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:600;letter-spacing:0.06em;color:var(--white);}
+  @media(max-width:480px){.cup-specs{grid-template-columns:1fr;}}
+
+  /* PRICE + CTA */
+  .cup-divider{width:100%;height:1px;background:var(--border);margin:0 0 32px;}
+  .cup-price-row{display:flex;align-items:baseline;gap:10px;margin-bottom:8px;}
+  .cup-r{font-family:'Barlow Condensed',sans-serif;font-size:22px;color:#555;}
+  .cup-price{font-family:'Bebas Neue',sans-serif;font-size:72px;line-height:1;letter-spacing:0.02em;color:var(--white);}
+  .cup-price-note{font-size:11px;color:#555;margin-bottom:28px;font-family:'DM Mono',monospace;}
+
+  .cup-oos-btn{position:relative;width:100%;padding:18px 32px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.1);color:rgba(255,255,255,0.28);font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:0.1em;cursor:not-allowed;overflow:hidden;margin-bottom:20px;}
+  .cup-oos-line{position:absolute;top:50%;left:-10px;width:calc(100% + 20px);height:1px;background:rgba(255,255,255,0.12);transform:rotate(-5deg);}
+
+  /* NOTIFY FORM */
+  .notify-section{background:var(--off);border:1px solid var(--border);padding:28px;margin-bottom:0;}
+  .notify-label{font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;letter-spacing:0.2em;text-transform:uppercase;color:var(--cyan);margin-bottom:6px;display:block;}
+  .notify-heading{font-family:'Bebas Neue',sans-serif;font-size:24px;letter-spacing:0.06em;color:var(--white);margin-bottom:4px;}
+  .notify-sub{font-size:11px;color:#555;margin-bottom:16px;font-family:'DM Mono',monospace;}
+  .notify-row{display:flex;gap:8px;}
+  .notify-input{flex:1;background:var(--black);border:1px solid var(--border);color:var(--white);font-family:'DM Mono',monospace;font-size:13px;padding:12px 14px;outline:none;transition:border-color 0.2s;}
+  .notify-input:focus{border-color:var(--cyan);}
+  .notify-input::placeholder{color:#333;}
+  .notify-btn{background:var(--cyan);color:var(--black);border:none;font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:0.1em;padding:12px 24px;cursor:pointer;white-space:nowrap;transition:opacity 0.2s;}
+  .notify-btn:hover{opacity:0.85;}
+  .notify-feedback{font-family:'DM Mono',monospace;font-size:11px;color:var(--cyan);margin-top:10px;min-height:16px;}
+  @media(max-width:480px){.notify-row{flex-direction:column;}}
+
+  /* TRUST */
+  .cup-trust{display:flex;gap:24px;margin-top:24px;flex-wrap:wrap;}
+  .cup-trust-item{font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:#444;}
+
+  /* STORY SECTION */
+  .cup-story{padding:96px 60px;border-bottom:1px solid var(--border);max-width:860px;margin:0 auto;}
+  @media(max-width:860px){.cup-story{padding:64px 28px;}}
+  .story-kicker{font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;letter-spacing:0.28em;text-transform:uppercase;color:var(--cyan);margin-bottom:16px;}
+  .story-title{font-family:'Bebas Neue',sans-serif;font-size:clamp(48px,6vw,80px);line-height:0.9;letter-spacing:0.02em;margin-bottom:36px;}
+  .story-body{font-size:13px;color:#777;line-height:2;margin-bottom:32px;max-width:680px;}
+  .story-body strong{color:var(--white);font-weight:500;}
+
+  /* FOOTER */
+  .cup-footer{padding:40px 60px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:20px;}
+  @media(max-width:600px){.cup-footer{padding:32px 24px;flex-direction:column;text-align:center;}}
+  .cup-footer img{height:32px;opacity:0.5;}
+  .cup-footer-links{display:flex;gap:24px;list-style:none;font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;}
+  .cup-footer-links a{color:#444;text-decoration:none;transition:color 0.2s;}
+  .cup-footer-links a:hover{color:var(--yellow);}
+  .cup-footer-copy{font-size:11px;color:#333;width:100%;border-top:1px solid var(--border);padding-top:16px;margin-top:4px;}
+
+  .reveal{opacity:0;transform:translateY(20px);transition:opacity 0.7s ease,transform 0.7s ease;}
+  .reveal.in{opacity:1;transform:none;}
+  .d1{transition-delay:0.12s;}.d2{transition-delay:0.24s;}.d3{transition-delay:0.36s;}
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="index.html" class="nav-back">&larr; Back to Store</a>
+  <div class="nav-logo"><a href="index.html" style="display:block;line-height:0;"><img src="images/logo.png" alt="Artifacts Coffee"></a></div>
+  <a href="rewards.html" class="nav-shop" style="color:var(--yellow)">Brew Circle</a>
+</nav>
+
+<div class="cup-hero">
+
+  <!-- VISUAL -->
+  <div class="cup-visual">
+    <div class="cup-visual-glow"></div>
+    <div class="cup-visual-inner">
+      <div class="cup-badge-row">
+        <span class="cup-badge-new">New Release</span>
+        <span class="cup-badge-ltd">Limited Edition</span>
+      </div>
+      <picture><source srcset="images/cup.webp" type="image/webp"><img src="images/cup.png" alt="Artifacts Origin Cup — 12oz Matte Cyan"></picture>
+    </div>
+  </div>
+
+  <!-- INFO -->
+  <div class="cup-info">
+    <p class="cup-kicker reveal">005 &mdash; Artifacts Merch</p>
+    <h1 class="cup-title reveal d1">The<br>Origin<br>Cup</h1>
+    <p class="cup-subtitle reveal d1">12oz Ceramic &middot; Matte Cyan Series</p>
+
+    <p class="cup-desc reveal d2">Designed in Johannesburg. Built for the ritual. The Origin Cup carries the Artifacts mark &mdash; bold cyan on matte ceramic, the cup icon that shaped our identity. A collector&rsquo;s piece for those who understand that every cup is an act of intention.</p>
+
+    <div class="cup-specs reveal d2">
+      <div class="cup-spec-item"><span class="cup-spec-l">Material</span><span class="cup-spec-v">Matte Ceramic</span></div>
+      <div class="cup-spec-item"><span class="cup-spec-l">Volume</span><span class="cup-spec-v">12oz / 340ml</span></div>
+      <div class="cup-spec-item"><span class="cup-spec-l">Finish</span><span class="cup-spec-v">Matte Cyan Series</span></div>
+      <div class="cup-spec-item"><span class="cup-spec-l">Origin</span><span class="cup-spec-v">Johannesburg, ZA</span></div>
+    </div>
+
+    <div class="cup-divider reveal d3"></div>
+
+    <div class="cup-price-row reveal d3">
+      <span class="cup-r">R</span>
+      <span class="cup-price">150</span>
+    </div>
+    <p class="cup-price-note reveal d3">incl. VAT &middot; ships nationwide &middot; limited stock</p>
+
+    <button class="cup-oos-btn" disabled aria-label="Currently out of stock">
+      <span class="cup-oos-line"></span>
+      Out of Stock
+    </button>
+
+    <div class="notify-section reveal d3">
+      <span class="notify-label">Get notified</span>
+      <h2 class="notify-heading">Be First When It Drops</h2>
+      <p class="notify-sub">Enter your email and we&rsquo;ll notify you the moment stock arrives.</p>
+      <div class="notify-row">
+        <input type="email" id="notify-email" class="notify-input" placeholder="you@example.com" />
+        <button class="notify-btn" onclick="handleNotify()">Notify Me</button>
+      </div>
+      <p class="notify-feedback" id="notify-feedback"></p>
+    </div>
+
+    <div class="cup-trust reveal d3">
+      <span class="cup-trust-item">&#10022; Limited Edition</span>
+      <span class="cup-trust-item">&#127969; Made in JHB</span>
+      <span class="cup-trust-item">&#9889; Ships Nationwide</span>
+    </div>
+  </div>
+
+</div>
+
+<!-- STORY -->
+<section class="cup-story">
+  <p class="story-kicker reveal">The Object</p>
+  <h2 class="story-title reveal">An Artefact<br>You Drink From</h2>
+  <p class="story-body reveal">The name Artifacts Coffee came from a background in information systems &mdash; where an &ldquo;artefact&rdquo; is the deliberate, tangible output of a careful process. The cup follows that same logic.</p>
+  <p class="story-body reveal">Every dimension was considered. The weight in the hand. The matte finish that doesn&rsquo;t mark. The cyan that doesn&rsquo;t shout. This isn&rsquo;t merchandise for the sake of it &mdash; it&rsquo;s the vessel we wanted to drink our own coffee from, and we figured you might feel the same.</p>
+  <p class="story-body reveal"><strong>12oz because that&rsquo;s the right size for a flat white or a long black without compromise.</strong> Matte ceramic because gloss belongs in commercial kitchens. Cyan because it&rsquo;s ours.</p>
+</section>
+
+<footer class="cup-footer">
+  <img src="images/logo.png" alt="Artifacts Coffee">
+  <ul class="cup-footer-links">
+    <li><a href="index.html">Shop</a></li>
+    <li><a href="rewards.html" style="color:var(--yellow)">Brew Circle</a></li>
+    <li><a href="terms.html">Terms</a></li>
+    <li><a href="privacy.html">Privacy</a></li>
+  </ul>
+  <p class="cup-footer-copy">&copy; 2026 Artifacts Coffee. Roasted in Johannesburg, South Africa.</p>
+</footer>
+
+<script>
+  // Reveal on scroll
+  const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } }), { threshold: 0.1 });
+  document.querySelectorAll('.reveal').forEach(r => io.observe(r));
+  // Hero elements reveal immediately
+  document.querySelectorAll('.cup-info .reveal').forEach((el, i) => {
+    el.style.transitionDelay = (i * 0.1) + 's';
+    requestAnimationFrame(() => requestAnimationFrame(() => el.classList.add('in')));
+  });
+
+  // Notify handler — sends to your email via mailto fallback; swap for Resend API when ready
+  function handleNotify() {
+    const inp = document.getElementById('notify-email');
+    const fb  = document.getElementById('notify-feedback');
+    const email = inp ? inp.value.trim() : '';
+    if (!email || !email.includes('@')) { fb.textContent = 'Please enter a valid email address.'; fb.style.color = '#FF8C00'; return; }
+    // Send via mailto as fallback (replace with fetch to Netlify function when ready)
+    window.location.href = 'mailto:artifacts.coffee.roastery@gmail.com?subject=Origin%20Cup%20Notify%20Request&body=Please%20notify%20me%20when%20the%20Origin%20Cup%20is%20back%20in%20stock.%0A%0AEmail%3A%20' + encodeURIComponent(email);
+    fb.textContent = 'Thanks — we’ll be in touch when it drops.';
+    fb.style.color = 'var(--cyan)';
+    inp.value = '';
+  }
+
+  document.getElementById('notify-email').addEventListener('keydown', e => { if (e.key === 'Enter') handleNotify(); });
+</script>
+</body>
+</html>

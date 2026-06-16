@@ -1,0 +1,9 @@
+# Local Netlify folder
+.netlify
+
+# Local env — never commit real keys
+.env.local
+.env
+
+# Postman collections (may contain API keys)
+*.postman_collection.json
