@@ -64,15 +64,19 @@ exports.handler = async (event) => {
     }
 
     const data = await res.json();
-    const quotes = (data.rates || data || []).map(r => ({
+    const tcgQuotes = (data.rates || data || []).map(r => ({
       code: r.service_level?.code || r.code || 'tcg',
       label: r.service_level?.name || r.name || 'Courier',
       amount: Math.ceil(r.rate_excluding_vat ? r.rate_excluding_vat * 1.15 : r.total || r.amount || 100)
     }));
 
+    // Always prepend PUDO as a fixed flat-rate collect option
+    const pudo = { code: 'pudo', label: 'TCG PUDO Locker (Collect)', amount: 60 };
+    const quotes = tcgQuotes.length ? [pudo, ...tcgQuotes] : fallback(destination);
+
     return {
       statusCode: 200,
-      body: JSON.stringify({ quotes: quotes.length ? quotes : fallback(destination), source: quotes.length ? 'tcg' : 'fallback' })
+      body: JSON.stringify({ quotes, source: tcgQuotes.length ? 'tcg' : 'fallback' })
     };
   } catch (e) {
     console.error('getShipping error:', e.message);
