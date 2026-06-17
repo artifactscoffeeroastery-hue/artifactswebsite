@@ -115,7 +115,80 @@ function showShipping() {
   document.getElementById('step-account').style.display='none';
   document.getElementById('step-shipping').style.display='block';
   renderCart(); calcTotal();
+  loadPlacesAutocomplete();
+  updateFounderCartBanner();
 }
+
+function updateFounderCartBanner() {
+  const banner = document.getElementById('founder-cart-banner');
+  const spotsEl = document.getElementById('founder-spots');
+  const bannerSpots = document.getElementById('founder-banner-spots');
+  if (!banner) return;
+  const spots = spotsEl ? parseInt(spotsEl.textContent) : 0;
+  if (spots > 0) {
+    banner.style.display = 'block';
+    if (bannerSpots) bannerSpots.textContent = spots + ' spot' + (spots === 1 ? '' : 's') + ' left';
+  } else {
+    banner.style.display = 'none';
+  }
+}
+
+function copyFounderCodeCart() {
+  navigator.clipboard.writeText('FOUNDER20').then(() => {
+    const btn = document.querySelector('#founder-cart-banner button');
+    if (btn) { btn.textContent = 'Copied!'; setTimeout(() => { btn.textContent = 'Copy'; }, 2000); }
+  });
+}
+
+let _placesLoaded = false;
+function loadPlacesAutocomplete() {
+  if (_placesLoaded) return;
+  _placesLoaded = true;
+  const script = document.createElement('script');
+  script.src = 'https://maps.googleapis.com/maps/api/js?key=AIzaSyDq2W8YZi8ahxNIyY9fE0HHFXWJQmaoqx8&libraries=places&loading=async&callback=initPlacesAutocomplete';
+  script.async = true; script.defer = true;
+  document.head.appendChild(script);
+}
+
+window.initPlacesAutocomplete = function() {
+  const input = document.getElementById('ship-address-line1');
+  if (!input || !window.google) return;
+  const ac = new google.maps.places.Autocomplete(input, {
+    componentRestrictions: { country: 'za' },
+    fields: ['address_components'],
+    types: ['address']
+  });
+  ac.addListener('place_changed', () => {
+    const place = ac.getPlace();
+    if (!place.address_components) return;
+    const get = (type) => {
+      const c = place.address_components.find(c => c.types.includes(type));
+      return c ? c.long_name : '';
+    };
+    const getShort = (type) => {
+      const c = place.address_components.find(c => c.types.includes(type));
+      return c ? c.short_name : '';
+    };
+    // Populate fields
+    const suburb = document.getElementById('ship-suburb');
+    const city   = document.getElementById('ship-city');
+    const postal = document.getElementById('ship-postal-code');
+    const prov   = document.getElementById('ship-province');
+    if (suburb) suburb.value = get('sublocality_level_1') || get('neighborhood') || get('locality') || '';
+    if (city)   city.value   = get('locality') || get('administrative_area_level_2') || '';
+    if (postal) postal.value = get('postal_code') || '';
+    // Match province
+    const provName = get('administrative_area_level_1').toLowerCase();
+    if (prov) {
+      Array.from(prov.options).forEach(opt => {
+        if (provName.includes(opt.value.toLowerCase()) || opt.value.toLowerCase().includes(provName.split(' ')[0])) {
+          prov.value = opt.value;
+        }
+      });
+    }
+    setStatus('shipping-validation-status', 'Address filled — tap Refresh to get courier rates.', 'success');
+  });
+};
 function closeCart() { document.getElementById('cartDrawer').classList.remove('active'); }
 function continueAsGuest() {
   const name = (document.getElementById('guest-name')||{}).value?.trim();
