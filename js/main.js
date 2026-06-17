@@ -49,7 +49,10 @@ document.addEventListener('DOMContentLoaded', () => {
   const autoFetchIfReady = () => {
     const prov = document.getElementById('ship-province');
     const post = document.getElementById('ship-postal-code');
-    if (prov && post && prov.value && post.value.length >= 4) fetchShippingQuotes();
+    if (prov && post && prov.value && post.value.length >= 4) {
+      setStatus('shipping-rate-status', 'Loading rates…', 'info');
+      fetchShippingQuotes();
+    }
   };
   const provSel = document.getElementById('ship-province');
   if (provSel) provSel.addEventListener('change', autoFetchIfReady);
@@ -154,7 +157,7 @@ function showShipping() {
   document.getElementById('cartDrawer').classList.add('active');
   document.getElementById('step-account').style.display='none';
   document.getElementById('step-shipping').style.display='block';
-  const f = document.querySelector('.cart-footer'); if (f) f.style.display='';
+  const f = document.querySelector('.cart-footer'); if (f) f.style.display='block';
   renderCart(); calcTotal();
   loadPlacesAutocomplete();
   updateFounderCartBanner();
