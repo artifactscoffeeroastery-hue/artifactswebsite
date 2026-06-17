@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Artifacts Coffee — Buying Journey UX Case Study</title>
+<style>
+  :root {
+    --bg: #0d0d0d;
+    --surface: #141414;
+    --surface2: #1c1c1c;
+    --border: #2a2a2a;
+    --cyan: #00c8e0;
+    --cyan-dim: rgba(0,200,224,0.12);
+    --yellow: #e8e000;
+    --red: #e03c3c;
+    --orange: #e07a00;
+    --green: #00c87a;
+    --text: #f0f0f0;
+    --muted: #888;
+    --font: 'Inter', system-ui, sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font);
+    font-size: 15px;
+    line-height: 1.6;
+  }
+
+  /* ── HERO ── */
+  .hero {
+    padding: 80px 24px 64px;
+    max-width: 960px;
+    margin: 0 auto;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .hero-tag {
+    display: inline-block;
+    background: var(--cyan-dim);
+    color: var(--cyan);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 4px 12px;
+    border-radius: 4px;
+    margin-bottom: 24px;
+  }
+
+  .hero h1 {
+    font-size: clamp(32px, 5vw, 56px);
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    line-height: 1.1;
+    margin-bottom: 20px;
+  }
+
+  .hero h1 span { color: var(--cyan); }
+
+  .hero p {
+    font-size: 17px;
+    color: var(--muted);
+    max-width: 580px;
+    margin-bottom: 40px;
+  }
+
+  .meta-row {
+    display: flex;
+    gap: 32px;
+    flex-wrap: wrap;
+  }
+
+  .meta-item label {
+    display: block;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 4px;
+  }
+
+  .meta-item span {
+    font-size: 14px;
+    color: var(--text);
+  }
+
+  /* ── SECTION ── */
+  section {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 64px 24px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .section-label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--cyan);
+    margin-bottom: 12px;
+  }
+
+  h2 {
+    font-size: clamp(22px, 3vw, 32px);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    margin-bottom: 40px;
+  }
+
+  /* ── JOURNEY MAP ── */
+  .journey-map {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 0;
+    margin-bottom: 0;
+    position: relative;
+  }
+
+  .journey-map::before {
+    content: '';
+    position: absolute;
+    top: 40px;
+    left: 10%;
+    right: 10%;
+    height: 2px;
+    background: linear-gradient(90deg, var(--cyan) 0%, var(--cyan) 60%, var(--red) 100%);
+    z-index: 0;
+  }
+
+  .journey-step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    position: relative;
+    z-index: 1;
+    padding: 0 8px;
+  }
+
+  .step-node {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    border: 2px solid var(--cyan);
+    background: var(--bg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    margin-bottom: 14px;
+    flex-shrink: 0;
+  }
+
+  .step-node.has-friction {
+    border-color: var(--orange);
+  }
+
+  .step-node.critical-friction {
+    border-color: var(--red);
+    box-shadow: 0 0 16px rgba(224,60,60,0.3);
+  }
+
+  .step-title {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--text);
+    margin-bottom: 6px;
+  }
+
+  .step-desc {
+    font-size: 11px;
+    color: var(--muted);
+    line-height: 1.5;
+  }
+
+  .emotion-bar {
+    margin-top: 40px;
+    padding: 24px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+  }
+
+  .emotion-bar label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    display: block;
+    margin-bottom: 16px;
+  }
+
+  .emotion-curve {
+    width: 100%;
+    height: 80px;
+  }
+
+  /* ── AUDIT TABLE ── */
+  .audit-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .audit-item {
+    display: grid;
+    grid-template-columns: 100px 1fr auto;
+    align-items: start;
+    gap: 20px;
+    padding: 20px 24px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    transition: border-color 0.2s;
+  }
+
+  .audit-item:hover { border-color: #3a3a3a; }
+
+  .audit-item.critical { border-left: 3px solid var(--red); }
+  .audit-item.high     { border-left: 3px solid var(--orange); }
+  .audit-item.medium   { border-left: 3px solid var(--yellow); }
+  .audit-item.low      { border-left: 3px solid var(--muted); }
+
+  .severity-badge {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 4px 8px;
+    border-radius: 4px;
+    white-space: nowrap;
+  }
+
+  .severity-badge.critical { background: rgba(224,60,60,0.15); color: var(--red); }
+  .severity-badge.high     { background: rgba(224,122,0,0.15); color: var(--orange); }
+  .severity-badge.medium   { background: rgba(232,224,0,0.12); color: var(--yellow); }
+  .severity-badge.low      { background: rgba(136,136,136,0.12); color: var(--muted); }
+
+  .audit-content h3 {
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+
+  .audit-content p {
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.55;
+  }
+
+  .audit-screen {
+    font-size: 11px;
+    color: var(--muted);
+    white-space: nowrap;
+    text-align: right;
+    padding-top: 2px;
+  }
+
+  /* ── RECOMMENDATIONS ── */
+  .recs-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+
+  .rec-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .rec-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: var(--cyan);
+  }
+
+  .rec-number {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    color: var(--cyan);
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+
+  .rec-card h3 {
+    font-size: 15px;
+    font-weight: 700;
+    margin-bottom: 10px;
+  }
+
+  .rec-card p {
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.6;
+    margin-bottom: 14px;
+  }
+
+  .impact-row {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .impact-tag {
+    font-size: 11px;
+    padding: 3px 10px;
+    border-radius: 20px;
+    background: var(--cyan-dim);
+    color: var(--cyan);
+    font-weight: 600;
+  }
+
+  /* ── SUMMARY METRICS ── */
+  .metrics-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 48px;
+  }
+
+  .metric-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px;
+    text-align: center;
+  }
+
+  .metric-value {
+    font-size: 36px;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    margin-bottom: 4px;
+  }
+
+  .metric-value.red { color: var(--red); }
+  .metric-value.orange { color: var(--orange); }
+  .metric-value.cyan { color: var(--cyan); }
+  .metric-value.green { color: var(--green); }
+
+  .metric-label {
+    font-size: 12px;
+    color: var(--muted);
+  }
+
+  /* ── FOOTER ── */
+  footer {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 40px 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  footer p { font-size: 13px; color: var(--muted); }
+  footer a { color: var(--cyan); text-decoration: none; }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 700px) {
+    .journey-map { grid-template-columns: 1fr 1fr; gap: 24px; }
+    .journey-map::before { display: none; }
+    .audit-item { grid-template-columns: 1fr; }
+    .audit-screen { text-align: left; }
+    .recs-grid { grid-template-columns: 1fr; }
+    .metrics-row { grid-template-columns: 1fr 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ─── HERO ─── -->
+<div class="hero">
+  <div class="hero-tag">UX Case Study</div>
+  <h1>Artifacts Coffee<br /><span>Buying Journey</span></h1>
+  <p>A mobile checkout audit of artifactscoffee.co.za — mapping friction points, user emotions, and actionable improvements across the end-to-end purchase flow.</p>
+  <div class="meta-row">
+    <div class="meta-item">
+      <label>Platform</label>
+      <span>Mobile Web (Android)</span>
+    </div>
+    <div class="meta-item">
+      <label>Scope</label>
+      <span>Product → Cart → Delivery → Payment</span>
+    </div>
+    <div class="meta-item">
+      <label>Method</label>
+      <span>Heuristic Evaluation · Journey Mapping</span>
+    </div>
+    <div class="meta-item">
+      <label>Date</label>
+      <span>June 2026</span>
+    </div>
+  </div>
+</div>
+
+<!-- ─── JOURNEY MAP ─── -->
+<section>
+  <div class="section-label">01 — Journey Map</div>
+  <h2>5 Stages, 1 Critical Drop-off Risk</h2>
+
+  <div class="journey-map">
+    <div class="journey-step">
+      <div class="step-node">☕</div>
+      <div class="step-title">Discovery</div>
+      <div class="step-desc">User lands on product page. Sees Blue Ayarza tasting notes, selects size.</div>
+    </div>
+    <div class="journey-step">
+      <div class="step-node">🛒</div>
+      <div class="step-title">Add to Cart</div>
+      <div class="step-desc">Adds 200g + 1kg. Moves to cart with promo code auto-applied.</div>
+    </div>
+    <div class="journey-step">
+      <div class="step-node has-friction">📦</div>
+      <div class="step-title">Delivery Setup</div>
+      <div class="step-desc">Fills 6-field form. Manually refreshes rates. Selects courier option.</div>
+    </div>
+    <div class="journey-step">
+      <div class="step-node critical-friction">⚠️</div>
+      <div class="step-title">Rate Change</div>
+      <div class="step-desc">Switches to Local Overnight. Discount code silently disappears. Total jumps.</div>
+    </div>
+    <div class="journey-step">
+      <div class="step-node has-friction">💳</div>
+      <div class="step-title">Payment</div>
+      <div class="step-desc">Redirected to PayFast. User may re-enter discount, or abandon.</div>
+    </div>
+  </div>
+
+  <div class="emotion-bar">
+    <label>User Sentiment Curve</label>
+    <svg class="emotion-curve" viewBox="0 0 900 80" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
+      <defs>
+        <linearGradient id="sentGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" style="stop-color:#00c8e0;stop-opacity:1" />
+          <stop offset="55%" style="stop-color:#00c8e0;stop-opacity:1" />
+          <stop offset="72%" style="stop-color:#e07a00;stop-opacity:1" />
+          <stop offset="82%" style="stop-color:#e03c3c;stop-opacity:1" />
+          <stop offset="100%" style="stop-color:#e03c3c;stop-opacity:0.6" />
+        </linearGradient>
+        <linearGradient id="fillGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" style="stop-color:#00c8e0;stop-opacity:0.15" />
+          <stop offset="100%" style="stop-color:#00c8e0;stop-opacity:0" />
+        </linearGradient>
+      </defs>
+      <!-- fill area -->
+      <path d="M 50 20 C 150 10, 250 8, 350 15 C 450 22, 520 18, 580 35 C 630 48, 680 62, 750 68 C 800 72, 840 70, 880 66 L 880 80 L 50 80 Z"
+            fill="url(#fillGrad)" />
+      <!-- sentiment line -->
+      <path d="M 50 20 C 150 10, 250 8, 350 15 C 450 22, 520 18, 580 35 C 630 48, 680 62, 750 68 C 800 72, 840 70, 880 66"
+            fill="none" stroke="url(#sentGrad)" stroke-width="2.5" stroke-linecap="round" />
+      <!-- stage markers -->
+      <circle cx="50"  cy="20" r="4" fill="#00c8e0" />
+      <circle cx="230" cy="10" r="4" fill="#00c8e0" />
+      <circle cx="460" cy="20" r="4" fill="#00c8e0" />
+      <circle cx="660" cy="60" r="4" fill="#e03c3c" />
+      <circle cx="880" cy="66" r="4" fill="#e03c3c" opacity="0.6" />
+      <!-- labels -->
+      <text x="50"  y="75" fill="#888" font-size="10" text-anchor="middle" font-family="system-ui">Discovery</text>
+      <text x="230" y="75" fill="#888" font-size="10" text-anchor="middle" font-family="system-ui">Add to Cart</text>
+      <text x="460" y="75" fill="#888" font-size="10" text-anchor="middle" font-family="system-ui">Delivery Setup</text>
+      <text x="660" y="75" fill="#e03c3c" font-size="10" text-anchor="middle" font-family="system-ui">Rate Change ⚠</text>
+      <text x="880" y="75" fill="#888" font-size="10" text-anchor="middle" font-family="system-ui">Payment</text>
+    </svg>
+  </div>
+</section>
+
+<!-- ─── AUDIT ─── -->
+<section>
+  <div class="section-label">02 — UX Audit</div>
+  <h2>9 Issues Found Across the Flow</h2>
+
+  <div class="metrics-row">
+    <div class="metric-card">
+      <div class="metric-value red">1</div>
+      <div class="metric-label">Critical</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-value orange">3</div>
+      <div class="metric-label">High</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-value" style="color:var(--yellow)">3</div>
+      <div class="metric-label">Medium</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-value" style="color:var(--muted)">2</div>
+      <div class="metric-label">Low</div>
+    </div>
+  </div>
+
+  <div class="audit-grid">
+
+    <div class="audit-item critical">
+      <span class="severity-badge critical">Critical</span>
+      <div class="audit-content">
+        <h3>Discount code silently disappears on delivery change</h3>
+        <p>When the user switches from PUDO Locker to Local Overnight, the applied FOUNDER20 code is cleared with no warning. The total jumps from R790 to R872 — a R82 increase. Users who don't notice are overcharged; users who do notice must re-enter the code, risking abandonment.</p>
+      </div>
+      <div class="audit-screen">Cart → Delivery</div>
+    </div>
+
+    <div class="audit-item high">
+      <span class="severity-badge high">High</span>
+      <div class="audit-content">
+        <h3>Manual rate refresh required</h3>
+        <p>"REFRESH DELIVERY RATES" is a button the user must tap. Delivery rates should recalculate automatically when address fields change. This adds cognitive overhead and suggests the system isn't responsive.</p>
+      </div>
+      <div class="audit-screen">Cart</div>
+    </div>
+
+    <div class="audit-item high">
+      <span class="severity-badge high">High</span>
+      <div class="audit-content">
+        <h3>Ambiguous "delivery details required" warning</h3>
+        <p>After switching to home delivery, the page shows "Delivery details required for courier booking." The form appears filled. The message doesn't tell the user what's missing or what action to take.</p>
+      </div>
+      <div class="audit-screen">Cart</div>
+    </div>
+
+    <div class="audit-item high">
+      <span class="severity-badge high">High</span>
+      <div class="audit-content">
+        <h3>Promo banner text clipped on mobile</h3>
+        <p>The FOUNDER20 banner is cut off — "se at checkout for R20 off your first order" is visible, but the beginning is hidden off-screen. New users can't read the full value proposition without scrolling sideways.</p>
+      </div>
+      <div class="audit-screen">Cart</div>
+    </div>
+
+    <div class="audit-item medium">
+      <span class="severity-badge medium">Medium</span>
+      <div class="audit-content">
+        <h3>6-field delivery form with no autocomplete</h3>
+        <p>Phone, province, street address, suburb, city, and postal code are all separate manual inputs on mobile. Google Places / address autocomplete would collapse this to 1–2 taps.</p>
+      </div>
+      <div class="audit-screen">Cart</div>
+    </div>
+
+    <div class="audit-item medium">
+      <span class="severity-badge medium">Medium</span>
+      <div class="audit-content">
+        <h3>No sticky order total while scrolling</h3>
+        <p>The cart page is long. As the user scrolls through delivery fields, the order total and CTA button scroll out of view. A sticky footer with total + "Pay" keeps the goal visible.</p>
+      </div>
+      <div class="audit-screen">Cart</div>
+    </div>
+
+    <div class="audit-item medium">
+      <span class="severity-badge medium">Medium</span>
+      <div class="audit-content">
+        <h3>Collect vs. deliver not clearly separated</h3>
+        <p>PUDO Locker (collect) and courier options (deliver to address) are shown in the same flat list. Different flows — one needs no address, one needs 6 fields — should be separated visually (e.g., tabs or segmented control).</p>
+      </div>
+      <div class="audit-screen">Delivery Picker</div>
+    </div>
+
+    <div class="audit-item low">
+      <span class="severity-badge low">Low</span>
+      <div class="audit-content">
+        <h3>Product page defaults to smallest size</h3>
+        <p>80g (R75) is pre-selected, but specialty coffee buyers often want 200g or 1kg. Defaulting to the most popular size reduces add-to-cart friction.</p>
+      </div>
+      <div class="audit-screen">Product Page</div>
+    </div>
+
+    <div class="audit-item low">
+      <span class="severity-badge low">Low</span>
+      <div class="audit-content">
+        <h3>Scarcity indicator lacks context</h3>
+        <p>"17 spots left" implies limited stock but it's unclear if this is per bag, per batch, or per week. Specificity ("17 bags of this roast left") increases trust and urgency.</p>
+      </div>
+      <div class="audit-screen">Cart</div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ─── RECOMMENDATIONS ─── -->
+<section>
+  <div class="section-label">03 — Recommendations</div>
+  <h2>6 Changes, Ranked by Impact</h2>
+
+  <div class="recs-grid">
+
+    <div class="rec-card">
+      <div class="rec-number">Fix 01 · Critical</div>
+      <h3>Persist discount codes across delivery changes</h3>
+      <p>Store the applied promo code in cart state. When delivery method changes, re-validate and re-apply the code automatically. If the code becomes invalid for the new method, show an inline message — never silently clear it.</p>
+      <div class="impact-row">
+        <span class="impact-tag">Revenue protection</span>
+        <span class="impact-tag">Trust</span>
+      </div>
+    </div>
+
+    <div class="rec-card">
+      <div class="rec-number">Fix 02 · High</div>
+      <h3>Auto-refresh delivery rates on field blur</h3>
+      <p>Trigger a rate recalculation whenever the province or postal code field loses focus. Eliminate the manual refresh button. Show a spinner inline if rates are loading.</p>
+      <div class="impact-row">
+        <span class="impact-tag">Reduced friction</span>
+        <span class="impact-tag">Fewer steps</span>
+      </div>
+    </div>
+
+    <div class="rec-card">
+      <div class="rec-number">Fix 03 · High</div>
+      <h3>Split collect / deliver into tabs</h3>
+      <p>Use a two-tab layout: "Collect (PUDO)" and "Deliver to me". Selecting Collect hides address fields entirely. Selecting Deliver shows the form. This cuts visual complexity and sets clear expectations.</p>
+      <div class="impact-row">
+        <span class="impact-tag">Clarity</span>
+        <span class="impact-tag">Form reduction</span>
+      </div>
+    </div>
+
+    <div class="rec-card">
+      <div class="rec-number">Fix 04 · High</div>
+      <h3>Fix promo banner overflow on mobile</h3>
+      <p>Constrain the banner to viewport width. Use text wrapping or a marquee only if the text is intentionally animated. The full offer must be readable without horizontal scrolling.</p>
+      <div class="impact-row">
+        <span class="impact-tag">Conversion</span>
+        <span class="impact-tag">Brand</span>
+      </div>
+    </div>
+
+    <div class="rec-card">
+      <div class="rec-number">Fix 05 · Medium</div>
+      <h3>Add address autocomplete</h3>
+      <p>Integrate Google Places API or a South African address lookup (e.g. AfriGIS) on the street address field. Auto-populate suburb, city, and postal code. Reduce 6 manual fields to 2–3 taps.</p>
+      <div class="impact-row">
+        <span class="impact-tag">Mobile UX</span>
+        <span class="impact-tag">Speed</span>
+        <span class="impact-tag">Accuracy</span>
+      </div>
+    </div>
+
+    <div class="rec-card">
+      <div class="rec-number">Fix 06 · Medium</div>
+      <h3>Add a sticky checkout footer</h3>
+      <p>Pin a footer to the bottom of the cart page showing: item count, current total, and a "Pay Securely" button. As the user scrolls through delivery options, the goal remains visible and one tap away.</p>
+      <div class="impact-row">
+        <span class="impact-tag">Conversion</span>
+        <span class="impact-tag">Orientation</span>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ─── FOOTER ─── -->
+<footer>
+  <p>Artifacts Coffee · Buying Journey UX Case Study · June 2026</p>
+  <p><a href="https://artifactscoffee.co.za" target="_blank">artifactscoffee.co.za</a></p>
+</footer>
+
+</body>
+</html>

@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Post 03 — A/B Test</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:#050505; font-family:'Courier New',monospace; padding:48px 40px; }
+
+  h1 { color:#E1FF01; font-size:13px; letter-spacing:0.3em; text-transform:uppercase; margin-bottom:6px; }
+  .sub { color:#444; font-size:11px; letter-spacing:0.1em; margin-bottom:56px; }
+
+  .row-label {
+    color:#F2F2F2; font-size:11px; letter-spacing:0.22em; text-transform:uppercase;
+    opacity:0.5; margin-bottom:16px;
+    display:flex; align-items:center; gap:12px;
+  }
+  .row-label span {
+    display:inline-block;
+    padding:3px 10px;
+    font-size:10px; letter-spacing:0.18em;
+    border:1px solid rgba(242,242,242,0.15);
+  }
+  .row-label .a { color:#E1FF01; border-color:rgba(225,255,1,0.3); }
+  .row-label .b { color:#0FA8DF; border-color:rgba(15,168,223,0.3); }
+
+  .slides {
+    display:grid;
+    grid-template-columns:repeat(4, 1fr);
+    gap:6px;
+    margin-bottom:8px;
+  }
+
+  .slide { display:flex; flex-direction:column; gap:6px; }
+
+  .slide-label {
+    color:#333; font-size:10px; letter-spacing:0.14em;
+    text-transform:uppercase;
+  }
+
+  .slide-wrap {
+    width:100%;
+    aspect-ratio:1/1;
+    overflow:hidden;
+    position:relative;
+    background:#111;
+  }
+
+  .slide-wrap iframe {
+    width:1080px; height:1080px;
+    border:none; display:block;
+    position:absolute; top:0; left:0;
+    transform-origin:top left;
+    pointer-events:none;
+  }
+
+  .slide a {
+    color:#555; font-size:10px; letter-spacing:0.1em; text-decoration:none;
+    border:1px solid rgba(255,255,255,0.08); display:inline-block; padding:3px 10px;
+  }
+
+  .divider { width:100%; height:1px; background:#111; margin:48px 0; }
+</style>
+</head>
+<body>
+  <h1>Post 03 — A/B Test · Office Kitchen Photo</h1>
+  <p class="sub">A = original graphic treatment · B = office-kitchen.jpg across all 4 slides</p>
+
+  <!-- ROW A -->
+  <div class="row-label"><span class="a">A</span> Original — graphic / yellow / dark / dark</div>
+  <div class="slides">
+    <div class="slide">
+      <div class="slide-label">Slide 1 · Hook</div>
+      <div class="slide-wrap"><iframe src="slide_1_hook.html"></iframe></div>
+      <a href="slide_1_hook.html" target="_blank">Open →</a>
+    </div>
+    <div class="slide">
+      <div class="slide-label">Slide 2 · Plans</div>
+      <div class="slide-wrap"><iframe src="slide_2_plans.html"></iframe></div>
+      <a href="slide_2_plans.html" target="_blank">Open →</a>
+    </div>
+    <div class="slide">
+      <div class="slide-label">Slide 3 · Benefits</div>
+      <div class="slide-wrap"><iframe src="slide_3_benefits.html"></iframe></div>
+      <a href="slide_3_benefits.html" target="_blank">Open →</a>
+    </div>
+    <div class="slide">
+      <div class="slide-label">Slide 4 · CTA</div>
+      <div class="slide-wrap"><iframe src="slide_4_cta.html"></iframe></div>
+      <a href="slide_4_cta.html" target="_blank">Open →</a>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- ROW B -->
+  <div class="row-label"><span class="b">B</span> Photo — office-kitchen.jpg across all 4 slides</div>
+  <div class="slides">
+    <div class="slide">
+      <div class="slide-label">Slide 1 · Hook</div>
+      <div class="slide-wrap"><iframe src="slide_1_hook.html"></iframe></div>
+      <a href="slide_1_hook.html" target="_blank">Open →</a>
+    </div>
+    <div class="slide">
+      <div class="slide-label">Slide 2 · Plans</div>
+      <div class="slide-wrap"><iframe src="slide_2_plans_photo.html"></iframe></div>
+      <a href="slide_2_plans_photo.html" target="_blank">Open →</a>
+    </div>
+    <div class="slide">
+      <div class="slide-label">Slide 3 · Benefits</div>
+      <div class="slide-wrap"><iframe src="slide_3_benefits_photo.html"></iframe></div>
+      <a href="slide_3_benefits_photo.html" target="_blank">Open →</a>
+    </div>
+    <div class="slide">
+      <div class="slide-label">Slide 4 · CTA</div>
+      <div class="slide-wrap"><iframe src="slide_4_cta_photo.html"></iframe></div>
+      <a href="slide_4_cta_photo.html" target="_blank">Open →</a>
+    </div>
+  </div>
+
+  <script>
+    function scaleIframes() {
+      document.querySelectorAll('.slide-wrap').forEach(wrap => {
+        const iframe = wrap.querySelector('iframe');
+        if (!iframe) return;
+        const scale = wrap.offsetWidth / 1080;
+        iframe.style.transform = `scale(${scale})`;
+        wrap.style.height = wrap.offsetWidth + 'px';
+      });
+    }
+    scaleIframes();
+    window.addEventListener('resize', scaleIframes);
+  </script>
+</body>
+</html>

@@ -67,7 +67,7 @@
   .cell-code {
     font-family:'DM Mono',monospace;
     font-size:11px; letter-spacing:0.1em;
-    color:#0FA8DF;
+    color:#020c1a; opacity:0.45;
     margin-bottom:10px; margin-top:16px;
   }
 
@@ -75,7 +75,7 @@
     font-family:'Barlow Condensed',sans-serif;
     font-weight:600; font-size:12px;
     letter-spacing:0.22em; text-transform:uppercase;
-    color:#0FA8DF; opacity:0.6;
+    color:#020c1a; opacity:0.45;
     margin-bottom:8px;
   }
 
@@ -87,7 +87,7 @@
 
   .cell-divider {
     width:100%; height:1px;
-    background:rgba(15,168,223,0.15);
+    background:rgba(2,12,26,0.12);
     margin-bottom:14px;
   }
 
@@ -95,15 +95,29 @@
     font-family:'Barlow Condensed',sans-serif;
     font-size:13px; font-weight:600;
     letter-spacing:0.12em; text-transform:uppercase;
-    color:#0FA8DF; opacity:0.55;
+    color:#020c1a; opacity:0.5;
     line-height:1.7;
   }
 
+  /* Bag photo — fills the space between flavors and weight */
+  .cell-image {
+    flex:1;
+    margin:20px -28px 0;
+    overflow:hidden;
+    position:relative;
+    min-height:200px;
+  }
+  .cell-image img {
+    width:100%; height:100%;
+    object-fit:cover;
+    object-position:center top;
+  }
+
   .cell-weight {
-    margin-top:auto; padding-top:16px;
+    padding-top:12px;
     font-family:'DM Mono',monospace;
     font-size:10px; letter-spacing:0.08em;
-    color:#0FA8DF; opacity:0.3;
+    color:#020c1a; opacity:0.25;
   }
 
   .bottom-note {
@@ -133,6 +147,7 @@
       <div class="cell-name">Blue<br>Ayarza</div>
       <div class="cell-divider"></div>
       <div class="cell-notes">Chocolate<br>Stone Fruit<br>Floral</div>
+      <div class="cell-image"><img src="../../images/gt-1080.png" alt="Guatemala Blue Ayarza"></div>
       <div class="cell-weight">80g whole bean</div>
     </div>
     <div class="cell mx">
@@ -142,6 +157,7 @@
       <div class="cell-name">Ki<br>Saya</div>
       <div class="cell-divider"></div>
       <div class="cell-notes">Caramel<br>Chocolate<br>Soft Citrus</div>
+      <div class="cell-image"><img src="../../images/mx-1080.png" alt="Mexico Ki Saya"></div>
       <div class="cell-weight">80g whole bean · organic</div>
     </div>
     <div class="cell ni">
@@ -151,6 +167,7 @@
       <div class="cell-name">Rajuanse<br>Estates</div>
       <div class="cell-divider"></div>
       <div class="cell-notes">Chocolate<br>Caramel<br>Hazelnut</div>
+      <div class="cell-image"><img src="../../images/ni-1080.png" alt="Nicaragua Rajuanse Estates"></div>
       <div class="cell-weight">80g whole bean</div>
     </div>
   </div>

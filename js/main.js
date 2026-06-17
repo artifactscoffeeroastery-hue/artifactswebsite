@@ -2,6 +2,8 @@
 let cart = JSON.parse(localStorage.getItem('coffee_cart')) || [];
 const productQtys = { gt:1, mx:1, ni:1, dp:1 };
 let currentUser = null, activeDiscount = null, activeShippingQuote = null;
+let deliverMode = 'deliver'; // 'deliver' | 'collect'
+let lastQuotes = null; // cache last fetched shipping quotes
 const discountCodes = {
   FOUNDER20:   { type:'fixed',   value:20,  label:'R20 off — Founder'        },
   DISCOVERY15: { type:'percent', value:15,  label:'15% off order subtotal'    },
@@ -43,10 +45,21 @@ document.addEventListener('DOMContentLoaded', () => {
   updateCartBadge();
   tryAutoApplyDiscount();
   loadFounderSpots();
-  ['ship-phone','ship-province','ship-address-line1','ship-suburb','ship-city','ship-postal-code'].forEach(id => {
+  // Auto-fetch shipping rates when province changes or postal code blurs
+  const autoFetchIfReady = () => {
+    const prov = document.getElementById('ship-province');
+    const post = document.getElementById('ship-postal-code');
+    if (prov && post && prov.value && post.value.length >= 4) fetchShippingQuotes();
+  };
+  const provSel = document.getElementById('ship-province');
+  if (provSel) provSel.addEventListener('change', autoFetchIfReady);
+  const postInput = document.getElementById('ship-postal-code');
+  if (postInput) postInput.addEventListener('blur', autoFetchIfReady);
+  // General field change status
+  ['ship-phone','ship-address-line1','ship-suburb','ship-city'].forEach(id => {
     const el = document.getElementById(id); if (!el) return;
-    el.addEventListener(el.tagName==='SELECT'?'change':'input', () =>
-      setStatus('shipping-validation-status','Details saved. Tap Refresh if you changed location.','info'));
+    el.addEventListener('input', () =>
+      setStatus('shipping-validation-status','Details saved.','info'));
   });
   const form = document.getElementById('payfast-form');
   if (form) form.addEventListener('submit', e => { if (!validatePay()) e.preventDefault(); });
@@ -134,12 +147,14 @@ function showAccount() {
   document.getElementById('cartDrawer').classList.add('active');
   document.getElementById('step-account').style.display='block';
   document.getElementById('step-shipping').style.display='none';
+  const f = document.querySelector('.cart-footer'); if (f) f.style.display='none';
   const stat = document.getElementById('guest-status'); if (stat) stat.textContent='';
 }
 function showShipping() {
   document.getElementById('cartDrawer').classList.add('active');
   document.getElementById('step-account').style.display='none';
   document.getElementById('step-shipping').style.display='block';
+  const f = document.querySelector('.cart-footer'); if (f) f.style.display='';
   renderCart(); calcTotal();
   loadPlacesAutocomplete();
   updateFounderCartBanner();
@@ -266,17 +281,33 @@ function getDiscount(sub) {
 function applyDiscountCode(code) {
   const inp = document.getElementById('discount-code-input');
   const c = (code||(inp?inp.value:'')||'').trim().toUpperCase();
-  if (!c) { activeDiscount=null; setStatus('discount-status','Enter a code then tap Apply.','error'); calcTotal(); return; }
+  if (!c) { activeDiscount=null; sessionStorage.removeItem('ac_disc'); setStatus('discount-status','Enter a code then tap Apply.','error'); calcTotal(); return; }
   const m = discountCodes[c];
-  if (!m) { activeDiscount=null; setStatus('discount-status',`Code "${c}" not recognised.`,'error'); calcTotal(); return; }
+  if (!m) { activeDiscount=null; sessionStorage.removeItem('ac_disc'); setStatus('discount-status',`Code "${c}" not recognised.`,'error'); calcTotal(); return; }
   activeDiscount={code:c,rule:m}; if (inp) inp.value=c;
+  sessionStorage.setItem('ac_disc', JSON.stringify(activeDiscount));
   setStatus('discount-status',`Applied ${c}: ${m.label}.`,'success'); calcTotal();
 }
 function tryAutoApplyDiscount() {
   const p = new URLSearchParams(window.location.search);
-  const c = p.get('promo')||p.get('discount')||p.get('code'); if (!c) return;
-  const inp = document.getElementById('discount-code-input'); if (inp) inp.value=c.toUpperCase();
-  applyDiscountCode(c);
+  const c = p.get('promo')||p.get('discount')||p.get('code');
+  if (c) {
+    const inp = document.getElementById('discount-code-input'); if (inp) inp.value=c.toUpperCase();
+    applyDiscountCode(c); return;
+  }
+  // Restore saved discount from session (survives delivery method changes & page reload)
+  try {
+    const saved = sessionStorage.getItem('ac_disc');
+    if (saved) {
+      const d = JSON.parse(saved);
+      if (d && d.code && discountCodes[d.code]) {
+        activeDiscount = d;
+        const inp = document.getElementById('discount-code-input'); if (inp) inp.value = d.code;
+        setStatus('discount-status', `Applied ${d.code}: ${d.rule.label}.`, 'success');
+        calcTotal();
+      } else sessionStorage.removeItem('ac_disc');
+    }
+  } catch(e) { sessionStorage.removeItem('ac_disc'); }
 }
 function updatePF(total) {
   const s=(id,v)=>{ const e=document.getElementById(id); if(e) e.value=v; };
@@ -298,7 +329,9 @@ function addr() {
 }
 function validatePay() {
   if (!cart.length) { alert('Your cart is empty.'); return false; }
-  const a=addr(), req=['phone','line1','suburb','city','province','postalCode'], miss=req.filter(k=>!a[k]);
+  const a=addr();
+  const req = deliverMode==='collect' ? ['phone'] : ['phone','line1','suburb','city','province','postalCode'];
+  const miss=req.filter(k=>!a[k]);
   if (miss.length) { setStatus('shipping-validation-status','Please complete: '+miss.join(', ').replace('line1','street address')+'.','error'); alert('Please complete your delivery details.'); return false; }
   setStatus('shipping-validation-status','Details good. Proceeding to PayFast...','info');
   calcTotal(); return true;
@@ -318,16 +351,37 @@ async function fetchShippingQuotes() {
     if (res.status===404) { renderShipOpts(fb,a.province); setStatus(stat,'Standard rates shown. Redeploy for live quotes.','error'); return; }
     if (!res.ok) throw new Error();
     const d=await res.json(); const q=d.quotes&&d.quotes.length?d.quotes:fb;
-    activeShippingQuote=q[0]; renderShipOpts(q,a.province);
+    lastQuotes=q; activeShippingQuote=q[0]; renderShipOpts(q,a.province);
     setStatus(stat,d.source==='fallback'?'Live rates unavailable — standard rates shown.':'Rates updated.','info');
-  } catch(e) { renderShipOpts(fb,a.province); setStatus(stat,'Could not reach shipping service — standard rates applied.','error'); }
+  } catch(e) { lastQuotes=fb; renderShipOpts(fb,a.province); setStatus(stat,'Could not reach shipping service — standard rates applied.','error'); }
 }
 function renderShipOpts(quotes,province) {
   const sel=document.getElementById('tcg-shipping'); if (!sel) return;
-  sel.innerHTML=quotes.map(q=>{ const a=Number(q.amount||0); return `<option value="${a}" data-rate="${a}" data-code="${q.code||''}">${q.label||'Courier'} - R${a.toFixed(2)}</option>`; }).join('');
-  const pref=(province||'').trim().toLowerCase()==='gauteng'?'door-gauteng':'door-national';
-  const idx=quotes.findIndex(q=>q.code===pref); if (idx>=0) sel.selectedIndex=idx;
+  // In collect mode show only PUDO; in deliver mode show all non-PUDO options
+  const filtered = deliverMode==='collect'
+    ? quotes.filter(q=>q.code==='pudo')
+    : quotes.filter(q=>q.code!=='pudo');
+  const display = filtered.length ? filtered : quotes;
+  sel.innerHTML=display.map(q=>{ const a=Number(q.amount||0); return `<option value="${a}" data-rate="${a}" data-code="${q.code||''}">${q.label||'Courier'} - R${a.toFixed(2)}</option>`; }).join('');
+  if (deliverMode==='deliver') {
+    const pref=(province||'').trim().toLowerCase()==='gauteng'?'door-gauteng':'door-national';
+    const idx=display.findIndex(q=>q.code===pref); if (idx>=0) sel.selectedIndex=idx;
+  }
   calcTotal();
+}
+// ── COLLECT / DELIVER MODE ──
+function setDeliverMode(mode) {
+  deliverMode = mode;
+  const addrWrap  = document.getElementById('ship-address-wrap');
+  const tabDeliver = document.getElementById('tab-deliver');
+  const tabCollect = document.getElementById('tab-collect');
+  const pudoInfo   = document.getElementById('pudo-info');
+  if (addrWrap)   addrWrap.style.display  = mode==='deliver' ? '' : 'none';
+  if (pudoInfo)   pudoInfo.style.display  = mode==='collect' ? '' : 'none';
+  if (tabDeliver) tabDeliver.classList.toggle('ship-tab-active', mode==='deliver');
+  if (tabCollect) tabCollect.classList.toggle('ship-tab-active', mode==='collect');
+  const fb=[{code:'pudo',label:'TCG PUDO Locker',amount:60},{code:'door-gauteng',label:'Gauteng Door-to-Door',amount:100},{code:'door-national',label:'Rest of SA Door-to-Door',amount:150}];
+  renderShipOpts(lastQuotes||fb, addr().province);
 }
 
 // ── UI ──

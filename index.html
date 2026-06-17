@@ -703,34 +703,42 @@
   </div>
   <div id="step-shipping" class="cart-step" style="display:none;">
     <div id="cart-list" style="margin-bottom:20px;"></div>
+    <!-- COLLECT / DELIVER TABS -->
+    <div class="ship-tabs">
+      <button id="tab-deliver" class="ship-tab ship-tab-active" onclick="setDeliverMode('deliver')">Deliver to me</button>
+      <button id="tab-collect" class="ship-tab" onclick="setDeliverMode('collect')">Collect (PUDO)</button>
+    </div>
     <div class="shipping-box">
-      <span class="sz-label">The Courier Guy Delivery</span>
+      <span class="sz-label">Courier</span>
       <select id="tcg-shipping" onchange="calcTotal()">
-        <option value="60">TCG PUDO Locker - R60.00</option>
         <option value="100">Gauteng Door-to-Door - R100.00</option>
         <option value="150">Rest of SA Door-to-Door - R150.00</option>
       </select>
-      <div id="shipping-rate-status" style="font-size:11px;color:var(--muted);margin-top:8px;">Add delivery details to auto-load courier rates.</div>
-      <button type="button" onclick="fetchShippingQuotes()" class="action-btn" style="margin-top:8px;padding:9px 12px;">Refresh Delivery Rates</button>
+      <div id="shipping-rate-status" style="font-size:11px;color:var(--muted);margin-top:8px;">Enter province &amp; postal code to load live rates.</div>
     </div>
+    <!-- PUDO INFO (collect mode only) -->
+    <div id="pudo-info" class="shipping-box" style="display:none;margin-top:10px;">
+      <p style="font-size:12px;color:var(--muted);line-height:1.7;">Drop your order at any <strong style="color:var(--white);">TCG PUDO Locker</strong> near you. You'll receive a booking reference by email after payment. R60 flat rate nationwide.</p>
+    </div>
+    <!-- CONTACT + ADDRESS (phone always visible; full address hidden in collect mode) -->
     <div class="shipping-box" style="margin-top:10px;">
-      <span class="sz-label" style="display:block;margin-bottom:6px;">Delivery Details</span>
-      <div class="ship-row-2">
-        <input id="ship-phone" type="tel" autocomplete="tel" placeholder="Phone number" class="ship-field" />
-        <select id="ship-province" autocomplete="address-level1" class="ship-field" aria-label="Province" required>
+      <span class="sz-label" style="display:block;margin-bottom:6px;">Your Details</span>
+      <input id="ship-phone" type="tel" autocomplete="tel" placeholder="Phone number" class="ship-field" style="margin-bottom:8px;" />
+      <div id="ship-address-wrap">
+        <select id="ship-province" autocomplete="address-level1" class="ship-field" aria-label="Province" required style="margin-bottom:8px;">
           <option value="" disabled selected hidden>Select province</option>
           <option>Eastern Cape</option><option>Free State</option><option>Gauteng</option>
           <option>KwaZulu-Natal</option><option>Limpopo</option><option>Mpumalanga</option>
           <option>Northern Cape</option><option>North West</option><option>Western Cape</option>
         </select>
+        <input id="ship-address-line1" type="text" autocomplete="address-line1" placeholder="Street address" style="width:100%;margin-bottom:8px;background:#0f0f0f;border:1px solid var(--border);color:var(--white);padding:10px 12px;font-size:13px;" />
+        <input id="ship-suburb" type="text" autocomplete="address-level3" placeholder="Suburb" style="width:100%;margin-bottom:8px;background:#0f0f0f;border:1px solid var(--border);color:var(--white);padding:10px 12px;font-size:13px;" />
+        <div class="ship-row-2">
+          <input id="ship-city" type="text" autocomplete="address-level2" placeholder="City" style="background:#0f0f0f;border:1px solid var(--border);color:var(--white);padding:10px 12px;font-size:13px;" />
+          <input id="ship-postal-code" type="text" autocomplete="postal-code" placeholder="Postal code" style="background:#0f0f0f;border:1px solid var(--border);color:var(--white);padding:10px 12px;font-size:13px;" />
+        </div>
       </div>
-      <input id="ship-address-line1" type="text" autocomplete="address-line1" placeholder="Street address" style="width:100%;margin-top:8px;background:#0f0f0f;border:1px solid var(--border);color:var(--white);padding:10px 12px;font-size:13px;" />
-      <input id="ship-suburb" type="text" autocomplete="address-level3" placeholder="Suburb" style="width:100%;margin-top:8px;background:#0f0f0f;border:1px solid var(--border);color:var(--white);padding:10px 12px;font-size:13px;" />
-      <div class="ship-row-2" style="margin-top:8px;">
-        <input id="ship-city" type="text" autocomplete="address-level2" placeholder="City" style="background:#0f0f0f;border:1px solid var(--border);color:var(--white);padding:10px 12px;font-size:13px;" />
-        <input id="ship-postal-code" type="text" autocomplete="postal-code" placeholder="Postal code" style="background:#0f0f0f;border:1px solid var(--border);color:var(--white);padding:10px 12px;font-size:13px;" />
-      </div>
-      <div id="shipping-validation-status" style="font-size:11px;color:var(--muted);margin-top:8px;">Delivery details required for courier booking.</div>
+      <div id="shipping-validation-status" style="font-size:11px;color:var(--muted);margin-top:8px;">Rates load automatically when province &amp; postal code are set.</div>
     </div>
     <div class="shipping-box" style="margin-top:10px;">
       <span class="sz-label" style="display:block;margin-bottom:6px;">Discount Code</span>
@@ -740,29 +748,30 @@
       </div>
       <div id="discount-status" style="font-size:11px;color:var(--muted);margin-top:8px;">Have a promo link? Your code can auto-apply here.</div>
     </div>
-    <div class="cart-footer">
-      <div id="total-price" style="font-family:'Bebas Neue',sans-serif;font-size:30px;margin-bottom:15px;">Total: R 0.00</div>
-      <form action="https://www.payfast.co.za/eng/process" method="post" id="payfast-form">
-        <input type="hidden" name="merchant_id" value="34420469">
-        <input type="hidden" name="merchant_key" value="q6qjvvpwgddvi">
-        <input type="hidden" name="return_url" value="https://artifactscoffee.co.za/success">
-        <input type="hidden" name="cancel_url" value="https://artifactscoffee.co.za/cancel">
-        <input type="hidden" name="notify_url" value="https://artifactscoffee.co.za/.netlify/functions/payfast-notify">
-        <input type="hidden" name="name_first" id="pf_name">
-        <input type="hidden" name="email_address" id="pf_email">
-        <input type="hidden" name="m_payment_id" id="pf_payment_id">
-        <input type="hidden" name="amount" id="pf_amount">
-        <input type="hidden" name="item_name" id="pf_item_name" value="Artifacts Coffee Order">
-        <input type="hidden" name="item_description" id="pf_item_desc">
-        <input type="hidden" name="custom_str1" id="pf_discount_code">
-        <input type="hidden" name="custom_str2" id="pf_shipping_method">
-        <input type="hidden" name="custom_str3" id="pf_shipping_amount">
-        <input type="hidden" name="custom_str4" id="pf_shipping_address">
-        <input type="hidden" name="custom_str5" id="pf_shipping_phone">
-        <p style="font-size:10px;color:var(--muted);margin-bottom:10px;text-align:center;">By clicking pay, you&#8217;ll be redirected to PayFast to complete your purchase.</p>
-        <button type="submit" class="pay-btn">Pay Securely</button>
-      </form>
-    </div>
+  </div>
+  <!-- STICKY CART FOOTER -->
+  <div class="cart-footer">
+    <div id="total-price" style="font-family:'Bebas Neue',sans-serif;font-size:30px;margin-bottom:10px;">Total: R 0.00</div>
+    <form action="https://www.payfast.co.za/eng/process" method="post" id="payfast-form">
+      <input type="hidden" name="merchant_id" value="34420469">
+      <input type="hidden" name="merchant_key" value="q6qjvvpwgddvi">
+      <input type="hidden" name="return_url" value="https://artifactscoffee.co.za/success">
+      <input type="hidden" name="cancel_url" value="https://artifactscoffee.co.za/cancel">
+      <input type="hidden" name="notify_url" value="https://artifactscoffee.co.za/.netlify/functions/payfast-notify">
+      <input type="hidden" name="name_first" id="pf_name">
+      <input type="hidden" name="email_address" id="pf_email">
+      <input type="hidden" name="m_payment_id" id="pf_payment_id">
+      <input type="hidden" name="amount" id="pf_amount">
+      <input type="hidden" name="item_name" id="pf_item_name" value="Artifacts Coffee Order">
+      <input type="hidden" name="item_description" id="pf_item_desc">
+      <input type="hidden" name="custom_str1" id="pf_discount_code">
+      <input type="hidden" name="custom_str2" id="pf_shipping_method">
+      <input type="hidden" name="custom_str3" id="pf_shipping_amount">
+      <input type="hidden" name="custom_str4" id="pf_shipping_address">
+      <input type="hidden" name="custom_str5" id="pf_shipping_phone">
+      <p style="font-size:10px;color:var(--muted);margin-bottom:10px;text-align:center;">By clicking pay, you&#8217;ll be redirected to PayFast to complete your purchase.</p>
+      <button type="submit" class="pay-btn">Pay Securely</button>
+    </form>
   </div>
 </div>
 

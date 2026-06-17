@@ -5,41 +5,65 @@
 <title>Artifacts Coffee — Instagram Posts Index</title>
 <style>
   * { margin:0; padding:0; box-sizing:border-box; }
-  body { background:#050505; font-family:'Courier New',monospace; padding:48px; }
+  body { background:#050505; font-family:'Courier New',monospace; padding:48px 40px; }
 
   h1 { color:#E1FF01; font-size:13px; letter-spacing:0.3em; text-transform:uppercase; margin-bottom:6px; }
-  .sub { color:#333; font-size:11px; letter-spacing:0.1em; margin-bottom:48px; }
+  .sub { color:#444; font-size:11px; letter-spacing:0.1em; margin-bottom:56px; }
 
-  .post-block { margin-bottom:56px; }
+  .post-block { margin-bottom:72px; }
   .post-title {
     color:#F2F2F2; font-size:12px; letter-spacing:0.22em; text-transform:uppercase;
     margin-bottom:4px; opacity:0.6;
   }
-  .post-desc { color:#444; font-size:11px; letter-spacing:0.08em; margin-bottom:20px; }
+  .post-desc { color:#333; font-size:11px; letter-spacing:0.08em; margin-bottom:20px; }
 
-  .slides { display:flex; gap:12px; flex-wrap:wrap; }
-
-  .slide {
-    display:flex; flex-direction:column; gap:6px;
+  /* 4 slides in a row, each at ~22vw wide */
+  .slides {
+    display:grid;
+    grid-template-columns:repeat(4, 1fr);
+    gap:6px;
   }
-  .slide-label { color:#333; font-size:10px; letter-spacing:0.14em; }
-  .slide iframe {
-    width:270px; height:270px; border:none; display:block;
-    transform:scale(0.25); transform-origin:top left;
+
+  .slide { display:flex; flex-direction:column; gap:6px; }
+
+  .slide-label {
+    color:#333; font-size:10px; letter-spacing:0.14em;
+    text-transform:uppercase;
+  }
+
+  /* The key: container matches the scaled size exactly */
+  .slide-wrap {
+    width:100%;
+    aspect-ratio:1/1;
+    overflow:hidden;
+    position:relative;
+    background:#111;
+  }
+
+  .slide-wrap iframe {
+    width:1080px;
+    height:1080px;
+    border:none;
+    display:block;
+    position:absolute;
+    top:0; left:0;
+    transform-origin:top left;
     pointer-events:none;
   }
-  .slide-wrap { width:270px; height:270px; overflow:hidden; }
+
   .slide a {
     color:#0FA8DF; font-size:10px; letter-spacing:0.1em; text-decoration:none;
-    border:1px solid #0FA8DF; display:inline-block; padding:3px 10px;
+    border:1px solid rgba(15,168,223,0.3); display:inline-block; padding:3px 10px;
+    transition:border-color 0.2s;
   }
+  .slide a:hover { border-color:#0FA8DF; }
 
-  .divider { width:100%; height:1px; background:#111; margin-bottom:56px; }
+  .divider { width:100%; height:1px; background:#111; margin-bottom:72px; }
 </style>
 </head>
 <body>
   <h1>Artifacts Coffee — Instagram Carousel Posts</h1>
-  <p class="sub">4 posts × 4 slides each · Open each link at 1080×1080 in Chrome to screenshot</p>
+  <p class="sub">4 posts × 4 slides each · Click "Open" to view at 1080×1080 for screenshots</p>
 
   <div class="post-block">
     <div class="post-title">Post 01 — Origin Discovery Pack</div>
@@ -72,7 +96,7 @@
 
   <div class="post-block">
     <div class="post-title">Post 02 — enTheos</div>
-    <div class="post-desc">Hook "Have you noticed this?" → Meaning → Philosophy (3 bands) → Quote closer</div>
+    <div class="post-desc">Hook → Meaning (yellow) → Philosophy → Quote closer (cyan)</div>
     <div class="slides">
       <div class="slide">
         <div class="slide-label">Slide 1 · Hook</div>
@@ -101,7 +125,7 @@
 
   <div class="post-block">
     <div class="post-title">Post 03 — Office Coffee Subscription</div>
-    <div class="post-desc">Hook → 3 plans → Benefits → Contact CTA</div>
+    <div class="post-desc">Hook (photo) → Plans (photo) → Benefits (photo) → Contact CTA (photo)</div>
     <div class="slides">
       <div class="slide">
         <div class="slide-label">Slide 1 · Hook</div>
@@ -119,7 +143,7 @@
         <a href="post_03_office/slide_3_benefits.html" target="_blank">Open →</a>
       </div>
       <div class="slide">
-        <div class="slide-label">Slide 4 · CTA</div>
+        <div class="slide-label">Slide 4 · Contact CTA</div>
         <div class="slide-wrap"><iframe src="post_03_office/slide_4_cta.html"></iframe></div>
         <a href="post_03_office/slide_4_cta.html" target="_blank">Open →</a>
       </div>
@@ -129,8 +153,8 @@
   <div class="divider"></div>
 
   <div class="post-block">
-    <div class="post-title">Post 04 — The 80g Bag (your MVP post)</div>
-    <div class="post-desc">"Nobody talks about the 80g bag" → The problem → Try before commit → All 3 bags CTA</div>
+    <div class="post-title">Post 04 — The 80g Bag (MVP post)</div>
+    <div class="post-desc">Nobody talks about it → The problem → The solution (yellow) → All 3 bags CTA</div>
     <div class="slides">
       <div class="slide">
         <div class="slide-label">Slide 1 · Hook</div>
@@ -148,11 +172,26 @@
         <a href="post_04_80g_bag/slide_3_solution.html" target="_blank">Open →</a>
       </div>
       <div class="slide">
-        <div class="slide-label">Slide 4 · CTA with photos</div>
+        <div class="slide-label">Slide 4 · CTA</div>
         <div class="slide-wrap"><iframe src="post_04_80g_bag/slide_4_cta.html"></iframe></div>
         <a href="post_04_80g_bag/slide_4_cta.html" target="_blank">Open →</a>
       </div>
     </div>
   </div>
+
+  <script>
+    // Scale each iframe to fit its container exactly
+    function scaleIframes() {
+      document.querySelectorAll('.slide-wrap').forEach(wrap => {
+        const iframe = wrap.querySelector('iframe');
+        if (!iframe) return;
+        const scale = wrap.offsetWidth / 1080;
+        iframe.style.transform = `scale(${scale})`;
+        wrap.style.height = wrap.offsetWidth + 'px';
+      });
+    }
+    scaleIframes();
+    window.addEventListener('resize', scaleIframes);
+  </script>
 </body>
 </html>

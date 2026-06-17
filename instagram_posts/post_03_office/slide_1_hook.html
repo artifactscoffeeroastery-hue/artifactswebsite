@@ -11,103 +11,105 @@
 
   .card {
     width:1080px; height:1080px;
-    background:#020c1a;
-    display:flex; flex-direction:column;
     position:relative;
-  }
-
-  /* Top half — yellow */
-  .top-half {
-    flex:1;
-    background:#E1FF01;
     display:flex; flex-direction:column;
     justify-content:flex-end;
-    padding:64px 72px 52px;
-    position:relative;
   }
 
-  /* Bottom half — dark */
-  .bottom-half {
-    flex:1;
-    background:#020c1a;
-    display:flex; flex-direction:column;
-    justify-content:flex-start;
-    padding:52px 72px 64px;
+  /* Full-bleed photo */
+  .bg {
+    position:absolute; inset:0;
+  }
+  .bg img {
+    width:100%; height:100%;
+    object-fit:cover;
+    object-position:center 40%;
+    filter:saturate(0.75) brightness(0.6);
+    display:block;
+  }
+
+  /* Vignette — bottom 55% only */
+  .bg::after {
+    content:'';
+    position:absolute; inset:0;
+    background:linear-gradient(to top, rgba(2,12,26,0.95) 0%, rgba(2,12,26,0.5) 45%, transparent 100%);
+  }
+
+  /* All text above vignette */
+  .content {
+    position:relative; z-index:1;
+    padding:72px 80px;
+  }
+
+  .brand-mark {
+    position:absolute; top:48px; right:80px;
+    font-family:'Barlow Condensed',sans-serif;
+    font-weight:700; font-size:12px;
+    letter-spacing:0.28em; text-transform:uppercase;
+    color:#F2F2F2; opacity:0.3;
   }
 
   .kicker {
     font-family:'Barlow Condensed',sans-serif;
     font-weight:700; font-size:13px;
     letter-spacing:0.32em; text-transform:uppercase;
-    color:#020c1a; opacity:0.5;
+    color:#E1FF01; opacity:0.7;
     margin-bottom:16px;
     display:flex; align-items:center; gap:12px;
   }
-  .kicker::before { content:''; width:20px; height:2px; background:#020c1a; opacity:0.4; }
+  .kicker::before { content:''; width:20px; height:2px; background:#E1FF01; opacity:0.6; }
 
-  .headline-top {
-    font-family:'Bebas Neue',sans-serif;
-    font-size:118px; line-height:0.88;
-    color:#020c1a; letter-spacing:0.02em;
-  }
-
-  .headline-bottom {
+  .headline {
     font-family:'Bebas Neue',sans-serif;
     font-size:118px; line-height:0.88;
     color:#F2F2F2; letter-spacing:0.02em;
-    margin-bottom:32px;
+    margin-bottom:8px;
   }
-  .headline-bottom em { color:#E1FF01; font-style:normal; }
+  .headline em { color:#E1FF01; font-style:normal; }
 
   .sub {
     font-family:'Barlow Condensed',sans-serif;
     font-size:20px; font-weight:600;
     letter-spacing:0.1em; text-transform:uppercase;
-    color:#F2F2F2; opacity:0.4;
-    margin-bottom:32px;
+    color:#F2F2F2; opacity:0.45;
+    margin-bottom:36px;
+    line-height:1.4;
   }
 
   .tag-row {
-    display:flex; gap:12px; flex-wrap:wrap;
+    display:flex; gap:10px; flex-wrap:wrap;
   }
   .tag {
     font-family:'Barlow Condensed',sans-serif;
     font-weight:700; font-size:11px;
     letter-spacing:0.2em; text-transform:uppercase;
-    color:#F2F2F2; opacity:0.35;
-    border:1px solid rgba(242,242,242,0.15);
+    color:#F2F2F2; opacity:0.4;
+    border:1px solid rgba(242,242,242,0.2);
     padding:5px 14px;
   }
 
-  .brand {
-    position:absolute; top:48px; right:72px;
-    font-family:'Barlow Condensed',sans-serif;
-    font-weight:700; font-size:12px;
-    letter-spacing:0.28em; text-transform:uppercase;
-    color:#020c1a; opacity:0.35;
-  }
-
   .swipe {
-    position:absolute; bottom:40px; right:72px;
-    display:flex; align-items:center; gap:8px;
+    position:absolute; bottom:40px; right:80px;
     font-family:'Barlow Condensed',sans-serif;
     font-size:11px; font-weight:700;
     letter-spacing:0.2em; text-transform:uppercase;
     color:#F2F2F2; opacity:0.25;
+    z-index:2;
   }
 </style>
 </head>
 <body>
 <div class="card">
-  <div class="top-half">
-    <div class="brand">Artifacts Coffee</div>
-    <div class="kicker">For your team</div>
-    <div class="headline-top">Your office</div>
+  <div class="bg">
+    <img src="../../images/office-kitchen.jpg" alt="Office kitchen">
   </div>
 
-  <div class="bottom-half">
-    <div class="headline-bottom">Deserves <em>better.</em></div>
-    <div class="sub">Specialty-grade single origin. Roasted weekly. Delivered to your door.</div>
+  <div class="brand-mark">Artifacts Coffee</div>
+
+  <div class="content">
+    <div class="kicker">For your team</div>
+    <div class="headline">Your office<br>deserves <em>better.</em></div>
+    <div class="sub">Specialty-grade single origin.<br>Roasted weekly. Delivered to your door.</div>
     <div class="tag-row">
       <div class="tag">From R592 / month</div>
       <div class="tag">Johannesburg delivery</div>

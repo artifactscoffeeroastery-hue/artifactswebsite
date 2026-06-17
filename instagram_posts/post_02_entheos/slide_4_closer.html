@@ -7,22 +7,22 @@
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:ital,wght@0,400;0,600;0,700;0,900;1,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
   * { margin:0; padding:0; box-sizing:border-box; }
-  body { width:1080px; height:1080px; overflow:hidden; background:#020c1a; }
+  body { width:1080px; height:1080px; overflow:hidden; background:#0FA8DF; }
 
   .card {
     width:1080px; height:1080px;
-    background:#020c1a;
+    background:#0FA8DF;
     display:flex; flex-direction:column;
     justify-content:center;
     padding:100px 96px;
     position:relative;
   }
 
-  /* Yellow left border accent */
+  /* Dark left border accent */
   .left-accent {
     position:absolute; top:0; left:0;
     width:8px; height:100%;
-    background:#E1FF01;
+    background:#020c1a; opacity:0.2;
   }
 
   /* Top right small logo */
@@ -31,30 +31,30 @@
   }
   .logo-wrap img {
     width:120px;
-    filter:brightness(0) invert(1);
+    filter:brightness(0);
     opacity:0.15;
   }
 
   .quote-mark {
     font-family:'Bebas Neue',sans-serif;
     font-size:160px; line-height:0.7;
-    color:#E1FF01; opacity:0.15;
+    color:#020c1a; opacity:0.1;
     margin-bottom:-32px;
   }
 
   .quote {
     font-family:'Bebas Neue',sans-serif;
     font-size:80px; line-height:0.92;
-    color:#F2F2F2; letter-spacing:0.02em;
+    color:#020c1a; letter-spacing:0.02em;
     margin-bottom:48px;
   }
-  .quote em { color:#E1FF01; font-style:normal; }
+  .quote em { color:#020c1a; font-style:normal; }
 
   .attribution {
     font-family:'Barlow Condensed',sans-serif;
     font-size:16px; font-weight:700;
     letter-spacing:0.28em; text-transform:uppercase;
-    color:#F2F2F2; opacity:0.3;
+    color:#020c1a; opacity:0.4;
     display:flex; align-items:center; gap:12px;
     margin-bottom:64px;
   }
@@ -62,7 +62,7 @@
 
   .divider {
     width:80px; height:1px;
-    background:rgba(242,242,242,0.1);
+    background:rgba(2,12,26,0.15);
     margin-bottom:48px;
   }
 
@@ -70,7 +70,7 @@
     font-family:'Barlow Condensed',sans-serif;
     font-size:20px;
     letter-spacing:0.06em;
-    color:#F2F2F2; opacity:0.4;
+    color:#020c1a; opacity:0.55;
     line-height:1.6;
     max-width:680px;
   }
@@ -79,7 +79,7 @@
     position:absolute; bottom:56px; right:72px;
     font-family:'DM Mono',monospace;
     font-size:12px; letter-spacing:0.1em;
-    color:#0FA8DF; opacity:0.35;
+    color:#020c1a; opacity:0.3;
   }
 </style>
 </head>
