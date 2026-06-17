@@ -167,13 +167,19 @@ function copyFounderCodeCart() {
 }
 
 let _placesLoaded = false;
-function loadPlacesAutocomplete() {
+async function loadPlacesAutocomplete() {
   if (_placesLoaded) return;
   _placesLoaded = true;
-  const script = document.createElement('script');
-  script.src = 'https://maps.googleapis.com/maps/api/js?key=AIzaSyDq2W8YZi8ahxNIyY9fE0HHFXWJQmaoqx8&libraries=places&loading=async&callback=initPlacesAutocomplete';
-  script.async = true; script.defer = true;
-  document.head.appendChild(script);
+  try {
+    const cfg = await fetch('/.netlify/functions/getConfig').then(r => r.json());
+    if (!cfg.googlePlacesKey) return;
+    const script = document.createElement('script');
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${cfg.googlePlacesKey}&libraries=places&loading=async&callback=initPlacesAutocomplete`;
+    script.async = true; script.defer = true;
+    document.head.appendChild(script);
+  } catch (e) {
+    console.warn('Places autocomplete unavailable:', e.message);
+  }
 }
 
 window.initPlacesAutocomplete = function() {
