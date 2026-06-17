@@ -113,7 +113,16 @@ async function recordOrderAndAwardPoints({ email, amountRand, paymentId, itemDes
     }),
   });
 
-  // 3. Credit point_events
+  // 3. Record discount code use (powers live founder counter)
+  if (discountCode) {
+    await fetch(`${supabaseUrl}/rest/v1/discount_uses`, {
+      method:  'POST',
+      headers: { ...authHeaders, Prefer: 'resolution=ignore-duplicates,return=minimal' },
+      body: JSON.stringify({ code: discountCode, payment_id: paymentId, email }),
+    });
+  }
+
+  // 4. Credit point_events
   await fetch(`${supabaseUrl}/rest/v1/point_events`, {
     method:  'POST',
     headers: authHeaders,

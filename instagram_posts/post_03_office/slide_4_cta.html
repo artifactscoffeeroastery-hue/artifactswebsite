@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1080">
+<title>Office · Slide 4</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:ital,wght@0,400;0,600;0,700;0,900;1,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { width:1080px; height:1080px; overflow:hidden; background:#020c1a; }
+
+  .card {
+    width:1080px; height:1080px;
+    background:#020c1a;
+    display:flex; flex-direction:column;
+    justify-content:space-between;
+    padding:80px;
+    position:relative;
+  }
+
+  .cyan-top {
+    position:absolute; top:0; left:0;
+    width:100%; height:6px;
+    background:#0FA8DF;
+  }
+
+  .brand-mark {
+    font-family:'Barlow Condensed',sans-serif;
+    font-weight:700; font-size:12px;
+    letter-spacing:0.28em; text-transform:uppercase;
+    color:#F2F2F2; opacity:0.25;
+  }
+
+  .center {
+    flex:1; display:flex;
+    flex-direction:column;
+    justify-content:center;
+  }
+
+  .pre {
+    font-family:'Barlow Condensed',sans-serif;
+    font-weight:700; font-size:13px;
+    letter-spacing:0.32em; text-transform:uppercase;
+    color:#0FA8DF; opacity:0.7;
+    margin-bottom:16px;
+    display:flex; align-items:center; gap:12px;
+  }
+  .pre::before { content:''; width:20px; height:2px; background:#0FA8DF; opacity:0.5; }
+
+  .headline {
+    font-family:'Bebas Neue',sans-serif;
+    font-size:96px; line-height:0.88;
+    color:#F2F2F2; margin-bottom:40px;
+  }
+  .headline em { color:#E1FF01; font-style:normal; }
+
+  .contact-blocks {
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:2px;
+    margin-bottom:40px;
+  }
+
+  .contact {
+    background:#0d1320;
+    padding:32px;
+    position:relative;
+  }
+  .contact-type {
+    font-family:'Barlow Condensed',sans-serif;
+    font-weight:700; font-size:11px;
+    letter-spacing:0.28em; text-transform:uppercase;
+    color:#F2F2F2; opacity:0.3;
+    margin-bottom:10px;
+  }
+  .contact-value {
+    font-family:'DM Mono',monospace;
+    font-size:16px; letter-spacing:0.05em;
+    line-height:1.4;
+  }
+  .contact-value.wa { color:#25D366; opacity:0.8; }
+  .contact-value.email { color:#0FA8DF; opacity:0.7; }
+
+  .note {
+    font-family:'Barlow Condensed',sans-serif;
+    font-size:17px; font-style:italic;
+    color:#F2F2F2; opacity:0.3;
+    letter-spacing:0.06em;
+    line-height:1.5;
+  }
+
+  .bottom-row {
+    display:flex; justify-content:space-between;
+    align-items:center;
+  }
+  .url {
+    font-family:'DM Mono',monospace;
+    font-size:13px; letter-spacing:0.1em;
+    color:#F2F2F2; opacity:0.2;
+  }
+  .from-price {
+    font-family:'Bebas Neue',sans-serif;
+    font-size:48px; color:#E1FF01;
+    opacity:0.7;
+  }
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="cyan-top"></div>
+
+  <div class="brand-mark">Artifacts Coffee</div>
+
+  <div class="center">
+    <div class="pre">Ready to set it up?</div>
+    <div class="headline">Message us.<br>We'll sort <em>the rest.</em></div>
+
+    <div class="contact-blocks">
+      <div class="contact">
+        <div class="contact-type">WhatsApp</div>
+        <div class="contact-value wa">+27 61 383 2478</div>
+      </div>
+      <div class="contact">
+        <div class="contact-type">Email</div>
+        <div class="contact-value email">artifacts.coffee<br>.roastery@gmail.com</div>
+      </div>
+    </div>
+
+    <div class="note">
+      Tell us your team size and we'll recommend the right plan.<br>
+      All plans are flexible — no commitment, no lock-in.
+    </div>
+  </div>
+
+  <div class="bottom-row">
+    <div class="url">artifactscoffee.co.za</div>
+    <div class="from-price">From R592 / month</div>
+  </div>
+</div>
+</body>
+</html>

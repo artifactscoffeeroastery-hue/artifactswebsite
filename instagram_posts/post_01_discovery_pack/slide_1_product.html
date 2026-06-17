@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1080">
+<title>DP · Slide 1</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:ital,wght@0,400;0,600;0,700;0,900;1,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { width:1080px; height:1080px; overflow:hidden; background:#020c1a; }
+
+  .frame {
+    width:1080px; height:1080px;
+    position:relative;
+    display:flex; flex-direction:column;
+    justify-content:flex-end;
+  }
+
+  /* Full-bleed product image */
+  .bg-img {
+    position:absolute; top:0; left:0;
+    width:100%; height:100%;
+    object-fit:cover;
+    object-position:center center;
+  }
+
+  /* Dark gradient overlay from bottom */
+  .overlay {
+    position:absolute; bottom:0; left:0;
+    width:100%; height:55%;
+    background: linear-gradient(to top, rgba(2,12,26,0.92) 0%, rgba(2,12,26,0.6) 50%, transparent 100%);
+  }
+
+  /* Top-left badge */
+  .top-badge {
+    position:absolute; top:48px; left:56px;
+    font-family:'Barlow Condensed',sans-serif;
+    font-weight:700; font-size:12px;
+    letter-spacing:0.3em; text-transform:uppercase;
+    color:#F2F2F2; opacity:0.6;
+    display:flex; align-items:center; gap:12px;
+  }
+  .top-badge::before {
+    content:''; width:24px; height:2px;
+    background:#0FA8DF;
+  }
+
+  /* Code top-right */
+  .top-code {
+    position:absolute; top:48px; right:56px;
+    font-family:'DM Mono',monospace; font-size:11px;
+    letter-spacing:0.1em;
+    color:#E1FF01; opacity:0.6;
+    border:1px solid rgba(225,255,1,0.3);
+    padding:4px 12px;
+  }
+
+  /* Bottom content */
+  .bottom {
+    position:relative; z-index:2;
+    padding:0 56px 56px;
+  }
+
+  .pre {
+    font-family:'Barlow Condensed',sans-serif;
+    font-weight:700; font-size:13px;
+    letter-spacing:0.32em; text-transform:uppercase;
+    color:#0FA8DF; margin-bottom:12px;
+  }
+
+  .title {
+    font-family:'Bebas Neue',sans-serif;
+    font-size:100px; line-height:0.88;
+    letter-spacing:0.02em; color:#F2F2F2;
+    margin-bottom:20px;
+  }
+
+  .desc {
+    font-family:'Barlow Condensed',sans-serif;
+    font-size:18px; font-weight:600;
+    letter-spacing:0.12em; text-transform:uppercase;
+    color:#F2F2F2; opacity:0.5;
+    margin-bottom:28px;
+  }
+
+  .price-row {
+    display:flex; align-items:baseline; gap:14px;
+  }
+  .price {
+    font-family:'Bebas Neue',sans-serif;
+    font-size:72px; line-height:1;
+    color:#E1FF01; letter-spacing:0.02em;
+  }
+  .price-note {
+    font-family:'Barlow Condensed',sans-serif;
+    font-size:16px; font-weight:600;
+    letter-spacing:0.14em; text-transform:uppercase;
+    color:#F2F2F2; opacity:0.4;
+  }
+
+  /* Swipe indicator */
+  .swipe {
+    position:absolute; bottom:48px; right:56px;
+    display:flex; align-items:center; gap:8px;
+    font-family:'Barlow Condensed',sans-serif;
+    font-size:11px; font-weight:700;
+    letter-spacing:0.2em; text-transform:uppercase;
+    color:#F2F2F2; opacity:0.35;
+  }
+  .swipe-arrow { font-size:16px; }
+</style>
+</head>
+<body>
+<div class="frame">
+  <img class="bg-img" src="../../images/dp-1080.png" alt="Discovery Pack">
+  <div class="overlay"></div>
+
+  <div class="top-badge">Artifacts Coffee</div>
+  <div class="top-code">DP · 004</div>
+
+  <div class="bottom">
+    <div class="pre">Start here</div>
+    <div class="title">Origin<br>Discovery<br>Pack</div>
+    <div class="desc">3 × 80g · Three countries · One deliberate selection</div>
+    <div class="price-row">
+      <div class="price">R170</div>
+      <div class="price-note">whole bean · roasted fresh</div>
+    </div>
+  </div>
+
+  <div class="swipe"><span class="swipe-arrow">→</span> swipe</div>
+</div>
+</body>
+</html>

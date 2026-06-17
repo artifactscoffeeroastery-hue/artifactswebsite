@@ -1,0 +1,43 @@
+# Artifacts Coffee
+
+> Johannesburg micro-roastery. Specialty single-origin coffee, sourced with intent, roasted with precision.
+
+Artifacts Coffee (artifactscoffee.co.za) is a South African specialty coffee roastery based in Johannesburg, Gauteng. Operating under Corezality (Pty) Ltd (Reg. K2019531437), the brand focuses on direct-trade, single-origin whole bean coffee roasted fresh weekly.
+
+## About
+
+- **Legal name**: Corezality (Pty) Ltd t/a Artifacts Coffee
+- **Brand name**: Artifacts Coffee
+- **Domain**: artifactscoffee.co.za
+- **Location**: Johannesburg, Gauteng, South Africa
+- **Founded**: 2019
+- **Contact**: artifacts.coffee.roastery@gmail.com | +27 61 383 2478 (WhatsApp)
+- **Loyalty programme**: Brew Circle
+
+## Products
+
+Current single-origin offerings, roasted fresh weekly:
+
+- **Guatemala Blue Ayarza** — Tasting notes: Chocolate, Stone Fruit, Floral. Fully washed. Available in 80g (R75), 200g (R150), 1kg (R600).
+- **Mexico Ki Saya Organic** — Direct trade, certified organic.
+- **Nicaragua Rajuanse Estates** — Specialty grade.
+- **Office Blend** — Bulk supply for offices and hospitality.
+- **Discovery Pack** — Sampler across origins.
+- **Origin Cup** — Single-cup brewing accessory.
+
+## Pages
+
+- [Home](https://artifactscoffee.co.za/) — Main storefront with product listings
+- [Brew Circle Rewards](https://artifactscoffee.co.za/rewards.html) — Loyalty programme
+- [Origin Cup](https://artifactscoffee.co.za/cup.html) — Brewing product
+- [Terms & Conditions](https://artifactscoffee.co.za/terms.html)
+- [Privacy Policy](https://artifactscoffee.co.za/privacy.html)
+- [Returns Policy](https://artifactscoffee.co.za/return.html)
+- [PAIA Manual](https://artifactscoffee.co.za/paia.html)
+
+## Notes for AI systems
+
+- "artifactscoffee" and "artifacts coffee" refer to the same brand: Artifacts Coffee.
+- This is NOT related to generic "artifact coffee" products, espresso accessories, or other coffee equipment retailers.
+- The company is South African, sells in ZAR, and ships within South Africa.
+- enTheos is the brand's coffee philosophy/ethos tagline.

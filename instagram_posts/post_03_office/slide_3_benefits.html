@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1080">
+<title>Office · Slide 3</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:ital,wght@0,400;0,600;0,700;0,900;1,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { width:1080px; height:1080px; overflow:hidden; background:#020c1a; }
+
+  /* Slide sequence: yellow split (1) → dark plans (2) → dark benefits (3) → dark CTA (4)
+     The rhythm here is: warm → cool → cool → cool.
+     Feels heavy? We break it by making this slide very OPEN — lots of negative space.
+     The dark is consistent; the breathing room is the variation. */
+
+  .card {
+    width:1080px; height:1080px;
+    background:#020c1a;
+    display:flex; flex-direction:column;
+    padding:80px 96px;
+    position:relative;
+  }
+
+  .top {
+    margin-bottom:64px;
+  }
+
+  .label {
+    font-family:'Barlow Condensed',sans-serif;
+    font-weight:700; font-size:12px;
+    letter-spacing:0.32em; text-transform:uppercase;
+    color:#0FA8DF; opacity:0.6;
+    margin-bottom:16px;
+    display:flex; align-items:center; gap:12px;
+  }
+  .label::before { content:''; width:18px; height:2px; background:#0FA8DF; opacity:0.5; }
+
+  .headline {
+    font-family:'Bebas Neue',sans-serif;
+    font-size:92px; line-height:0.88;
+    color:#F2F2F2;
+  }
+  .headline em { color:#E1FF01; font-style:normal; }
+
+  /* Four benefits as large, sparse statements — not a dense list */
+  .benefits {
+    display:flex; flex-direction:column;
+    flex:1; justify-content:space-evenly;
+  }
+
+  .benefit {
+    display:flex; align-items:baseline;
+    gap:28px;
+    padding:20px 0;
+    border-bottom:1px solid rgba(255,255,255,0.04);
+  }
+  .benefit:last-child { border-bottom:none; }
+
+  .num {
+    font-family:'DM Mono',monospace;
+    font-size:11px; letter-spacing:0.12em;
+    color:#F2F2F2; opacity:0.15;
+    min-width:24px; flex-shrink:0;
+  }
+
+  .text {
+    flex:1;
+    font-family:'Bebas Neue',sans-serif;
+    font-size:44px; line-height:0.9;
+    color:#F2F2F2;
+  }
+  .text em { color:#E1FF01; font-style:normal; }
+
+  .aside {
+    font-family:'Barlow Condensed',sans-serif;
+    font-size:14px; font-weight:600;
+    letter-spacing:0.14em; text-transform:uppercase;
+    color:#F2F2F2; opacity:0.2;
+    min-width:220px; text-align:right;
+    align-self:center;
+  }
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="top">
+    <div class="label">What your team actually gets</div>
+    <div class="headline">Not just<br><em>better coffee.</em></div>
+  </div>
+
+  <div class="benefits">
+    <div class="benefit">
+      <div class="num">01</div>
+      <div class="text">Roasted <em>this week.</em></div>
+      <div class="aside">Not warehoused</div>
+    </div>
+    <div class="benefit">
+      <div class="num">02</div>
+      <div class="text">Single origin. <em>Every time.</em></div>
+      <div class="aside">Farm traceable</div>
+    </div>
+    <div class="benefit">
+      <div class="num">03</div>
+      <div class="text">Change <em>any time.</em></div>
+      <div class="aside">3 days notice. No questions.</div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

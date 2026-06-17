@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1080">
+<title>80g · Slide 2</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:ital,wght@0,400;0,600;0,700;0,900;1,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { width:1080px; height:1080px; overflow:hidden; background:#020c1a; }
+
+  /* This slide is a visual rest after the photo.
+     Dark. Minimal. One idea. Lots of negative space.
+     The eye arrives here and slows down. */
+
+  .card {
+    width:1080px; height:1080px;
+    background:#020c1a;
+    display:flex; flex-direction:column;
+    justify-content:center;
+    padding:96px 104px;
+    position:relative;
+  }
+
+  /* Hairline left border — the only decoration */
+  .left-rule {
+    position:absolute; top:0; left:0;
+    width:4px; height:100%;
+    background:#E1FF01; opacity:0.15;
+  }
+
+  .brand-mark {
+    position:absolute; top:56px; left:104px;
+    font-family:'Barlow Condensed',sans-serif;
+    font-weight:700; font-size:11px;
+    letter-spacing:0.26em; text-transform:uppercase;
+    color:#F2F2F2; opacity:0.2;
+  }
+
+  /* Massive type — the idea IS the design */
+  .the-problem {
+    font-family:'Bebas Neue',sans-serif;
+    font-size:152px; line-height:0.86;
+    color:#F2F2F2; letter-spacing:0.01em;
+    margin-bottom:40px;
+  }
+
+  .rule {
+    width:60px; height:2px;
+    background:rgba(242,242,242,0.15);
+    margin-bottom:36px;
+  }
+
+  .explanation {
+    font-family:'Barlow Condensed',sans-serif;
+    font-size:24px; line-height:1.65;
+    color:#F2F2F2; opacity:0.45;
+    letter-spacing:0.04em;
+    max-width:620px;
+  }
+
+  /* Small counter — bottom right */
+  .counter {
+    position:absolute; bottom:56px; right:104px;
+    font-family:'DM Mono',monospace; font-size:11px;
+    letter-spacing:0.1em; color:#F2F2F2; opacity:0.15;
+  }
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="left-rule"></div>
+  <div class="brand-mark">Artifacts Coffee</div>
+
+  <div class="the-problem">You commit<br>before you<br>taste.</div>
+  <div class="rule"></div>
+  <div class="explanation">
+    1kg of something you've never tried. Maybe you love it. Maybe you spend three weeks tolerating it. That's not a coffee experience — that's a gamble.
+  </div>
+
+  <div class="counter">02 / 04</div>
+</div>
+</body>
+</html>

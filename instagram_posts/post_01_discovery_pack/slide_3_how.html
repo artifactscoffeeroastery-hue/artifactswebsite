@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1080">
+<title>DP · Slide 3</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:ital,wght@0,400;0,600;0,700;0,900;1,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { width:1080px; height:1080px; overflow:hidden; background:#020c1a; }
+
+  /* Coming off slide 2 (yellow), this card reads as the "calm after the colour".
+     70% negative space. The three steps are big — scannable in 0.3 seconds.
+     One idea per visual unit. No decoration competing. */
+
+  .card {
+    width:1080px; height:1080px;
+    background:#020c1a;
+    display:flex; flex-direction:column;
+    padding:80px 96px;
+    position:relative;
+  }
+
+  .label {
+    font-family:'Barlow Condensed',sans-serif;
+    font-weight:700; font-size:11px;
+    letter-spacing:0.3em; text-transform:uppercase;
+    color:#F2F2F2; opacity:0.2;
+    margin-bottom:72px;
+    display:flex; align-items:center; gap:12px;
+  }
+  .label::before { content:''; width:16px; height:1px; background:rgba(242,242,242,0.25); }
+
+  /* Each step is its own visual unit — large number, short statement */
+  .steps { display:flex; flex-direction:column; flex:1; justify-content:space-evenly; }
+
+  .step {
+    display:flex; align-items:baseline; gap:48px;
+  }
+
+  .num {
+    font-family:'Bebas Neue',sans-serif;
+    font-size:80px; line-height:0.8;
+    min-width:64px; flex-shrink:0;
+  }
+  .step-1 .num { color:#0FA8DF; }
+  .step-2 .num { color:#E1FF01; }
+  .step-3 .num { color:#F2F2F2; opacity:0.2; }
+
+  .text {}
+  .title {
+    font-family:'Bebas Neue',sans-serif;
+    font-size:52px; line-height:0.88;
+    color:#F2F2F2;
+    margin-bottom:8px;
+  }
+  .desc {
+    font-family:'Barlow Condensed',sans-serif;
+    font-size:18px; line-height:1.55;
+    color:#F2F2F2; opacity:0.35;
+    letter-spacing:0.04em;
+    max-width:580px;
+  }
+
+  .bottom-rule {
+    margin-top:60px;
+    display:flex; justify-content:space-between; align-items:center;
+  }
+  .price {
+    font-family:'Bebas Neue',sans-serif;
+    font-size:60px; line-height:1;
+    color:#E1FF01;
+  }
+  .url {
+    font-family:'DM Mono',monospace; font-size:11px;
+    letter-spacing:0.1em;
+    color:#F2F2F2; opacity:0.15;
+  }
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="label">Discovery Pack · How it works</div>
+
+  <div class="steps">
+    <div class="step step-1">
+      <div class="num">01</div>
+      <div class="text">
+        <div class="title">Order the pack.</div>
+        <div class="desc">Three 80g bags. Three countries. Roasted fresh on dispatch day.</div>
+      </div>
+    </div>
+    <div class="step step-2">
+      <div class="num">02</div>
+      <div class="text">
+        <div class="title">Brew all three.</div>
+        <div class="desc">Guatemala, Mexico, Nicaragua — same process, completely different cups.</div>
+      </div>
+    </div>
+    <div class="step step-3">
+      <div class="num">03</div>
+      <div class="text">
+        <div class="title">Commit with certainty.</div>
+        <div class="desc">Now you order 1kg of the one you love. No more guessing.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="bottom-rule">
+    <div class="url">artifactscoffee.co.za</div>
+    <div class="price">R170</div>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1080">
+<title>DP · Slide 4</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:ital,wght@0,400;0,600;0,700;0,900;1,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { width:1080px; height:1080px; overflow:hidden; background:#E1FF01; }
+
+  .card {
+    width:1080px; height:1080px;
+    background:#E1FF01;
+    display:flex; flex-direction:column;
+    justify-content:space-between;
+    padding:72px 80px;
+    position:relative;
+  }
+
+  /* Dark block bottom half */
+  .dark-block {
+    position:absolute; bottom:0; left:0;
+    width:100%; height:50%;
+    background:#020c1a;
+  }
+
+  .top { position:relative; z-index:1; }
+  .bottom { position:relative; z-index:1; }
+
+  .kicker {
+    font-family:'Barlow Condensed',sans-serif;
+    font-weight:700; font-size:13px;
+    letter-spacing:0.32em; text-transform:uppercase;
+    color:#020c1a; opacity:0.5;
+    margin-bottom:16px;
+    display:flex; align-items:center; gap:12px;
+  }
+  .kicker::before { content:''; width:24px; height:2px; background:#020c1a; opacity:0.5; }
+
+  .headline {
+    font-family:'Bebas Neue',sans-serif;
+    font-size:128px; line-height:0.85;
+    color:#020c1a; letter-spacing:0.02em;
+  }
+
+  .divider {
+    width:100%; height:2px;
+    background:#020c1a; opacity:0.12;
+    margin:40px 0;
+    position:relative; z-index:1;
+  }
+
+  /* Bottom section on dark */
+  .bottom-inner {
+    position:relative; z-index:1;
+  }
+
+  .price-block {
+    display:flex; align-items:baseline;
+    gap:16px; margin-bottom:24px;
+  }
+  .price {
+    font-family:'Bebas Neue',sans-serif;
+    font-size:96px; line-height:1;
+    color:#E1FF01;
+  }
+  .price-note {
+    font-family:'Barlow Condensed',sans-serif;
+    font-size:18px; font-weight:600;
+    letter-spacing:0.14em; text-transform:uppercase;
+    color:#F2F2F2; opacity:0.4;
+  }
+
+  .meta-row {
+    display:flex; gap:24px;
+    margin-bottom:32px;
+  }
+  .meta {
+    font-family:'Barlow Condensed',sans-serif;
+    font-size:14px; font-weight:700;
+    letter-spacing:0.18em; text-transform:uppercase;
+    color:#F2F2F2; opacity:0.35;
+    display:flex; align-items:center; gap:8px;
+  }
+  .meta::before {
+    content:''; width:14px; height:1px;
+    background:rgba(242,242,242,0.3);
+  }
+
+  .url-row {
+    display:flex; justify-content:space-between; align-items:center;
+  }
+  .url {
+    font-family:'DM Mono',monospace;
+    font-size:14px; letter-spacing:0.1em;
+    color:#0FA8DF; opacity:0.6;
+  }
+  .promo {
+    font-family:'DM Mono',monospace;
+    font-size:13px; letter-spacing:0.12em;
+    color:#E1FF01; opacity:0.5;
+    border:1px solid rgba(225,255,1,0.3);
+    padding:6px 16px;
+  }
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="dark-block"></div>
+
+  <div class="top">
+    <div class="kicker">Origin Discovery Pack</div>
+    <div class="headline">Three<br>Countries.<br>One Box.</div>
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="bottom-inner">
+    <div class="price-block">
+      <div class="price">R170</div>
+      <div class="price-note">3 × 80g whole bean</div>
+    </div>
+    <div class="meta-row">
+      <div class="meta">Roasted fresh on dispatch</div>
+      <div class="meta">All washed process</div>
+      <div class="meta">Free delivery available</div>
+    </div>
+    <div class="url-row">
+      <div class="url">artifactscoffee.co.za</div>
+      <div class="promo">FOUNDER20</div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

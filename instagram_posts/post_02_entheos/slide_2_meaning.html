@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1080">
+<title>enTheos · Slide 2</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:ital,wght@0,400;0,600;0,700;0,900;1,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { width:1080px; height:1080px; overflow:hidden; background:#020c1a; }
+
+  .card {
+    width:1080px; height:1080px;
+    background:#020c1a;
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    position:relative;
+  }
+
+  /* Left panel — dark with the logo wordmark */
+  .left {
+    background:#0d1320;
+    display:flex; flex-direction:column;
+    justify-content:center; align-items:center;
+    padding:64px 48px;
+    border-right:1px solid #1E1E1E;
+    position:relative;
+  }
+
+  /* enTheos wordmark using the PNG */
+  .wordmark {
+    width:180px;
+    filter:brightness(0) invert(1);
+    opacity:0.85;
+    margin-bottom:40px;
+  }
+
+  .etymology {
+    text-align:center;
+  }
+  .etym-greek {
+    font-family:'Barlow Condensed',sans-serif;
+    font-style:italic; font-size:28px;
+    letter-spacing:0.06em;
+    color:#F2F2F2; opacity:0.3;
+    margin-bottom:12px;
+  }
+  .etym-translation {
+    font-family:'Barlow Condensed',sans-serif;
+    font-weight:700; font-size:18px;
+    letter-spacing:0.2em; text-transform:uppercase;
+    color:#0FA8DF; opacity:0.7;
+  }
+
+  .left-bottom {
+    position:absolute; bottom:48px;
+    font-family:'DM Mono',monospace;
+    font-size:10px; letter-spacing:0.1em;
+    color:#F2F2F2; opacity:0.15;
+    text-align:center;
+  }
+
+  /* Right panel — content */
+  .right {
+    display:flex; flex-direction:column;
+    padding:64px 56px;
+    justify-content:center;
+  }
+
+  .kicker {
+    font-family:'Barlow Condensed',sans-serif;
+    font-weight:700; font-size:12px;
+    letter-spacing:0.32em; text-transform:uppercase;
+    color:#E1FF01; opacity:0.6;
+    margin-bottom:20px;
+    display:flex; align-items:center; gap:12px;
+  }
+  .kicker::before { content:''; width:20px; height:2px; background:#E1FF01; opacity:0.5; }
+
+  .headline {
+    font-family:'Bebas Neue',sans-serif;
+    font-size:72px; line-height:0.88;
+    color:#F2F2F2; margin-bottom:32px;
+  }
+
+  .body-text {
+    font-family:'Barlow Condensed',sans-serif;
+    font-size:20px; line-height:1.7;
+    color:#F2F2F2; opacity:0.55;
+    letter-spacing:0.04em;
+    margin-bottom:40px;
+  }
+
+  .body-text strong {
+    color:#F2F2F2; opacity:1; font-weight:700;
+    letter-spacing:0.06em;
+  }
+
+  .divider {
+    width:48px; height:2px;
+    background:#0FA8DF; margin-bottom:32px;
+  }
+
+  .posture-label {
+    font-family:'Barlow Condensed',sans-serif;
+    font-weight:700; font-size:12px;
+    letter-spacing:0.24em; text-transform:uppercase;
+    color:#F2F2F2; opacity:0.25;
+    margin-bottom:8px;
+  }
+  .posture-text {
+    font-family:'Barlow Condensed',sans-serif;
+    font-style:italic; font-size:18px;
+    color:#F2F2F2; opacity:0.35;
+    letter-spacing:0.06em;
+    line-height:1.5;
+  }
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="left">
+    <img class="wordmark" src="../../images/entheos.png" alt="enTheos">
+    <div class="etymology">
+      <div class="etym-greek">ἔνθεος</div>
+      <div class="etym-translation">En · Theos · "In God"</div>
+    </div>
+    <div class="left-bottom">Ancient Greek · ἐν + θεός</div>
+  </div>
+
+  <div class="right">
+    <div class="kicker">What it means</div>
+    <div class="headline">Not a<br>product.<br>A posture.</div>
+
+    <div class="body-text">
+      <strong>enTheos</strong> is an Ancient Greek word — literally "in God." It's the root of the English word <em>enthusiasm</em>.<br><br>
+      We put it on every bag as a mark of devotion.
+    </div>
+
+    <div class="divider"></div>
+    <div class="posture-label">What it reminds us</div>
+    <div class="posture-text">
+      Every batch is offered in gratitude.<br>
+      Excellence is an act of worship.<br>
+      Every cup carries something greater than coffee.
+    </div>
+  </div>
+</div>
+</body>
+</html>

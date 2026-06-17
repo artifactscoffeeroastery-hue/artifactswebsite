@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1080">
+<title>enTheos · Slide 1</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:ital,wght@0,400;0,600;0,700;0,900;1,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { width:1080px; height:1080px; overflow:hidden; background:#020c1a; }
+
+  /* Pattern interruption: the post name contains a word most people
+     can't read. That's the hook. Photo grounds it in the real product;
+     the Greek text creates the curiosity gap that makes people swipe. */
+
+  .frame {
+    width:1080px; height:1080px;
+    position:relative;
+    display:flex; flex-direction:column;
+    justify-content:flex-end;
+  }
+
+  /* Guatemala — warm, familiar, human */
+  .bg {
+    position:absolute; top:0; left:0;
+    width:100%; height:100%;
+    object-fit:cover; object-position:center;
+    filter:brightness(0.65) saturate(0.8);
+  }
+
+  /* Gradient only from bottom 55% */
+  .vignette {
+    position:absolute; bottom:0; left:0;
+    width:100%; height:55%;
+    background:linear-gradient(to top, rgba(2,12,26,0.95) 0%, transparent 100%);
+  }
+
+  /* Top: brand mark, very quiet */
+  .top-mark {
+    position:absolute; top:52px; left:60px;
+    font-family:'Barlow Condensed',sans-serif;
+    font-weight:700; font-size:11px;
+    letter-spacing:0.28em; text-transform:uppercase;
+    color:#F2F2F2; opacity:0.4;
+    display:flex; align-items:center; gap:10px;
+  }
+  .top-mark::before { content:''; width:16px; height:1px; background:#0FA8DF; opacity:0.7; }
+
+  /* Top right: curiosity tag */
+  .tag {
+    position:absolute; top:52px; right:60px;
+    font-family:'DM Mono',monospace; font-size:11px;
+    letter-spacing:0.14em;
+    color:#E1FF01; opacity:0.6;
+    border:1px solid rgba(225,255,1,0.25);
+    padding:4px 12px;
+  }
+
+  /* Centre: the Greek word — pattern interruption.
+     Large enough to read, strange enough to stop the scroll. */
+  .centre {
+    position:absolute; top:50%; left:50%;
+    transform:translate(-50%,-50%);
+    text-align:center;
+  }
+
+  .greek {
+    font-family:'Bebas Neue',sans-serif;
+    font-size:180px; line-height:0.82;
+    color:#F2F2F2; letter-spacing:0.06em;
+    /* Subtle fade — legible but not aggressive */
+    opacity:0.18;
+  }
+
+  /* Bottom: the question */
+  .bottom {
+    position:relative; z-index:2;
+    padding:0 60px 68px;
+  }
+
+  .question {
+    font-family:'Bebas Neue',sans-serif;
+    font-size:76px; line-height:0.88;
+    color:#F2F2F2; letter-spacing:0.01em;
+    margin-bottom:16px;
+  }
+  .question em { color:#E1FF01; font-style:normal; }
+
+  .hint {
+    font-family:'Barlow Condensed',sans-serif;
+    font-size:16px; font-style:italic;
+    color:#F2F2F2; opacity:0.35;
+    letter-spacing:0.1em;
+  }
+
+  .swipe {
+    position:absolute; bottom:52px; right:60px;
+    font-family:'Barlow Condensed',sans-serif;
+    font-size:11px; font-weight:700;
+    letter-spacing:0.22em; text-transform:uppercase;
+    color:#F2F2F2; opacity:0.2;
+    z-index:2;
+  }
+</style>
+</head>
+<body>
+<div class="frame">
+  <img class="bg" src="../../images/gt-1080.png" alt="Guatemala Santa Bárbara">
+  <div class="vignette"></div>
+
+  <div class="top-mark">Artifacts Coffee</div>
+  <div class="tag">Have you seen this on our site?</div>
+
+  <!-- Ghost Greek word in the mid-ground -->
+  <div class="centre">
+    <div class="greek">ἔνθεος</div>
+  </div>
+
+  <div class="bottom">
+    <div class="question">What does<br><em>enTheos</em> mean?</div>
+    <div class="hint">It's on every page of our site. Here's why.</div>
+  </div>
+
+  <div class="swipe">swipe →</div>
+</div>
+</body>
+</html>

@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1080">
+<title>enTheos · Slide 3</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:ital,wght@0,400;0,600;0,700;0,900;1,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { width:1080px; height:1080px; overflow:hidden; background:#020c1a; }
+
+  .card {
+    width:1080px; height:1080px;
+    background:#020c1a;
+    display:flex; flex-direction:column;
+    padding:80px;
+    position:relative;
+  }
+
+  /* Three horizontal bands of meaning */
+  .bands {
+    display:flex; flex-direction:column;
+    flex:1; gap:2px;
+  }
+
+  .band {
+    flex:1;
+    display:flex; flex-direction:column;
+    justify-content:center;
+    padding:0 40px;
+    position:relative;
+  }
+
+  .band-1 { background:#0d1320; }
+  .band-2 { background:#E1FF01; }
+  .band-3 { background:#020c1a; border:1px solid #1E1E1E; }
+
+  .band-num {
+    position:absolute; top:20px; left:40px;
+    font-family:'DM Mono',monospace;
+    font-size:10px; letter-spacing:0.12em;
+  }
+  .band-1 .band-num { color:#F2F2F2; opacity:0.15; }
+  .band-2 .band-num { color:#020c1a; opacity:0.3; }
+  .band-3 .band-num { color:#F2F2F2; opacity:0.15; }
+
+  .band-statement {
+    font-family:'Bebas Neue',sans-serif;
+    font-size:56px; line-height:0.9;
+    letter-spacing:0.02em;
+    margin-bottom:10px;
+  }
+  .band-1 .band-statement { color:#F2F2F2; }
+  .band-2 .band-statement { color:#020c1a; }
+  .band-3 .band-statement { color:#0FA8DF; }
+
+  .band-sub {
+    font-family:'Barlow Condensed',sans-serif;
+    font-size:16px; font-style:italic;
+    letter-spacing:0.08em; line-height:1.5;
+  }
+  .band-1 .band-sub { color:#F2F2F2; opacity:0.4; }
+  .band-2 .band-sub { color:#020c1a; opacity:0.55; }
+  .band-3 .band-sub { color:#F2F2F2; opacity:0.35; }
+
+  .top-label {
+    font-family:'Barlow Condensed',sans-serif;
+    font-weight:700; font-size:12px;
+    letter-spacing:0.32em; text-transform:uppercase;
+    color:#F2F2F2; opacity:0.25;
+    margin-bottom:32px;
+    display:flex; align-items:center; gap:12px;
+  }
+  .top-label::before { content:''; width:20px; height:1px; background:rgba(242,242,242,0.25); }
+
+  .bottom-label {
+    margin-top:32px;
+    font-family:'DM Mono',monospace;
+    font-size:11px; letter-spacing:0.1em;
+    color:#F2F2F2; opacity:0.15;
+    text-align:right;
+  }
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="top-label">enTheos · What this means for how we work</div>
+
+  <div class="bands">
+    <div class="band band-1">
+      <div class="band-num">01</div>
+      <div class="band-statement">To the farmers</div>
+      <div class="band-sub">Every sourcing decision honours the people who tend the land. We don't buy cheap. We buy with care.</div>
+    </div>
+    <div class="band band-2">
+      <div class="band-num">02</div>
+      <div class="band-statement">To the craft</div>
+      <div class="band-sub">Precision in every roast. No shortcuts. The profile either earns the origin's potential or it doesn't.</div>
+    </div>
+    <div class="band band-3">
+      <div class="band-num">03</div>
+      <div class="band-statement">To God Almighty</div>
+      <div class="band-sub">The source of all good things. Every bag leaves our hands as an offering — of work done with full attention.</div>
+    </div>
+  </div>
+
+  <div class="bottom-label">artifactscoffee.co.za</div>
+</div>
+</body>
+</html>

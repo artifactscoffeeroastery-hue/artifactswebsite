@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1080">
+<title>Discovery Pack — Artifacts Coffee</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:ital,wght@0,400;0,600;0,700;0,900;1,400;1,600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    width: 1080px;
+    height: 1080px;
+    overflow: hidden;
+    background: #020c1a;
+  }
+
+  .card {
+    width: 1080px;
+    height: 1080px;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+  }
+
+  /* Full-bleed photo */
+  .bg-photo {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    object-fit: cover;
+    object-position: center top;
+  }
+
+  /* Deep gradient from bottom — let the photo breathe at top */
+  .gradient {
+    position: absolute;
+    bottom: 0; left: 0;
+    width: 100%;
+    height: 65%;
+    background: linear-gradient(
+      to top,
+      rgba(2,12,26,0.97) 0%,
+      rgba(2,12,26,0.82) 35%,
+      rgba(2,12,26,0.4) 65%,
+      transparent 100%
+    );
+  }
+
+  /* Top-left brand mark */
+  .brand-mark {
+    position: absolute;
+    top: 52px; left: 64px;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700; font-size: 12px;
+    letter-spacing: 0.3em; text-transform: uppercase;
+    color: #F2F2F2; opacity: 0.55;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .brand-mark::before {
+    content: ''; width: 22px; height: 2px;
+    background: #0FA8DF;
+  }
+
+  /* Top-right code */
+  .code {
+    position: absolute;
+    top: 52px; right: 64px;
+    font-family: 'DM Mono', monospace; font-size: 11px;
+    color: #E1FF01; opacity: 0.55;
+    border: 1px solid rgba(225,255,1,0.3);
+    padding: 4px 12px;
+  }
+
+  /* Bottom content */
+  .bottom {
+    position: relative; z-index: 2;
+    padding: 0 64px 60px;
+  }
+
+  .kicker {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700; font-size: 13px;
+    letter-spacing: 0.32em; text-transform: uppercase;
+    color: #0FA8DF; opacity: 0.8;
+    margin-bottom: 14px;
+  }
+
+  .title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 112px; line-height: 0.86;
+    letter-spacing: 0.02em; color: #F2F2F2;
+    margin-bottom: 24px;
+  }
+
+  .desc {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 17px; font-weight: 600;
+    letter-spacing: 0.18em; text-transform: uppercase;
+    color: #F2F2F2; opacity: 0.45;
+    margin-bottom: 32px;
+  }
+
+  /* Horizontal price/meta row */
+  .meta-row {
+    display: flex;
+    align-items: baseline;
+    gap: 24px;
+  }
+
+  .price {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 80px; line-height: 1;
+    color: #E1FF01;
+  }
+
+  .divider-v {
+    width: 1px; height: 48px;
+    background: rgba(242,242,242,0.15);
+    align-self: center;
+  }
+
+  .meta-right {
+    display: flex; flex-direction: column; gap: 4px;
+  }
+  .meta-line {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 14px; font-weight: 700;
+    letter-spacing: 0.16em; text-transform: uppercase;
+    color: #F2F2F2; opacity: 0.35;
+  }
+
+  /* URL bottom right */
+  .url {
+    position: absolute;
+    bottom: 28px; right: 64px;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px; letter-spacing: 0.08em;
+    color: #F2F2F2; opacity: 0.2;
+  }
+</style>
+</head>
+<body>
+<div class="card">
+  <img class="bg-photo" src="../images/dp-1080.png" alt="Origin Discovery Pack">
+  <div class="gradient"></div>
+
+  <div class="brand-mark">Artifacts Coffee</div>
+  <div class="code">DP · 004</div>
+
+  <div class="bottom">
+    <div class="kicker">Start Here</div>
+    <div class="title">Origin<br>Discovery<br>Pack</div>
+    <div class="desc">3 × 80g · Three countries · One deliberate selection</div>
+    <div class="meta-row">
+      <div class="price">R170</div>
+      <div class="divider-v"></div>
+      <div class="meta-right">
+        <div class="meta-line">Whole bean</div>
+        <div class="meta-line">Roasted fresh on dispatch</div>
+        <div class="meta-line">Free delivery available</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="url">artifactscoffee.co.za</div>
+</div>
+</body>
+</html>

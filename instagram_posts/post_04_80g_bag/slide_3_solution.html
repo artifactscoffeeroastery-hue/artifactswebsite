@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1080">
+<title>80g · Slide 3</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:ital,wght@0,400;0,600;0,700;0,900;1,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { width:1080px; height:1080px; overflow:hidden; background:#E1FF01; }
+
+  /* Yellow hits hard here because slides 1+2 were dark.
+     The color contrast is the signal — this is the answer.
+     But the layout is SPARSE. Yellow is the message; don't compete with it. */
+
+  .card {
+    width:1080px; height:1080px;
+    background:#E1FF01;
+    display:flex; flex-direction:column;
+    justify-content:center;
+    padding:96px 104px;
+    position:relative;
+  }
+
+  .brand-mark {
+    position:absolute; top:56px; left:104px;
+    font-family:'Barlow Condensed',sans-serif;
+    font-weight:700; font-size:11px;
+    letter-spacing:0.26em; text-transform:uppercase;
+    color:#020c1a; opacity:0.3;
+  }
+
+  .pre {
+    font-family:'DM Mono',monospace; font-size:12px;
+    letter-spacing:0.14em;
+    color:#020c1a; opacity:0.45;
+    margin-bottom:28px;
+  }
+
+  /* The answer — single line, maximum scale */
+  .answer {
+    font-family:'Bebas Neue',sans-serif;
+    font-size:200px; line-height:0.82;
+    color:#020c1a; letter-spacing:0.01em;
+    margin-bottom:40px;
+  }
+
+  .sub {
+    font-family:'Barlow Condensed',sans-serif;
+    font-size:28px; font-style:italic;
+    color:#020c1a; opacity:0.55;
+    letter-spacing:0.06em;
+    max-width:560px; line-height:1.45;
+  }
+
+  .counter {
+    position:absolute; bottom:56px; right:104px;
+    font-family:'DM Mono',monospace; font-size:11px;
+    letter-spacing:0.1em; color:#020c1a; opacity:0.25;
+  }
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="brand-mark">Artifacts Coffee</div>
+
+  <div class="pre">The answer to the gamble</div>
+  <div class="answer">80g.<br>Enough<br>to know.</div>
+  <div class="sub">Every origin. Sample-size. Roasted fresh. Try all three before you commit to one.</div>
+
+  <div class="counter">03 / 04</div>
+</div>
+</body>
+</html>

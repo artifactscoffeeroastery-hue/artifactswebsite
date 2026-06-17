@@ -13,10 +13,36 @@ function setStatus(id, msg, kind) {
   el.style.color = kind==='error' ? '#FF8C00' : kind==='success' ? 'var(--cyan)' : 'var(--muted)';
 }
 
+// ── FOUNDER SPOTS (live) ──
+async function loadFounderSpots() {
+  const counterEl = document.getElementById('founder-spots');
+  if (!counterEl) return;
+  try {
+    const res  = await fetch('/.netlify/functions/getFounderSpots');
+    if (!res.ok) return;
+    const data = await res.json();
+    const spots = typeof data.spots === 'number' ? data.spots : 0;
+    counterEl.textContent = spots;
+    // Also update cart banner if visible
+    const bannerSpots = document.getElementById('founder-banner-spots');
+    if (bannerSpots) bannerSpots.textContent = spots + ' spot' + (spots === 1 ? '' : 's') + ' left';
+    // Hide the whole founder section if 0 spots left
+    if (spots <= 0) {
+      const section = document.getElementById('founder-offer');
+      if (section) section.style.display = 'none';
+      const banner = document.getElementById('founder-cart-banner');
+      if (banner) banner.style.display = 'none';
+    }
+  } catch (e) {
+    // silently keep static value
+  }
+}
+
 // ── INIT ──
 document.addEventListener('DOMContentLoaded', () => {
   updateCartBadge();
   tryAutoApplyDiscount();
+  loadFounderSpots();
   ['ship-phone','ship-province','ship-address-line1','ship-suburb','ship-city','ship-postal-code'].forEach(id => {
     const el = document.getElementById(id); if (!el) return;
     el.addEventListener(el.tagName==='SELECT'?'change':'input', () =>
@@ -325,6 +351,46 @@ function scrollToSection(target, replace=false) {
 function navigateMob(e,target) { e.preventDefault(); closeMobInternal(); scrollToSection(target,history.state&&history.state.menu==='open'); }
 window.addEventListener('popstate',()=>{ closeMobInternal(); closeCart(); });
 window.addEventListener('keydown',e=>{ if(e.key==='Escape'){closeCart();closeMob();} });
+// ── OFFICE LEAD FORM ──
+async function submitOfficeLead(e) {
+  e.preventDefault();
+  const g = id => (document.getElementById(id)||{}).value?.trim()||'';
+  const name    = g('olf-name');
+  const company = g('olf-company');
+  const email   = g('olf-email');
+  const size    = g('olf-size');
+  const plan    = g('olf-plan');
+  const stat    = document.getElementById('olf-status');
+  const btn     = e.target.querySelector('[type=submit]');
+
+  if (!name||!company||!email||!size) {
+    if (stat) { stat.textContent='Please fill in all required fields.'; stat.style.color='#FF8C00'; }
+    return;
+  }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    if (stat) { stat.textContent='Please enter a valid email.'; stat.style.color='#FF8C00'; }
+    return;
+  }
+
+  if (btn) { btn.disabled=true; btn.textContent='Sending…'; }
+  if (stat) { stat.textContent=''; }
+
+  try {
+    const res = await fetch('/.netlify/functions/officeEnquiry', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, company, email, teamSize: size, plan: plan||'Not specified' })
+    });
+    if (!res.ok) throw new Error();
+    if (stat) { stat.textContent='Thanks! We\'ll be in touch within one business day.'; stat.style.color='var(--cyan)'; }
+    e.target.reset();
+  } catch {
+    if (stat) { stat.textContent='Something went wrong — please WhatsApp or email us directly.'; stat.style.color='#FF8C00'; }
+  } finally {
+    if (btn) { btn.disabled=false; btn.textContent='Send Enquiry'; }
+  }
+}
+
 function tFaq(btn) {
   const item=btn.closest('.faq-item'),ans=item.querySelector('.faq-ans'),open=item.classList.contains('open');
   document.querySelectorAll('.faq-item.open').forEach(i=>{ i.classList.remove('open'); i.querySelector('.faq-ans').style.maxHeight='0'; i.querySelector('.faq-q').setAttribute('aria-expanded','false'); });

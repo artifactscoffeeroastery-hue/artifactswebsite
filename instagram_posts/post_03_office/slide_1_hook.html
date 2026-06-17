@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1080">
+<title>Office · Slide 1</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:ital,wght@0,400;0,600;0,700;0,900;1,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { width:1080px; height:1080px; overflow:hidden; background:#020c1a; }
+
+  .card {
+    width:1080px; height:1080px;
+    background:#020c1a;
+    display:flex; flex-direction:column;
+    position:relative;
+  }
+
+  /* Top half — yellow */
+  .top-half {
+    flex:1;
+    background:#E1FF01;
+    display:flex; flex-direction:column;
+    justify-content:flex-end;
+    padding:64px 72px 52px;
+    position:relative;
+  }
+
+  /* Bottom half — dark */
+  .bottom-half {
+    flex:1;
+    background:#020c1a;
+    display:flex; flex-direction:column;
+    justify-content:flex-start;
+    padding:52px 72px 64px;
+  }
+
+  .kicker {
+    font-family:'Barlow Condensed',sans-serif;
+    font-weight:700; font-size:13px;
+    letter-spacing:0.32em; text-transform:uppercase;
+    color:#020c1a; opacity:0.5;
+    margin-bottom:16px;
+    display:flex; align-items:center; gap:12px;
+  }
+  .kicker::before { content:''; width:20px; height:2px; background:#020c1a; opacity:0.4; }
+
+  .headline-top {
+    font-family:'Bebas Neue',sans-serif;
+    font-size:118px; line-height:0.88;
+    color:#020c1a; letter-spacing:0.02em;
+  }
+
+  .headline-bottom {
+    font-family:'Bebas Neue',sans-serif;
+    font-size:118px; line-height:0.88;
+    color:#F2F2F2; letter-spacing:0.02em;
+    margin-bottom:32px;
+  }
+  .headline-bottom em { color:#E1FF01; font-style:normal; }
+
+  .sub {
+    font-family:'Barlow Condensed',sans-serif;
+    font-size:20px; font-weight:600;
+    letter-spacing:0.1em; text-transform:uppercase;
+    color:#F2F2F2; opacity:0.4;
+    margin-bottom:32px;
+  }
+
+  .tag-row {
+    display:flex; gap:12px; flex-wrap:wrap;
+  }
+  .tag {
+    font-family:'Barlow Condensed',sans-serif;
+    font-weight:700; font-size:11px;
+    letter-spacing:0.2em; text-transform:uppercase;
+    color:#F2F2F2; opacity:0.35;
+    border:1px solid rgba(242,242,242,0.15);
+    padding:5px 14px;
+  }
+
+  .brand {
+    position:absolute; top:48px; right:72px;
+    font-family:'Barlow Condensed',sans-serif;
+    font-weight:700; font-size:12px;
+    letter-spacing:0.28em; text-transform:uppercase;
+    color:#020c1a; opacity:0.35;
+  }
+
+  .swipe {
+    position:absolute; bottom:40px; right:72px;
+    display:flex; align-items:center; gap:8px;
+    font-family:'Barlow Condensed',sans-serif;
+    font-size:11px; font-weight:700;
+    letter-spacing:0.2em; text-transform:uppercase;
+    color:#F2F2F2; opacity:0.25;
+  }
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="top-half">
+    <div class="brand">Artifacts Coffee</div>
+    <div class="kicker">For your team</div>
+    <div class="headline-top">Your office</div>
+  </div>
+
+  <div class="bottom-half">
+    <div class="headline-bottom">Deserves <em>better.</em></div>
+    <div class="sub">Specialty-grade single origin. Roasted weekly. Delivered to your door.</div>
+    <div class="tag-row">
+      <div class="tag">From R592 / month</div>
+      <div class="tag">Johannesburg delivery</div>
+      <div class="tag">No middlemen</div>
+    </div>
+  </div>
+
+  <div class="swipe">swipe →</div>
+</div>
+</body>
+</html>

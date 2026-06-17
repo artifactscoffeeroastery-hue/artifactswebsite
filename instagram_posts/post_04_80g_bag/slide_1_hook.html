@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1080">
+<title>80g · Slide 1</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:ital,wght@0,400;0,600;0,700;0,900;1,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { width:1080px; height:1080px; overflow:hidden; background:#111; }
+
+  .frame {
+    width:1080px; height:1080px;
+    position:relative;
+  }
+
+  /* Full-bleed product photo — the bag IS the hero */
+  .bg {
+    position:absolute; top:0; left:0;
+    width:100%; height:100%;
+    object-fit:cover; object-position:center 60%;
+    /* Slight desaturation so text reads over it */
+    filter:saturate(0.85) brightness(0.7);
+  }
+
+  /* Very subtle vignette from bottom only — let the top breathe */
+  .vignette {
+    position:absolute; bottom:0; left:0;
+    width:100%; height:50%;
+    background:linear-gradient(to top, rgba(2,12,26,0.92) 0%, transparent 100%);
+  }
+
+  /* Top-left — brand, barely there */
+  .top-left {
+    position:absolute; top:52px; left:60px;
+    font-family:'Barlow Condensed',sans-serif;
+    font-weight:700; font-size:12px;
+    letter-spacing:0.28em; text-transform:uppercase;
+    color:#F2F2F2; opacity:0.45;
+  }
+
+  /* Bottom-left — the single statement */
+  .statement {
+    position:absolute; bottom:72px; left:60px;
+    right:60px;
+  }
+
+  .tag {
+    font-family:'DM Mono',monospace; font-size:11px;
+    letter-spacing:0.14em;
+    color:#E1FF01; opacity:0.65;
+    display:inline-block;
+    border:1px solid rgba(225,255,1,0.3);
+    padding:4px 12px; margin-bottom:20px;
+  }
+
+  .headline {
+    font-family:'Bebas Neue',sans-serif;
+    font-size:104px; line-height:0.88;
+    color:#F2F2F2; letter-spacing:0.01em;
+  }
+  .headline em { color:#E1FF01; font-style:normal; }
+
+  /* Swipe prompt — bottom right, barely visible */
+  .swipe {
+    position:absolute; bottom:52px; right:60px;
+    font-family:'Barlow Condensed',sans-serif;
+    font-size:11px; font-weight:700;
+    letter-spacing:0.2em; text-transform:uppercase;
+    color:#F2F2F2; opacity:0.25;
+    display:flex; align-items:center; gap:8px;
+  }
+</style>
+</head>
+<body>
+<div class="frame">
+  <!-- All three 80g bags — this IS the product being talked about -->
+  <img class="bg" src="../../images/dp-1080.png" alt="Origin Discovery Pack — 80g bags">
+  <div class="vignette"></div>
+
+  <div class="top-left">Artifacts Coffee</div>
+
+  <div class="statement">
+    <div class="tag">Our most underrated product</div>
+    <div class="headline">Nobody<br>talks about<br>the <em>80g bag.</em></div>
+  </div>
+
+  <div class="swipe">swipe →</div>
+</div>
+</body>
+</html>
