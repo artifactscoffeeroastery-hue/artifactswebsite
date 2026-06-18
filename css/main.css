@@ -75,6 +75,10 @@
   .mx-theme .p-code{background:var(--yellow);color:var(--black);}
   .ni-theme .p-accent{background:var(--white);}
   .ni-theme .p-code{background:var(--white);color:var(--black);}
+  /* Full-width top accent border — makes each product section entry unmistakable */
+  .gt-theme{border-top:3px solid var(--cyan);}
+  .mx-theme{border-top:3px solid var(--yellow);}
+  .ni-theme{border-top:3px solid var(--white);}
   .p-info{flex:0 0 50%;padding:64px 54px;background:var(--off);border-left:1px solid var(--border);display:flex;flex-direction:column;justify-content:center;}
   .product-section.flip .p-info{border-left:none;border-right:1px solid var(--border);}
   .p-num{font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;letter-spacing:0.28em;text-transform:uppercase;margin-bottom:6px;}
