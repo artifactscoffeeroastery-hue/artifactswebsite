@@ -61,9 +61,28 @@
   @keyframes tick{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
 
   /* COMING SOON BANNER */
-  .coming-soon-bar{background:var(--black);border-bottom:1px solid var(--border);padding:18px 56px;display:flex;align-items:center;gap:20px;flex-wrap:wrap;}
-  .coming-soon-kicker{font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;letter-spacing:0.28em;text-transform:uppercase;color:var(--cyan);white-space:nowrap;}
-  .coming-soon-text{font-family:'DM Mono',monospace;font-size:12px;color:#666;}
+  .coming-soon-bar{background:var(--black);border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:28px 56px;display:flex;align-items:center;gap:24px;flex-wrap:wrap;}
+  .coming-soon-kicker{font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;letter-spacing:0.3em;text-transform:uppercase;color:var(--cyan);white-space:nowrap;}
+  .coming-soon-text{font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:var(--white);}
+
+  /* ORIGIN CARDS */
+  .origins-section{padding:56px;background:var(--black);}
+  .origins-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:2px;}
+  .oc{display:flex;flex-direction:column;background:var(--off);overflow:hidden;border:1px solid var(--border);}
+  .oc.gt-theme{border-top:3px solid var(--cyan);}
+  .oc.mx-theme{border-top:3px solid var(--yellow);}
+  .oc.ni-theme{border-top:3px solid var(--white);}
+  .oc-img{height:180px;background-size:cover;background-position:center;}
+  .oc-body{padding:20px 24px 24px;display:flex;flex-direction:column;gap:6px;flex:1;}
+  .oc-top-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;}
+  .oc-code{font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;letter-spacing:0.22em;text-transform:uppercase;color:#555;}
+  .oc-sold-badge{font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:#444;background:#1a1a1a;border:1px solid #333;padding:2px 8px;}
+  .oc-origin{font-family:'DM Mono',monospace;font-size:10px;color:#555;margin:0;}
+  .oc-name{font-family:'Bebas Neue',sans-serif;font-size:28px;line-height:1;color:var(--white);margin:4px 0 0;}
+  .oc-sub{font-family:'DM Mono',monospace;font-size:10px;color:#555;margin:0;}
+  .oc-pills{display:flex;flex-wrap:wrap;gap:4px;margin-top:8px;}
+  .oc-pills .pill{font-size:10px;padding:3px 8px;}
+  .oc-price{font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700;letter-spacing:0.1em;color:#555;margin:auto 0 0;padding-top:12px;}
 
   /* PRODUCT SECTIONS */
   .product-section{display:flex;flex-direction:row;align-items:stretch;width:100%;min-height:100vh;overflow:hidden;background-color:var(--black);border-bottom:1px solid var(--border);}
@@ -432,7 +451,9 @@
     .ctable{min-width:600px;}
     footer{padding:48px 32px;flex-direction:column;align-items:center;text-align:center;}
     footer img{display:block;margin:0 auto;}
-    .coming-soon-bar{padding:16px 32px;}
+    .coming-soon-bar{padding:20px 32px;}
+    .origins-section{padding:40px 32px;}
+    .origins-grid{grid-template-columns:repeat(2,1fr);}
     .foot-links{justify-content:center;flex-wrap:wrap;}
     .foot-copy{justify-content:center;text-align:center;}
     .cup-section{padding:80px 32px;}
@@ -505,6 +526,11 @@
     .faq-q{font-size:14px;}
     /* Ticker */
     .titem{font-size:12px;padding:0 18px;}
+    .coming-soon-bar{padding:18px 20px;}
+    .coming-soon-text{font-size:17px;}
+    .origins-section{padding:32px 20px;}
+    .origins-grid{grid-template-columns:1fr;}
+    .oc-img{height:200px;}
   }
 
   /* ── SMALL PHONES 380px ── */

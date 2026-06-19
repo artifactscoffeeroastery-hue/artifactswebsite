@@ -287,177 +287,73 @@
   <span class="coming-soon-text">Something new is coming soon &mdash; stay tuned.</span>
 </div>
 
-<!-- GT -->
-<section id="gt" class="product-section gt-theme">
-  <div class="p-visual"><div class="p-close" style="background-image:url('images/gt-1080.webp');"></div><div class="p-accent"></div><span class="p-code">GT &middot; 001</span></div>
-  <div class="p-info reveal">
-    <p class="p-num" style="color:var(--cyan)">001 &mdash; Guatemala</p>
-    <p class="p-country">Huehuetenango &middot; Washed</p>
-    <h2 class="p-name">Blue<br>Ayarza</h2>
-    <p class="p-sub">/ Single Origin Specialty</p>
-    <div class="pills"><span class="pill pill-c">&#127851; Chocolate</span><span class="pill pill-c">&#127825; Stone Fruit</span><span class="pill pill-c">&#127800; Floral</span><span class="pill pill-c">&#10022; Complexity</span></div>
-    <div class="divider"></div>
-    <div class="pf-selector-wrap">
-      <span class="sz-label">Select Size</span>
-      <div class="sz-toggle" id="sz-gt" data-selected-size="80g">
-        <button class="sz-btn sel-c" onclick="selectPF(this,'gt','75','Guatemala Blue Ayarza 80g')">80g &mdash; R75</button>
-        <button class="sz-btn" onclick="selectPF(this,'gt','150','Guatemala Blue Ayarza 200g')">200g &mdash; R150</button>
-        <button class="sz-btn" onclick="selectPF(this,'gt','600','Guatemala Blue Ayarza 1kg')">1kg &mdash; R600</button>
-      </div>
-      <div class="price-row"><span class="p-curr">R</span><span class="p-amount cc" id="gt-p">75</span><span class="p-note">/ whole bean </span></div>
-      <div class="qty-selector">
-        <span class="sz-label">Quantity</span>
-        <div class="qty-row">
-          <button class="qty-btn" onclick="changeProductQty('gt',-1)" aria-label="Decrease">&#8722;</button>
-          <span class="qty-val" id="gt-qty">1</span>
-          <button class="qty-btn" onclick="changeProductQty('gt',1)" aria-label="Increase">+</button>
+<!-- ORIGIN CARDS -->
+<section class="origins-section">
+  <div class="origins-grid">
+
+    <!-- GT -->
+    <div class="oc gt-theme" id="gt">
+      <div class="oc-img" style="background-image:url('images/gt-1080.webp');"></div>
+      <div class="oc-body">
+        <div class="oc-top-row">
+          <span class="oc-code">GT &middot; 001</span>
+          <span class="oc-sold-badge">Sold Out</span>
         </div>
-      </div>
-      <button class="order-btn btn-sold" id="btn-gt" disabled>Sold Out</button>
-    </div>
-    <div class="trust-row"><span class="titem-sm">&#9889; Roasted fresh weekly</span><span class="titem-sm">&#8617; Satisfaction guaranteed</span><span class="titem-sm">&#10022; Direct trade</span></div>
-    <div style="margin-top:14px; padding-top:14px; border-top:1px solid var(--border); font-family:'DM Mono',monospace; font-size:11px; color:#555; line-height:1.8;">
-      <span style="color:var(--cyan); letter-spacing:0.1em; text-transform:uppercase; font-size:10px;">Storage</span><br>
-      Store in an airtight container, away from heat, light &amp; moisture. Best consumed within 6 weeks of roast date.<br>
-      <span style="color:#3a4a3a; font-size:10px; margin-top:4px; display:block;">⚠ Processed in a facility that handles nuts and other allergens.</span>
-    </div>
-    <div class="bean-accordion" id="bean-gt">
-      <button class="bean-toggle" onclick="toggleBean('gt')" aria-expanded="false"><span>Behind the Bean</span><span class="bean-icon">+</span></button>
-      <div class="bean-body">
-        <div class="bean-specs">
-          <div class="bean-spec"><span class="bean-spec-l">Producer</span><span class="bean-spec-v">Smallholder collective</span></div>
-          <div class="bean-spec"><span class="bean-spec-l">Region</span><span class="bean-spec-v">Huehuetenango</span></div>
-          <div class="bean-spec"><span class="bean-spec-l">Altitude</span><span class="bean-spec-v">1,800 &ndash; 2,000 masl</span></div>
-          <div class="bean-spec"><span class="bean-spec-l">Process</span><span class="bean-spec-v">Washed</span></div>
+        <p class="oc-origin">Guatemala &middot; Huehuetenango</p>
+        <h3 class="oc-name">Blue Ayarza</h3>
+        <p class="oc-sub">Washed &middot; Single Origin Specialty</p>
+        <div class="oc-pills">
+          <span class="pill pill-c">&#127851; Chocolate</span>
+          <span class="pill pill-c">&#127825; Stone Fruit</span>
+          <span class="pill pill-c">&#127800; Floral</span>
         </div>
-        <p class="bean-story">Huehuetenango sits at the northern tip of Guatemala&#8217;s Western Highlands, cut off from Pacific moisture by the Cuchumatanes mountain range. That isolation creates a dry microclimate where coffee develops slowly at extreme altitude &mdash; and slowly is exactly what builds this cup&#8217;s complexity. Stone fruit and florals emerge from beans that were never rushed.</p>
+        <p class="oc-price">From R75</p>
       </div>
     </div>
+
+    <!-- MX -->
+    <div class="oc mx-theme" id="mx">
+      <div class="oc-img" style="background-image:url('images/mx-1080.webp');"></div>
+      <div class="oc-body">
+        <div class="oc-top-row">
+          <span class="oc-code">MX &middot; 002</span>
+          <span class="oc-sold-badge">Sold Out</span>
+        </div>
+        <p class="oc-origin">Mexico &middot; Chiapas</p>
+        <h3 class="oc-name">Ki Saya</h3>
+        <p class="oc-sub">Washed &middot; Certified Organic</p>
+        <div class="oc-pills">
+          <span class="pill pill-y">&#127851; Chocolate</span>
+          <span class="pill pill-y">&#127918; Caramel</span>
+          <span class="pill pill-y">&#127819; Soft Citrus</span>
+        </div>
+        <p class="oc-price">From R75</p>
+      </div>
+    </div>
+
+    <!-- NI -->
+    <div class="oc ni-theme" id="ni">
+      <div class="oc-img" style="background-image:url('images/ni-1080.webp');"></div>
+      <div class="oc-body">
+        <div class="oc-top-row">
+          <span class="oc-code">NI &middot; 003</span>
+          <span class="oc-sold-badge">Sold Out</span>
+        </div>
+        <p class="oc-origin">Nicaragua &middot; Nueva Segovia</p>
+        <h3 class="oc-name">Rajuanse Estates</h3>
+        <p class="oc-sub">Washed &middot; Estate Single Origin</p>
+        <div class="oc-pills">
+          <span class="pill pill-w">&#127851; Chocolate</span>
+          <span class="pill pill-w">&#127918; Caramel</span>
+          <span class="pill pill-w">&#127792; Hazelnut</span>
+        </div>
+        <p class="oc-price">From R75</p>
+      </div>
+    </div>
+
   </div>
 </section>
 
-<!-- MX -->
-<section id="mx" class="product-section flip mx-theme">
-  <div class="p-visual"><div class="p-close" style="background-image:url('images/mx-1080.webp');"></div><div class="p-accent"></div><span class="p-code">MX &middot; 002</span></div>
-  <div class="p-info reveal">
-    <p class="p-num" style="color:var(--yellow)">002 &mdash; Mexico</p>
-    <p class="p-country">Chiapas &middot; Washed &middot; Organic</p>
-    <h2 class="p-name">Ki<br>Saya</h2>
-    <p class="p-sub">/ Certified Organic</p>
-    <div class="organic-tag">&#127807; Certified Organic Product</div>
-    <div class="pills"><span class="pill pill-y">&#127851; Chocolate</span><span class="pill pill-y">&#127918; Caramel</span><span class="pill pill-y">&#127819; Soft Citrus</span><span class="pill pill-y">&#10003; Clean Finish</span></div>
-    <div class="divider"></div>
-    <div class="pf-selector-wrap">
-      <span class="sz-label">Select Size</span>
-      <div class="sz-toggle" id="sz-mx" data-selected-size="80g">
-        <button class="sz-btn sel-y" onclick="selectPF(this,'mx','75','Mexico Ki Saya Organic 80g')">80g &mdash; R75</button>
-        <button class="sz-btn" onclick="selectPF(this,'mx','148','Mexico Ki Saya Organic 200g')">200g &mdash; R148</button>
-        <button class="sz-btn" onclick="selectPF(this,'mx','592','Mexico Ki Saya Organic 1kg')">1kg &mdash; R592</button>
-      </div>
-      <div class="price-row"><span class="p-curr">R</span><span class="p-amount cy" id="mx-p">75</span><span class="p-note">/ whole bean </span></div>
-      <div class="qty-selector">
-        <span class="sz-label">Quantity</span>
-        <div class="qty-row">
-          <button class="qty-btn" onclick="changeProductQty('mx',-1)" aria-label="Decrease">&#8722;</button>
-          <span class="qty-val" id="mx-qty">1</span>
-          <button class="qty-btn" onclick="changeProductQty('mx',1)" aria-label="Increase">+</button>
-        </div>
-      </div>
-      <button class="order-btn btn-sold" id="btn-mx" disabled>Sold Out</button>
-    </div>
-    <div class="trust-row"><span class="titem-sm">&#127807; Certified organic</span><span class="titem-sm">&#9889; Fresh roasted weekly</span><span class="titem-sm">&#10022; Direct trade</span></div>
-    <div style="margin-top:14px; padding-top:14px; border-top:1px solid var(--border); font-family:'DM Mono',monospace; font-size:11px; color:#555; line-height:1.8;">
-      <span style="color:var(--cyan); letter-spacing:0.1em; text-transform:uppercase; font-size:10px;">Storage</span><br>
-      Store in an airtight container, away from heat, light &amp; moisture. Best consumed within 6 weeks of roast date.<br>
-      <span style="color:#3a4a3a; font-size:10px; margin-top:4px; display:block;">⚠ Processed in a facility that handles nuts and other allergens.</span>
-    </div>
-    <div class="bean-accordion" id="bean-mx">
-      <button class="bean-toggle" onclick="toggleBean('mx')" aria-expanded="false"><span>Behind the Bean</span><span class="bean-icon">+</span></button>
-      <div class="bean-body">
-        <div class="bean-specs">
-          <div class="bean-spec"><span class="bean-spec-l">Producer</span><span class="bean-spec-v">Tzeltal cooperative</span></div>
-          <div class="bean-spec"><span class="bean-spec-l">Region</span><span class="bean-spec-v">Chiapas</span></div>
-          <div class="bean-spec"><span class="bean-spec-l">Altitude</span><span class="bean-spec-v">1,400 &ndash; 1,800 masl</span></div>
-          <div class="bean-spec"><span class="bean-spec-l">Process</span><span class="bean-spec-v">Washed &middot; Certified Organic</span></div>
-        </div>
-        <p class="bean-story">Ki Saya means &#8220;good work&#8221; in the Tzeltal language &mdash; and that&#8217;s the only way to describe what these indigenous farmers do. Grown without chemicals on shade-covered hillsides in Chiapas, this coffee is as much an ethical position as it is a cup. The clean caramel sweetness and soft citrus finish are the direct result of healthy soil and unhurried farming.</p>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- NI -->
-<section id="ni" class="product-section ni-theme">
-  <div class="p-visual"><div class="p-close" style="background-image:url('images/ni-1080.webp');"></div><div class="p-accent"></div><span class="p-code">NI &middot; 003</span></div>
-  <div class="p-info reveal">
-    <p class="p-num" style="color:#ccc">003 &mdash; Nicaragua</p>
-    <p class="p-country">Nueva Segovia &middot; Washed</p>
-    <h2 class="p-name">Rajuanse<br>Estates</h2>
-    <p class="p-sub">/ Estate Single Origin</p>
-    <div class="pills"><span class="pill pill-w">&#127851; Chocolate</span><span class="pill pill-w">&#127918; Caramel</span><span class="pill pill-w">&#127792; Hazelnut</span></div>
-    <div class="divider"></div>
-    <div class="pf-selector-wrap">
-      <span class="sz-label">Select Size</span>
-      <div class="sz-toggle" id="sz-ni" data-selected-size="80g">
-        <button class="sz-btn sel-w" onclick="selectPF(this,'ni','75','Nicaragua Rajuanse Estates 80g')">80g &mdash; R75</button>
-        <button class="sz-btn" onclick="selectPF(this,'ni','140','Nicaragua Rajuanse Estates 200g')">200g &mdash; R140</button>
-        <button class="sz-btn" onclick="selectPF(this,'ni','560','Nicaragua Rajuanse Estates 1kg')">1kg &mdash; R560</button>
-      </div>
-      <div class="price-row"><span class="p-curr">R</span><span class="p-amount cw" id="ni-p">75</span><span class="p-note">/ whole bean </span></div>
-      <div class="qty-selector">
-        <span class="sz-label">Quantity</span>
-        <div class="qty-row">
-          <button class="qty-btn" onclick="changeProductQty('ni',-1)" aria-label="Decrease">&#8722;</button>
-          <span class="qty-val" id="ni-qty">1</span>
-          <button class="qty-btn" onclick="changeProductQty('ni',1)" aria-label="Increase">+</button>
-        </div>
-      </div>
-      <button class="order-btn btn-sold" id="btn-ni" disabled>Sold Out</button>
-    </div>
-    <div class="trust-row"><span class="titem-sm">&#127969; Estate grown</span><span class="titem-sm">&#9889; Fresh roasted weekly</span><span class="titem-sm">&#10022; Direct trade</span></div>
-    <div style="margin-top:14px; padding-top:14px; border-top:1px solid var(--border); font-family:'DM Mono',monospace; font-size:11px; color:#555; line-height:1.8;">
-      <span style="color:var(--cyan); letter-spacing:0.1em; text-transform:uppercase; font-size:10px;">Storage</span><br>
-      Store in an airtight container, away from heat, light &amp; moisture. Best consumed within 6 weeks of roast date.<br>
-      <span style="color:#3a4a3a; font-size:10px; margin-top:4px; display:block;">⚠ Processed in a facility that handles nuts and other allergens.</span>
-    </div>
-    <div class="bean-accordion" id="bean-ni">
-      <button class="bean-toggle" onclick="toggleBean('ni')" aria-expanded="false"><span>Behind the Bean</span><span class="bean-icon">+</span></button>
-      <div class="bean-body">
-        <div class="bean-specs">
-          <div class="bean-spec"><span class="bean-spec-l">Producer</span><span class="bean-spec-v">Rajuanse family</span></div>
-          <div class="bean-spec"><span class="bean-spec-l">Region</span><span class="bean-spec-v">Nueva Segovia</span></div>
-          <div class="bean-spec"><span class="bean-spec-l">Altitude</span><span class="bean-spec-v">1,300 &ndash; 1,600 masl</span></div>
-          <div class="bean-spec"><span class="bean-spec-l">Process</span><span class="bean-spec-v">Fully Washed</span></div>
-        </div>
-        <p class="bean-story">Nueva Segovia is Nicaragua&#8217;s northernmost coffee region, tucked against the Honduran border in rugged mountain terrain. The Rajuanse family have farmed this estate for generations &mdash; single-farm traceability from a family who have nothing to hide. Consistent, honest, and deeply satisfying. Chocolate, caramel, hazelnut. The everyday cup, done right.</p>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- DISCOVERY PACK -->
-<section id="discovery-pack" class="product-section flip gt-theme">
-  <div class="p-visual"><div class="p-close" style="background-image:url('images/dp-1080.webp');background-size:cover;background-position:center center;"></div><div class="p-accent"></div><span class="p-code">DP &middot; 004</span></div>
-  <div class="p-info reveal">
-    <p class="p-num" style="color:var(--cyan)">004 &mdash; Artifacts Pack</p>
-    <p class="p-country">Limited Curation &middot; Starter Flight</p>
-    <h2 class="p-name">Origin<br>Discovery<br>Pack</h2>
-    <p class="p-sub">/ Standalone Product</p>
-    <div class="pills"><span class="pill pill-c">3 &times; 80g Curated Origins</span><span class="pill pill-c">&#10022; Ideal First Order</span><span class="pill pill-c">&#127873; Gift-Friendly</span></div>
-    <div class="divider"></div>
-    <div class="pf-selector-wrap">
-      <span class="sz-label">Includes</span>
-      <div class="price-row"><span class="p-curr">R</span><span class="p-amount cc" id="dp-p">170</span><span class="p-note">/ 3 &times; 80g curated single origins </span></div>
-      <button class="order-btn btn-sold" id="btn-dp" disabled>Sold Out</button>
-    </div>
-    <div class="trust-row"><span class="titem-sm">&#9889; Roasted fresh weekly</span><span class="titem-sm">&#10022; Curated selection</span><span class="titem-sm">&#127873; Perfect for tasting</span></div>
-    <div style="margin-top:14px; padding-top:14px; border-top:1px solid var(--border); font-family:'DM Mono',monospace; font-size:11px; color:#555; line-height:1.8;">
-      <span style="color:var(--cyan); letter-spacing:0.1em; text-transform:uppercase; font-size:10px;">Storage</span><br>
-      Store in an airtight container, away from heat, light &amp; moisture. Best consumed within 6 weeks of roast date.<br>
-      <span style="color:#3a4a3a; font-size:10px; margin-top:4px; display:block;">⚠ Processed in a facility that handles nuts and other allergens.</span>
-    </div>
-  </div>
-</section>
 <!-- OFFICE -->
 <section id="office" class="office-section reveal">
   <div class="office-inner">
