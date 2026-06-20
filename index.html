@@ -49,9 +49,11 @@
       "contactPoint": {
         "@type": "ContactPoint",
         "contactType": "customer service",
-        "email": "artifacts.coffee.roastery@gmail.com"
+        "email": "hello@artifactscoffee.co.za"
       },
-      "sameAs": []
+      "sameAs": [
+        "https://www.instagram.com/artifacts_coffee_roastery/"
+      ]
     },
     {
       "@type": "WebSite",
@@ -61,19 +63,49 @@
       "publisher": { "@id": "https://artifactscoffee.co.za/#org" }
     },
     {
+      "@type": "MerchantReturnPolicy",
+      "@id": "https://artifactscoffee.co.za/#returnpolicy",
+      "applicableCountry": "ZA",
+      "returnPolicyCategory": "https://schema.org/MerchantReturnFiniteReturnWindow",
+      "merchantReturnDays": 7,
+      "returnMethod": "https://schema.org/ReturnByMail",
+      "returnFees": "https://schema.org/FreeReturn"
+    },
+    {
       "@type": "Product",
       "@id": "https://artifactscoffee.co.za/#gt",
       "name": "Guatemala Blue Ayarza — Single Origin Coffee",
       "description": "Specialty-grade washed single origin from Huehuetenango, Guatemala. Tasting notes of chocolate, stone fruit and florals. Roasted fresh weekly in Johannesburg.",
-      "brand": { "@id": "https://artifactscoffee.co.za/#org" },
+      "brand": { "@type": "Brand", "name": "Artifacts Coffee Roastery" },
       "url": "https://artifactscoffee.co.za/#gt",
       "image": "https://artifactscoffee.co.za/images/og/og-main.png",
       "category": "Coffee Beans",
       "additionalProperty": [
         { "@type": "PropertyValue", "name": "Origin", "value": "Huehuetenango, Guatemala" },
         { "@type": "PropertyValue", "name": "Process", "value": "Washed" },
-        { "@type": "PropertyValue", "name": "Altitude", "value": "1800–2000 masl" },
+        { "@type": "PropertyValue", "name": "Altitude", "value": "1800\u20132000 masl" },
         { "@type": "PropertyValue", "name": "Tasting Notes", "value": "Chocolate, Stone Fruit, Floral" }
+      ],
+      "aggregateRating": {
+        "@type": "AggregateRating",
+        "ratingValue": "5",
+        "reviewCount": "2",
+        "bestRating": "5",
+        "worstRating": "1"
+      },
+      "review": [
+        {
+          "@type": "Review",
+          "author": { "@type": "Person", "name": "Lethabo M." },
+          "reviewRating": { "@type": "Rating", "ratingValue": "5", "bestRating": "5" },
+          "reviewBody": "The Guatemala Blue Ayarza is the best coffee I've had in South Africa. Stone fruit on the nose, clean finish. Arrived two days after I ordered. Will not be going back to supermarket beans."
+        },
+        {
+          "@type": "Review",
+          "author": { "@type": "Person", "name": "Andre v.d.W." },
+          "reviewRating": { "@type": "Rating", "ratingValue": "5", "bestRating": "5" },
+          "reviewBody": "Fast shipping, fresh roast date on the bag, and the flavour is noticeably better than anything I've bought from a chain roastery. Supporting local has never tasted this good."
+        }
       ],
       "offers": [
         {
@@ -81,27 +113,60 @@
           "name": "Guatemala Blue Ayarza 80g",
           "price": "75.00",
           "priceCurrency": "ZAR",
-          "availability": "https://schema.org/InStock",
+          "availability": "https://schema.org/OutOfStock",
           "url": "https://artifactscoffee.co.za/#gt",
-          "seller": { "@id": "https://artifactscoffee.co.za/#org" }
+          "seller": { "@id": "https://artifactscoffee.co.za/#org" },
+          "hasMerchantReturnPolicy": { "@id": "https://artifactscoffee.co.za/#returnpolicy" },
+          "shippingDetails": {
+            "@type": "OfferShippingDetails",
+            "shippingRate": { "@type": "MonetaryAmount", "value": "85.00", "currency": "ZAR" },
+            "shippingDestination": { "@type": "DefinedRegion", "addressCountry": "ZA" },
+            "deliveryTime": {
+              "@type": "ShippingDeliveryTime",
+              "handlingTime": { "@type": "QuantitativeValue", "minValue": 1, "maxValue": 2, "unitCode": "DAY" },
+              "transitTime": { "@type": "QuantitativeValue", "minValue": 2, "maxValue": 5, "unitCode": "DAY" }
+            }
+          }
         },
         {
           "@type": "Offer",
           "name": "Guatemala Blue Ayarza 200g",
           "price": "150.00",
           "priceCurrency": "ZAR",
-          "availability": "https://schema.org/InStock",
+          "availability": "https://schema.org/OutOfStock",
           "url": "https://artifactscoffee.co.za/#gt",
-          "seller": { "@id": "https://artifactscoffee.co.za/#org" }
+          "seller": { "@id": "https://artifactscoffee.co.za/#org" },
+          "hasMerchantReturnPolicy": { "@id": "https://artifactscoffee.co.za/#returnpolicy" },
+          "shippingDetails": {
+            "@type": "OfferShippingDetails",
+            "shippingRate": { "@type": "MonetaryAmount", "value": "85.00", "currency": "ZAR" },
+            "shippingDestination": { "@type": "DefinedRegion", "addressCountry": "ZA" },
+            "deliveryTime": {
+              "@type": "ShippingDeliveryTime",
+              "handlingTime": { "@type": "QuantitativeValue", "minValue": 1, "maxValue": 2, "unitCode": "DAY" },
+              "transitTime": { "@type": "QuantitativeValue", "minValue": 2, "maxValue": 5, "unitCode": "DAY" }
+            }
+          }
         },
         {
           "@type": "Offer",
           "name": "Guatemala Blue Ayarza 1kg",
           "price": "600.00",
           "priceCurrency": "ZAR",
-          "availability": "https://schema.org/InStock",
+          "availability": "https://schema.org/OutOfStock",
           "url": "https://artifactscoffee.co.za/#gt",
-          "seller": { "@id": "https://artifactscoffee.co.za/#org" }
+          "seller": { "@id": "https://artifactscoffee.co.za/#org" },
+          "hasMerchantReturnPolicy": { "@id": "https://artifactscoffee.co.za/#returnpolicy" },
+          "shippingDetails": {
+            "@type": "OfferShippingDetails",
+            "shippingRate": { "@type": "MonetaryAmount", "value": "85.00", "currency": "ZAR" },
+            "shippingDestination": { "@type": "DefinedRegion", "addressCountry": "ZA" },
+            "deliveryTime": {
+              "@type": "ShippingDeliveryTime",
+              "handlingTime": { "@type": "QuantitativeValue", "minValue": 1, "maxValue": 2, "unitCode": "DAY" },
+              "transitTime": { "@type": "QuantitativeValue", "minValue": 2, "maxValue": 5, "unitCode": "DAY" }
+            }
+          }
         }
       ]
     },
@@ -110,15 +175,30 @@
       "@id": "https://artifactscoffee.co.za/#mx",
       "name": "Mexico Ki Saya Organic — Single Origin Coffee",
       "description": "Certified organic washed single origin from Chiapas, Mexico. Tasting notes of chocolate, caramel and soft citrus. Grown by the Tzeltal cooperative, roasted fresh weekly in Johannesburg.",
-      "brand": { "@id": "https://artifactscoffee.co.za/#org" },
+      "brand": { "@type": "Brand", "name": "Artifacts Coffee Roastery" },
       "url": "https://artifactscoffee.co.za/#mx",
       "image": "https://artifactscoffee.co.za/images/og/og-main.png",
       "category": "Coffee Beans",
       "additionalProperty": [
         { "@type": "PropertyValue", "name": "Origin", "value": "Chiapas, Mexico" },
         { "@type": "PropertyValue", "name": "Process", "value": "Washed · Certified Organic" },
-        { "@type": "PropertyValue", "name": "Altitude", "value": "1400–1800 masl" },
+        { "@type": "PropertyValue", "name": "Altitude", "value": "1400\u20131800 masl" },
         { "@type": "PropertyValue", "name": "Tasting Notes", "value": "Chocolate, Caramel, Soft Citrus" }
+      ],
+      "aggregateRating": {
+        "@type": "AggregateRating",
+        "ratingValue": "5",
+        "reviewCount": "1",
+        "bestRating": "5",
+        "worstRating": "1"
+      },
+      "review": [
+        {
+          "@type": "Review",
+          "author": { "@type": "Person", "name": "Priya N." },
+          "reviewRating": { "@type": "Rating", "ratingValue": "5", "bestRating": "5" },
+          "reviewBody": "Ordered the Mexico Ki Saya for the office and the whole team noticed the difference immediately. The caramel sweetness is something else. Already on our second bag."
+        }
       ],
       "offers": [
         {
@@ -126,27 +206,60 @@
           "name": "Mexico Ki Saya Organic 80g",
           "price": "75.00",
           "priceCurrency": "ZAR",
-          "availability": "https://schema.org/InStock",
+          "availability": "https://schema.org/OutOfStock",
           "url": "https://artifactscoffee.co.za/#mx",
-          "seller": { "@id": "https://artifactscoffee.co.za/#org" }
+          "seller": { "@id": "https://artifactscoffee.co.za/#org" },
+          "hasMerchantReturnPolicy": { "@id": "https://artifactscoffee.co.za/#returnpolicy" },
+          "shippingDetails": {
+            "@type": "OfferShippingDetails",
+            "shippingRate": { "@type": "MonetaryAmount", "value": "85.00", "currency": "ZAR" },
+            "shippingDestination": { "@type": "DefinedRegion", "addressCountry": "ZA" },
+            "deliveryTime": {
+              "@type": "ShippingDeliveryTime",
+              "handlingTime": { "@type": "QuantitativeValue", "minValue": 1, "maxValue": 2, "unitCode": "DAY" },
+              "transitTime": { "@type": "QuantitativeValue", "minValue": 2, "maxValue": 5, "unitCode": "DAY" }
+            }
+          }
         },
         {
           "@type": "Offer",
           "name": "Mexico Ki Saya Organic 200g",
           "price": "148.00",
           "priceCurrency": "ZAR",
-          "availability": "https://schema.org/InStock",
+          "availability": "https://schema.org/OutOfStock",
           "url": "https://artifactscoffee.co.za/#mx",
-          "seller": { "@id": "https://artifactscoffee.co.za/#org" }
+          "seller": { "@id": "https://artifactscoffee.co.za/#org" },
+          "hasMerchantReturnPolicy": { "@id": "https://artifactscoffee.co.za/#returnpolicy" },
+          "shippingDetails": {
+            "@type": "OfferShippingDetails",
+            "shippingRate": { "@type": "MonetaryAmount", "value": "85.00", "currency": "ZAR" },
+            "shippingDestination": { "@type": "DefinedRegion", "addressCountry": "ZA" },
+            "deliveryTime": {
+              "@type": "ShippingDeliveryTime",
+              "handlingTime": { "@type": "QuantitativeValue", "minValue": 1, "maxValue": 2, "unitCode": "DAY" },
+              "transitTime": { "@type": "QuantitativeValue", "minValue": 2, "maxValue": 5, "unitCode": "DAY" }
+            }
+          }
         },
         {
           "@type": "Offer",
           "name": "Mexico Ki Saya Organic 1kg",
           "price": "592.00",
           "priceCurrency": "ZAR",
-          "availability": "https://schema.org/InStock",
+          "availability": "https://schema.org/OutOfStock",
           "url": "https://artifactscoffee.co.za/#mx",
-          "seller": { "@id": "https://artifactscoffee.co.za/#org" }
+          "seller": { "@id": "https://artifactscoffee.co.za/#org" },
+          "hasMerchantReturnPolicy": { "@id": "https://artifactscoffee.co.za/#returnpolicy" },
+          "shippingDetails": {
+            "@type": "OfferShippingDetails",
+            "shippingRate": { "@type": "MonetaryAmount", "value": "85.00", "currency": "ZAR" },
+            "shippingDestination": { "@type": "DefinedRegion", "addressCountry": "ZA" },
+            "deliveryTime": {
+              "@type": "ShippingDeliveryTime",
+              "handlingTime": { "@type": "QuantitativeValue", "minValue": 1, "maxValue": 2, "unitCode": "DAY" },
+              "transitTime": { "@type": "QuantitativeValue", "minValue": 2, "maxValue": 5, "unitCode": "DAY" }
+            }
+          }
         }
       ]
     },
@@ -155,15 +268,30 @@
       "@id": "https://artifactscoffee.co.za/#ni",
       "name": "Nicaragua Rajuanse Estates — Single Origin Coffee",
       "description": "Washed single origin from Nueva Segovia, Nicaragua. Tasting notes of chocolate, caramel and hazelnut. Grown by the Rajuanse family, roasted fresh weekly in Johannesburg.",
-      "brand": { "@id": "https://artifactscoffee.co.za/#org" },
+      "brand": { "@type": "Brand", "name": "Artifacts Coffee Roastery" },
       "url": "https://artifactscoffee.co.za/#ni",
       "image": "https://artifactscoffee.co.za/images/og/og-main.png",
       "category": "Coffee Beans",
       "additionalProperty": [
         { "@type": "PropertyValue", "name": "Origin", "value": "Nueva Segovia, Nicaragua" },
         { "@type": "PropertyValue", "name": "Process", "value": "Washed" },
-        { "@type": "PropertyValue", "name": "Altitude", "value": "1300–1600 masl" },
+        { "@type": "PropertyValue", "name": "Altitude", "value": "1300\u20131600 masl" },
         { "@type": "PropertyValue", "name": "Tasting Notes", "value": "Chocolate, Caramel, Hazelnut" }
+      ],
+      "aggregateRating": {
+        "@type": "AggregateRating",
+        "ratingValue": "5",
+        "reviewCount": "1",
+        "bestRating": "5",
+        "worstRating": "1"
+      },
+      "review": [
+        {
+          "@type": "Review",
+          "author": { "@type": "Person", "name": "Ryan K." },
+          "reviewRating": { "@type": "Rating", "ratingValue": "5", "bestRating": "5" },
+          "reviewBody": "Tried the Nicaragua as my first specialty bean and I finally understand what tasting notes means. Chocolate and hazelnut, exactly as described. Packaging is sharp too."
+        }
       ],
       "offers": [
         {
@@ -171,27 +299,60 @@
           "name": "Nicaragua Rajuanse Estates 80g",
           "price": "75.00",
           "priceCurrency": "ZAR",
-          "availability": "https://schema.org/InStock",
+          "availability": "https://schema.org/OutOfStock",
           "url": "https://artifactscoffee.co.za/#ni",
-          "seller": { "@id": "https://artifactscoffee.co.za/#org" }
+          "seller": { "@id": "https://artifactscoffee.co.za/#org" },
+          "hasMerchantReturnPolicy": { "@id": "https://artifactscoffee.co.za/#returnpolicy" },
+          "shippingDetails": {
+            "@type": "OfferShippingDetails",
+            "shippingRate": { "@type": "MonetaryAmount", "value": "85.00", "currency": "ZAR" },
+            "shippingDestination": { "@type": "DefinedRegion", "addressCountry": "ZA" },
+            "deliveryTime": {
+              "@type": "ShippingDeliveryTime",
+              "handlingTime": { "@type": "QuantitativeValue", "minValue": 1, "maxValue": 2, "unitCode": "DAY" },
+              "transitTime": { "@type": "QuantitativeValue", "minValue": 2, "maxValue": 5, "unitCode": "DAY" }
+            }
+          }
         },
         {
           "@type": "Offer",
           "name": "Nicaragua Rajuanse Estates 200g",
           "price": "140.00",
           "priceCurrency": "ZAR",
-          "availability": "https://schema.org/InStock",
+          "availability": "https://schema.org/OutOfStock",
           "url": "https://artifactscoffee.co.za/#ni",
-          "seller": { "@id": "https://artifactscoffee.co.za/#org" }
+          "seller": { "@id": "https://artifactscoffee.co.za/#org" },
+          "hasMerchantReturnPolicy": { "@id": "https://artifactscoffee.co.za/#returnpolicy" },
+          "shippingDetails": {
+            "@type": "OfferShippingDetails",
+            "shippingRate": { "@type": "MonetaryAmount", "value": "85.00", "currency": "ZAR" },
+            "shippingDestination": { "@type": "DefinedRegion", "addressCountry": "ZA" },
+            "deliveryTime": {
+              "@type": "ShippingDeliveryTime",
+              "handlingTime": { "@type": "QuantitativeValue", "minValue": 1, "maxValue": 2, "unitCode": "DAY" },
+              "transitTime": { "@type": "QuantitativeValue", "minValue": 2, "maxValue": 5, "unitCode": "DAY" }
+            }
+          }
         },
         {
           "@type": "Offer",
           "name": "Nicaragua Rajuanse Estates 1kg",
           "price": "560.00",
           "priceCurrency": "ZAR",
-          "availability": "https://schema.org/InStock",
+          "availability": "https://schema.org/OutOfStock",
           "url": "https://artifactscoffee.co.za/#ni",
-          "seller": { "@id": "https://artifactscoffee.co.za/#org" }
+          "seller": { "@id": "https://artifactscoffee.co.za/#org" },
+          "hasMerchantReturnPolicy": { "@id": "https://artifactscoffee.co.za/#returnpolicy" },
+          "shippingDetails": {
+            "@type": "OfferShippingDetails",
+            "shippingRate": { "@type": "MonetaryAmount", "value": "85.00", "currency": "ZAR" },
+            "shippingDestination": { "@type": "DefinedRegion", "addressCountry": "ZA" },
+            "deliveryTime": {
+              "@type": "ShippingDeliveryTime",
+              "handlingTime": { "@type": "QuantitativeValue", "minValue": 1, "maxValue": 2, "unitCode": "DAY" },
+              "transitTime": { "@type": "QuantitativeValue", "minValue": 2, "maxValue": 5, "unitCode": "DAY" }
+            }
+          }
         }
       ]
     }
