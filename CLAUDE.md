@@ -13,7 +13,7 @@
 |-------|--------|
 | Frontend | Single-page `index.html` + `css/main.css` + `js/main.js` |
 | Serverless | `netlify/functions/` — Node.js handlers |
-| Database | Supabase (PostgreSQL) — tables: `discount_uses`, `office_leads`, `orders`, `point_events` |
+| Database | Supabase (PostgreSQL) — tables: `discount_uses`, `office_leads`, `orders`, `point_events`, `waitlist` |
 | Payments | PayFast — merchant_id `34420469`, merchant_key `q6qjvvpwgddvi` |
 | Shipping | Bob Go API via `getShipping.js` |
 | Maps | Google Places Autocomplete — key served via `getConfig.js` (never in source) |
@@ -29,6 +29,7 @@
 | `officeEnquiry.js` | Submits office coffee lead to Supabase |
 | `payfast-notify.js` | PayFast ITN webhook handler |
 | `getShipping.js` | Fetches Bob Go shipping quotes |
+| `joinWaitlist.js` | Saves email to Supabase `waitlist` table |
 
 **Env vars required in Netlify:**
 - `GOOGLE_PLACES_KEY` — domain-restricted in Google Cloud Console
@@ -117,6 +118,17 @@ Coming soon banner added above the origin cards.
 - Footer mobile: centered logo, links, copy text
 - Product size buttons: hover + selected states with per-theme outline colours
 - Product section boundaries: full-width top border in theme colour (GT=cyan, MX=yellow, NI=white)
+
+### Session 6 (Brand Audit Fixes)
+- Full brand audit across 5 dimensions (5-second test, visual consistency, trust, differentiation, UX)
+- P0: Hero waitlist form added — email capture feeds Supabase `waitlist` table via `joinWaitlist.js` Netlify function
+- P0: Hero origin card prices ("from R150" etc.) replaced with "Sold Out" badges
+- P0: Founder banner repurposed — "Join the Waitlist, Get R20 Off" (FOUNDER20 still valid for next drop)
+- P1: Coming-soon banner made specific — "Drop 004 · Kenya · Kiandu AB · Coming Soon"
+- P1: enTheos mini bar added between coming-soon banner and origin cards (brand differentiator surfaced earlier)
+- P1: Instagram row added above footer — "Follow the roast @artifacts_coffee_roastery"
+- P2: Aggregate star rating added above testimonials grid — "5.0 · 4 verified reviews"
+- **Supabase action required:** Create `waitlist` table — SQL in `netlify/functions/joinWaitlist.js` header comment
 
 ### Session 5 (Structured Data + Email)
 - Fixed 5 Google Search Console structured data errors in JSON-LD

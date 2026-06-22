@@ -416,14 +416,17 @@
   <div class="reveal d1">
     <p class="hero-desc">Every bag is the final artefact of a deliberate process &#8212; sourced with intent, roasted with precision, and delivered fresh weekly. No blends. No guesswork. Just single origins that eliminate every reason not to buy.</p>
     <div class="hero-origins">
-      <a href="#gt" class="hero-origin-card"><span class="hoc-code" style="color:var(--cyan)">GT</span><span class="hoc-price" style="color:var(--cyan)">from R150</span><span class="hoc-name">Blue Ayarza</span><span class="hoc-notes">Chocolate &middot; Stone Fruit &middot; Floral</span></a>
-      <a href="#mx" class="hero-origin-card"><span class="hoc-code" style="color:var(--yellow)">MX</span><span class="hoc-price" style="color:var(--yellow)">from R148</span><span class="hoc-name">Ki Saya</span><span class="hoc-notes">Chocolate &middot; Caramel &middot; Soft Citrus</span></a>
-      <a href="#ni" class="hero-origin-card"><span class="hoc-code" style="color:#ccc">NI</span><span class="hoc-price" style="color:#ccc">from R140</span><span class="hoc-name">Rajuanse Estates</span><span class="hoc-notes">Chocolate &middot; Caramel &middot; Hazelnut</span></a>
+      <a href="#gt" class="hero-origin-card"><span class="hoc-code" style="color:var(--cyan)">GT</span><span class="hoc-price hoc-sold">Sold Out</span><span class="hoc-name">Blue Ayarza</span><span class="hoc-notes">Chocolate &middot; Stone Fruit &middot; Floral</span></a>
+      <a href="#mx" class="hero-origin-card"><span class="hoc-code" style="color:var(--yellow)">MX</span><span class="hoc-price hoc-sold">Sold Out</span><span class="hoc-name">Ki Saya</span><span class="hoc-notes">Chocolate &middot; Caramel &middot; Soft Citrus</span></a>
+      <a href="#ni" class="hero-origin-card"><span class="hoc-code" style="color:#ccc">NI</span><span class="hoc-price hoc-sold">Sold Out</span><span class="hoc-name">Rajuanse Estates</span><span class="hoc-notes">Chocolate &middot; Caramel &middot; Hazelnut</span></a>
     </div>
-    <div class="hero-stats">
-      <div class="hstat"><div class="hstat-n">3</div><div class="hstat-l">Origins</div></div>
-      <div class="hstat"><div class="hstat-n">100%</div><div class="hstat-l">Arabica Beans</div></div>
-      <div class="hstat"><div class="hstat-n">7 days</div><div class="hstat-l">Fresh Roasted</div></div>
+    <div class="hero-waitlist reveal d2">
+      <p class="waitlist-label">Drop 004 is coming. Be the first to know when it lands.</p>
+      <form class="waitlist-form" onsubmit="joinWaitlist(event)">
+        <input type="email" id="waitlist-email" placeholder="your@email.com" autocomplete="email" required>
+        <button type="submit" class="waitlist-btn">Notify Me</button>
+      </form>
+      <p class="waitlist-status" id="waitlist-status"></p>
     </div>
   </div>
 </section>
@@ -432,9 +435,9 @@
 
 <section class="founder-banner" id="founder-offer">
   <div class="founder-left">
-    <p class="founder-kicker">&#9889; Limited Founder Offer</p>
-    <h2 class="founder-title">First 20 Customers Get R20 Off</h2>
-    <p class="founder-sub">Use code <span>FOUNDER20</span> at checkout &nbsp;&middot;&nbsp; Share: <span>artifactscoffee.co.za?code=FOUNDER20</span></p>
+    <p class="founder-kicker">&#9889; Founder Offer</p>
+    <h2 class="founder-title">Join the Waitlist &mdash; Get R20 Off</h2>
+    <p class="founder-sub">Sign up above and use code <span>FOUNDER20</span> at checkout when the next drop lands &nbsp;&middot;&nbsp; Only <span id="founder-spots-inline">17</span> spots left</p>
   </div>
   <div class="founder-right">
     <div class="founder-counter" id="founder-spots">17</div>
@@ -444,8 +447,15 @@
 </section>
 <!-- COMING SOON BANNER -->
 <div class="coming-soon-bar">
-  <span class="coming-soon-kicker">&#9889; Watch This Space</span>
-  <span class="coming-soon-text">Something new is coming soon &mdash; stay tuned.</span>
+  <span class="coming-soon-kicker">&#9889; Drop 004</span>
+  <span class="coming-soon-text">Kenya &middot; Kiandu AB &middot; Coming Soon</span>
+</div>
+
+<!-- ENTHEOS MINI -->
+<div class="entheos-mini">
+  <span class="entheos-mini-word"><span style="color:var(--muted)">en</span><span style="color:var(--white)">THEOS</span></span>
+  <span class="entheos-mini-sep">&middot;</span>
+  <span class="entheos-mini-text">&ldquo;God within&rdquo; &mdash; excellence as an act of worship, in every roast.</span>
 </div>
 
 <!-- ORIGIN CARDS -->
@@ -664,7 +674,11 @@
 <section class="testimonials-section">
   <div class="testimonials-inner reveal">
     <p class="sec-kicker">What Customers Say</p>
-    <h2 class="sec-head" style="text-align:center;margin-bottom:52px;">Real Brews,<br>Real People.</h2>
+    <h2 class="sec-head" style="text-align:center;margin-bottom:24px;">Real Brews,<br>Real People.</h2>
+    <div class="testi-aggregate">
+      <span class="testi-agg-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</span>
+      <span class="testi-agg-label">5.0 &nbsp;&middot;&nbsp; 4 verified reviews</span>
+    </div>
     <div class="testi-grid">
       <div class="testi-card">
         <div class="testi-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
@@ -724,6 +738,13 @@
     <div class="faq-item"><button class="faq-q" onclick="tFaq(this)" aria-expanded="false">What does &ldquo;enTheos&rdquo; mean?<span class="faq-icon">+</span></button><div class="faq-ans"><div class="faq-ans-in">enTheos is Greek for &ldquo;God within&rdquo; &mdash; our mark of devotion. Every roast is offered in gratitude to God Almighty, to the farmers who tend the land, and to the craft that demands excellence. It is not a product feature. It is a posture of faith.</div></div></div>
   </div>
 </section>
+
+<!-- INSTAGRAM -->
+<div class="instagram-row">
+  <span class="ig-label">Follow the roast</span>
+  <a href="https://instagram.com/artifacts_coffee_roastery" target="_blank" rel="noopener" class="ig-handle">@artifacts_coffee_roastery</a>
+  <span class="ig-arrow">&#8599;</span>
+</div>
 
 <!-- FOOTER -->
 <footer>

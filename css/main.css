@@ -84,6 +84,38 @@
   .oc-pills .pill{font-size:10px;padding:3px 8px;}
   .oc-price{font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700;letter-spacing:0.1em;color:#555;margin:auto 0 0;padding-top:12px;}
 
+  /* HERO SOLD BADGE */
+  .hoc-sold{color:#444!important;font-size:10px!important;letter-spacing:0.18em;text-transform:uppercase;}
+
+  /* WAITLIST FORM */
+  .hero-waitlist{margin-top:32px;}
+  .waitlist-label{font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);margin:0 0 12px;letter-spacing:0.04em;}
+  .waitlist-form{display:flex;gap:8px;flex-wrap:wrap;}
+  .waitlist-form input[type="email"]{flex:1;min-width:200px;background:var(--off);border:1px solid var(--border);color:var(--white);font-family:'DM Mono',monospace;font-size:13px;padding:12px 16px;outline:none;border-radius:0;}
+  .waitlist-form input[type="email"]:focus{border-color:var(--cyan);}
+  .waitlist-btn{font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;background:var(--cyan);color:var(--black);border:none;padding:12px 28px;cursor:pointer;white-space:nowrap;transition:opacity 0.2s;}
+  .waitlist-btn:hover{opacity:0.85;}
+  .waitlist-btn:disabled{opacity:0.5;cursor:not-allowed;}
+  .waitlist-status{font-family:'DM Mono',monospace;font-size:11px;margin:8px 0 0;min-height:16px;}
+
+  /* ENTHEOS MINI */
+  .entheos-mini{display:flex;align-items:center;gap:16px;padding:16px 56px;background:var(--off);border-bottom:1px solid var(--border);flex-wrap:wrap;}
+  .entheos-mini-word{font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:0.06em;flex-shrink:0;}
+  .entheos-mini-sep{color:var(--border);font-size:18px;}
+  .entheos-mini-text{font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);line-height:1.5;}
+
+  /* INSTAGRAM ROW */
+  .instagram-row{display:flex;align-items:center;justify-content:center;gap:16px;padding:28px 56px;background:var(--black);border-top:1px solid var(--border);}
+  .ig-label{font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;letter-spacing:0.22em;text-transform:uppercase;color:var(--muted);}
+  .ig-handle{font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:700;letter-spacing:0.06em;color:var(--white);text-decoration:none;transition:color 0.2s;}
+  .ig-handle:hover{color:var(--cyan);}
+  .ig-arrow{color:var(--muted);font-size:16px;}
+
+  /* TESTIMONIALS AGGREGATE */
+  .testi-aggregate{display:flex;align-items:center;gap:10px;justify-content:center;margin-bottom:36px;}
+  .testi-agg-stars{color:#f5a623;font-size:16px;letter-spacing:3px;}
+  .testi-agg-label{font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);}
+
   /* PRODUCT SECTIONS */
   .product-section{display:flex;flex-direction:row;align-items:stretch;width:100%;min-height:100vh;overflow:hidden;background-color:var(--black);border-bottom:1px solid var(--border);}
   .product-section.flip{flex-direction:row-reverse;}
@@ -452,8 +484,10 @@
     footer{padding:48px 32px;flex-direction:column;align-items:center;text-align:center;}
     footer img{display:block;margin:0 auto;}
     .coming-soon-bar{padding:20px 32px;}
+    .entheos-mini{padding:14px 32px;}
     .origins-section{padding:40px 32px;}
     .origins-grid{grid-template-columns:repeat(2,1fr);}
+    .instagram-row{padding:20px 32px;}
     .foot-links{justify-content:center;flex-wrap:wrap;}
     .foot-copy{justify-content:center;text-align:center;}
     .cup-section{padding:80px 32px;}
@@ -528,9 +562,15 @@
     .titem{font-size:12px;padding:0 18px;}
     .coming-soon-bar{padding:18px 20px;}
     .coming-soon-text{font-size:17px;}
+    .entheos-mini{padding:12px 20px;gap:10px;}
+    .entheos-mini-text{font-size:10px;}
     .origins-section{padding:32px 20px;}
     .origins-grid{grid-template-columns:1fr;}
     .oc-img{height:200px;}
+    .hero-waitlist{margin-top:24px;}
+    .waitlist-form{flex-direction:column;}
+    .waitlist-form input[type="email"]{min-width:0;width:100%;}
+    .instagram-row{padding:20px;flex-direction:column;gap:8px;text-align:center;}
   }
 
   /* ── SMALL PHONES 380px ── */

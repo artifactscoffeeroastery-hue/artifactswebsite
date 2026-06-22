@@ -479,3 +479,35 @@ function copyFounderCode() {
   navigator.clipboard.writeText('FOUNDER20').then(()=>{ const b=document.querySelector('.founder-copy-btn');if(b){b.textContent='Copied!';setTimeout(()=>b.textContent='Copy',2000);} });
 }
 loadFounderCount();
+
+/* ── WAITLIST ── */
+async function joinWaitlist(e) {
+  e.preventDefault();
+  const email = document.getElementById('waitlist-email').value.trim();
+  const status = document.getElementById('waitlist-status');
+  const btn = e.target.querySelector('button');
+  if (!email) return;
+  btn.disabled = true;
+  btn.textContent = 'Sending…';
+  status.textContent = '';
+  try {
+    const r = await fetch('/.netlify/functions/joinWaitlist', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, source: 'hero' })
+    });
+    if (r.ok) {
+      status.textContent = "You're on the list — we'll notify you the moment Drop 004 lands.";
+      status.style.color = 'var(--cyan)';
+      e.target.reset();
+    } else {
+      status.textContent = 'Something went wrong — please try again.';
+      status.style.color = '#e55';
+    }
+  } catch {
+    status.textContent = 'Connection error — please try again.';
+    status.style.color = '#e55';
+  }
+  btn.disabled = false;
+  btn.textContent = 'Notify Me';
+}
