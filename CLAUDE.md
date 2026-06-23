@@ -33,7 +33,7 @@
 
 **Env vars required in Netlify:**
 - `GOOGLE_PLACES_KEY` — domain-restricted in Google Cloud Console
-- `SUPABASE_URL`, `SUPABASE_KEY`
+- `SUPABASE_URL`, `SUPABASE_SERVICE_KEY`
 - `BOBGO_API_KEY`
 
 ---
