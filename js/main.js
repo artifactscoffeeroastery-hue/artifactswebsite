@@ -426,7 +426,7 @@ async function submitOfficeLead(e) {
   const stat    = document.getElementById('olf-status');
   const btn     = e.target.querySelector('[type=submit]');
 
-  if (!name||!company||!email||!size) {
+  if (!name||!company||!email) {
     if (stat) { stat.textContent='Please fill in all required fields.'; stat.style.color='#FF8C00'; }
     return;
   }
@@ -511,3 +511,39 @@ async function joinWaitlist(e) {
   btn.disabled = false;
   btn.textContent = 'Notify Me';
 }
+
+// ── GOOGLE REVIEWS ──
+async function loadReviews() {
+  try {
+    const res = await fetch('/.netlify/functions/getReviews');
+    if (!res.ok) return;
+    const { rating, total, reviews, source } = await res.json();
+    if (source === 'env_missing' || !reviews || reviews.length === 0) return;
+
+    // Update aggregate bar
+    const label = document.getElementById('testi-agg-label');
+    if (label && rating) {
+      label.textContent = `${rating.toFixed(1)} · ${total} verified review${total !== 1 ? 's' : ''} on Google`;
+    }
+
+    // Render review cards
+    const grid = document.getElementById('testi-grid');
+    if (!grid) return;
+    const stars = n => '★'.repeat(n) + '☆'.repeat(5 - n);
+    grid.innerHTML = reviews.map(r => `
+      <div class="testi-card">
+        <div class="testi-stars">${stars(r.rating)}</div>
+        <p class="testi-quote">“${r.text.replace(/"/g, '&quot;').slice(0, 280)}${r.text.length > 280 ? '…' : ''}”</p>
+        <div class="testi-meta">
+          ${r.avatar ? `<img class="testi-avatar" src="${r.avatar}" alt="${r.author}" loading="lazy">` : ''}
+          <div>
+            <span class="testi-name">${r.author}</span>
+            <span class="testi-origin">${r.time}</span>
+          </div>
+        </div>
+      </div>`).join('');
+  } catch (e) {
+    // silently fail — static fallback cards remain
+  }
+}
+loadReviews();

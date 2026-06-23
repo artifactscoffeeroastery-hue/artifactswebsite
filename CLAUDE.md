@@ -3,7 +3,7 @@
 **Repo:** artifactscoffeeroastery-hue/artifactswebsite  
 **Live site:** https://artifactscoffee.co.za  
 **Stack:** Static HTML/CSS/JS · Netlify · Supabase · PayFast  
-**Last updated:** 2026-06-19
+**Last updated:** 2026-06-23
 
 ---
 
@@ -30,11 +30,14 @@
 | `payfast-notify.js` | PayFast ITN webhook handler |
 | `getShipping.js` | Fetches Bob Go shipping quotes |
 | `joinWaitlist.js` | Saves email to Supabase `waitlist` table |
+| `getReviews.js` | Fetches live Google Place reviews via Places Details API |
 
 **Env vars required in Netlify:**
 - `GOOGLE_PLACES_KEY` — domain-restricted in Google Cloud Console
 - `SUPABASE_URL`, `SUPABASE_SERVICE_KEY`
 - `BOBGO_API_KEY`
+- `GOOGLE_PLACES_SERVER_KEY` — no HTTP restrictions, restricted to Places API only (server-side key)
+- `GOOGLE_PLACE_ID` — ChIJ... Place ID from Google Business Profile
 
 ---
 
@@ -119,6 +122,16 @@ Coming soon banner added above the origin cards.
 - Product size buttons: hover + selected states with per-theme outline colours
 - Product section boundaries: full-width top border in theme colour (GT=cyan, MX=yellow, NI=white)
 
+### Session 7 (Brand Edit Pass)
+- Hero headline → "One Drop. One Standard." (was "Three Origins. One Standard.")
+- Hero description updated to remove plural-origins language
+- Hero GT/MX/NI origin cards removed entirely
+- Ticker updated: Drop 004 · Kenya · Kiandu AB · Coming Soon · Score 88 (all old origin names removed)
+- Founder banner removed from public page; FOUNDER20 lives silently in checkout cart drawer only
+- Mobile nav "Founder Offer" link removed; cleaned up GT/MX/NI sub-links
+- Office section replaced with lightweight `.office-strip` — 2-col layout: copy left, 3-input form right (name + email + company + send), no pricing shown, bulk discounts offered via email follow-up
+- `submitOfficeLead()` validation updated to not require team size (field removed)
+
 ### Session 6 (Brand Audit Fixes)
 - Full brand audit across 5 dimensions (5-second test, visual consistency, trust, differentiation, UX)
 - P0: Hero waitlist form added — email capture feeds Supabase `waitlist` table via `joinWaitlist.js` Netlify function
@@ -152,6 +165,15 @@ Coming soon banner added above the origin cards.
 - Origin card CSS written: 3col desktop → 2col tablet → 1col mobile
 
 ---
+
+### Session 8 (Google Reviews Integration)
+- `netlify/functions/getReviews.js` created — fetches up to 5 reviews from Google Places Details API
+- `loadReviews()` added to `main.js` — replaces static fallback cards with live Google reviews on load; silently fails to fallback if env vars missing or API errors
+- Testimonials grid now has `id="testi-grid"` and `id="testi-agg-label"` for JS targeting
+- Google badge link added to trust bar (links to Google review page)
+- `testi-avatar`, `testi-google-badge`, `testi-meta` CSS added
+- **Env vars required:** `GOOGLE_PLACES_SERVER_KEY` (no HTTP restrictions, Places API only) + `GOOGLE_PLACE_ID` (ChIJ... from GBP)
+- **Pending:** Update `PLACE_ID_HERE` placeholder in trust bar link once Place ID is confirmed
 
 ## Known / Watch Items
 
