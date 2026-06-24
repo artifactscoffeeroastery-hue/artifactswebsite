@@ -7,3 +7,21 @@
 
 # Postman collections (may contain API keys)
 *.postman_collection.json
+
+# IDE folders
+.cursor/
+.idea/
+.vscode/
+
+# Local dev scripts
+Dockerfile.dev
+docker-compose.yml
+serve.bat
+patch-collection.ps1
+
+# Design / export artifacts
+artifacts_bundle_for_figma.txt
+artifacts-coffee-userflow.svg
+artifacts_coffee_discovery_postcard_v3.svg
+brand-design-consultant.skill
+instagram_content_calendar_4weeks.md
