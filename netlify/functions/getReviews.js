@@ -1,13 +1,10 @@
 /**
  * getReviews.js
- * Fetches Google Place reviews from the Places Details API.
+ * Fetches Google Place reviews via Places API (New).
  *
  * Requires:
- *   GOOGLE_PLACES_SERVER_KEY — unrestricted (or IP-restricted) Places API key
- *   GOOGLE_PLACE_ID          — e.g. "ChIJxxxxxxxxxxxxxxxx" from your GBP listing
- *
- * Returns up to 5 reviews as selected by Google (most relevant).
- * Cached for 1 hour via Cache-Control header.
+ *   GOOGLE_PLACES_SERVER_KEY — unrestricted (or IP-restricted), restricted to Places API (New)
+ *   GOOGLE_PLACE_ID          — e.g. "ChIJIyPU3GuflR4RaiAdpoJEYEI"
  */
 
 const API_KEY  = process.env.GOOGLE_PLACES_SERVER_KEY;
@@ -26,30 +23,36 @@ exports.handler = async () => {
   }
 
   try {
-    const url = `https://maps.googleapis.com/maps/api/place/details/json?place_id=${PLACE_ID}&fields=rating,user_ratings_total,reviews&reviews_sort=newest&key=${API_KEY}`;
-    const res = await fetch(url);
-    const data = await res.json();
+    const url = `https://places.googleapis.com/v1/places/${PLACE_ID}`;
+    const res = await fetch(url, {
+      headers: {
+        'X-Goog-Api-Key': API_KEY,
+        'X-Goog-FieldMask': 'rating,userRatingCount,reviews',
+      },
+    });
 
-    if (data.status !== 'OK') {
-      console.error('Places API error:', data.status, data.error_message);
-      return { statusCode: 200, headers, body: JSON.stringify({ reviews: [], source: 'api_error', status: data.status }) };
+    if (!res.ok) {
+      const err = await res.text();
+      console.error('Places API (New) error:', res.status, err);
+      return { statusCode: 200, headers, body: JSON.stringify({ reviews: [], source: 'api_error' }) };
     }
 
-    const { rating, user_ratings_total, reviews = [] } = data.result;
+    const data = await res.json();
+    const { rating, userRatingCount, reviews = [] } = data;
 
     const mapped = reviews.map(r => ({
-      author:    r.author_name,
-      avatar:    r.profile_photo_url,
-      rating:    r.rating,
-      text:      r.text,
-      time:      r.relative_time_description,
-      url:       r.author_url,
+      author:  r.authorAttribution?.displayName || 'Anonymous',
+      avatar:  r.authorAttribution?.photoUri || null,
+      rating:  r.rating,
+      text:    r.text?.text || '',
+      time:    r.relativePublishTimeDescription || '',
+      url:     r.authorAttribution?.uri || null,
     }));
 
     return {
       statusCode: 200,
       headers,
-      body: JSON.stringify({ rating, total: user_ratings_total, reviews: mapped, source: 'live' }),
+      body: JSON.stringify({ rating, total: userRatingCount, reviews: mapped, source: 'live' }),
     };
   } catch (e) {
     console.error('getReviews error:', e.message);
