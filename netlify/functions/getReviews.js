@@ -3,7 +3,7 @@
  * Fetches Google Place reviews via Places API (New).
  *
  * Requires:
- *   GOOGLE_PLACES_SERVER_KEY — unrestricted (or IP-restricted), restricted to Places API (New)
+ *   GOOGLE_PLACES_SERVER_KEY — restricted to Places API (New)
  *   GOOGLE_PLACE_ID          — e.g. "ChIJIyPU3GuflR4RaiAdpoJEYEI"
  */
 
@@ -14,16 +14,15 @@ exports.handler = async () => {
   const headers = {
     'Access-Control-Allow-Origin': '*',
     'Content-Type': 'application/json',
-    'Cache-Control': 'public, max-age=3600',
+    'Cache-Control': 'no-store',
   };
 
   if (!API_KEY || !PLACE_ID) {
-    console.error('Missing GOOGLE_PLACES_SERVER_KEY or GOOGLE_PLACE_ID env vars');
     return { statusCode: 200, headers, body: JSON.stringify({ reviews: [], source: 'env_missing' }) };
   }
 
   try {
-    const url = `https://places.googleapis.com/v1/places/${PLACE_ID}`;
+    const url = `https://places.googleapis.com/v1/places/${PLACE_ID}?languageCode=en`;
     const res = await fetch(url, {
       headers: {
         'X-Goog-Api-Key': API_KEY,
@@ -33,18 +32,21 @@ exports.handler = async () => {
 
     if (!res.ok) {
       const err = await res.text();
-      console.error('Places API (New) error:', res.status, err);
+      console.error('Places API error:', res.status, err);
       return { statusCode: 200, headers, body: JSON.stringify({ reviews: [], source: 'api_error' }) };
     }
 
     const data = await res.json();
+    console.log('API response keys:', Object.keys(data));
+    console.log('Reviews count:', data.reviews?.length ?? 0);
+
     const { rating, userRatingCount, reviews = [] } = data;
 
     const mapped = reviews.map(r => ({
       author:  r.authorAttribution?.displayName || 'Anonymous',
       avatar:  r.authorAttribution?.photoUri || null,
       rating:  r.rating,
-      text:    r.text?.text || '',
+      text:    r.text?.text || r.originalText?.text || '',
       time:    r.relativePublishTimeDescription || '',
       url:     r.authorAttribution?.uri || null,
     }));
