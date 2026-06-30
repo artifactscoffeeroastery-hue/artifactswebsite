@@ -86,34 +86,35 @@ exports.handler = async (event) => {
     return { statusCode: 500, headers: CORS, body: JSON.stringify({ error: 'Server config error: missing env vars' }) };
   }
 
-  const insertRes = await fetch(`${supabaseUrl}/rest/v1/orders`, {
+  const insertRes = await fetch(`${supabaseUrl}/rest/v1/rpc/create_manual_order`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
       apikey:         serviceKey,
       Authorization:  `Bearer ${serviceKey}`,
-      Prefer:         'return=representation',
     },
     body: JSON.stringify({
-      payment_id:       ref,
-      payment_method:   paymentMethod,
-      status:           paymentMethod === 'eft' ? 'awaiting_payment' : 'pending',
-      customer_name:    customer.name,
-      email:            customer.email,
-      phone:            customer.phone || null,
-      amount_rand:      total,
-      item_description: itemDesc,
-      discount_code:    discountCode || null,
-      shipping_method:  shipping?.method || null,
-      shipping_amount:  shipAmt,
-      shipping_address: shipping?.address || null,
+      p_payment_id:       ref,
+      p_payment_method:   paymentMethod,
+      p_status:           paymentMethod === 'eft' ? 'awaiting_payment' : 'pending',
+      p_customer_name:    customer.name,
+      p_email:            customer.email,
+      p_phone:            customer.phone || null,
+      p_amount_rand:      total,
+      p_item_description: itemDesc,
+      p_discount_code:    discountCode || null,
+      p_shipping_method:  shipping?.method || null,
+      p_shipping_amount:  shipAmt,
+      p_shipping_address: shipping?.address || null,
+      p_admin_notes:      notes || null,
+      p_placed_by:        'admin',
     }),
   });
 
   if (!insertRes.ok) {
     const err = await insertRes.text();
-    console.error('Supabase insert error:', insertRes.status, err);
-    return { statusCode: 500, headers: CORS, body: JSON.stringify({ error: `Supabase ${insertRes.status}: ${err}` }) };
+    console.error('Supabase RPC error:', insertRes.status, err);
+    return { statusCode: 500, headers: CORS, body: JSON.stringify({ error: 'Failed to save order' }) };
   }
 
   // ── Record discount use ──────────────────────────────────────────────────────
