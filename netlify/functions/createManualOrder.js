@@ -114,7 +114,7 @@ exports.handler = async (event) => {
   if (!insertRes.ok) {
     const err = await insertRes.text();
     console.error('Supabase RPC error:', insertRes.status, err);
-    return { statusCode: 500, headers: CORS, body: JSON.stringify({ error: 'Failed to save order' }) };
+    return { statusCode: 500, headers: CORS, body: JSON.stringify({ error: `RPC ${insertRes.status}: ${err}` }) };
   }
 
   // ── Record discount use ──────────────────────────────────────────────────────
