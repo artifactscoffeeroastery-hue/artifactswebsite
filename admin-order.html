@@ -586,3 +586,357 @@ function openWhatsApp() {
 </script>
 </body>
 </html>
+d. Reload and enter the correct code.'); return; }
+      throw new Error(data.error||'Server error');
+    }
+    showConfirmation(data, total);
+  } catch(e) {
+    alert('Error: '+e.message);
+  } finally {
+    btn.textContent='Send EFT Request'; btn.style.opacity=''; btn.style.pointerEvents='';
+  }
+}
+
+// ── CONFIRMATION ──────────────────────────────────────────────────────────────
+function showConfirmation(data, total) {
+  lastData = data;
+  document.getElementById('admin-main').style.display    = 'none';
+  document.getElementById('confirm-screen').style.display = 'block';
+  document.getElementById('conf-ref').textContent         = data.ref;
+  document.getElementById('conf-ref-inline').textContent  = data.ref;
+  document.getElementById('conf-amount').textContent      = 'R '+total.toFixed(2);
+  var cust  = data.customer||{};
+  var fname = (cust.name||'').split(' ')[0]||'there';
+  var items = data.itemDesc||'';
+  document.getElementById('wa-draft').textContent = [
+    'Hi '+fname+' 👋',
+    '',
+    'Your Artifacts Coffee order has been created. Here’s what you need to pay:',
+    '',
+    '*Order Ref:* '+data.ref,
+    '*Items:* '+items,
+    '*Amount Due: R'+total.toFixed(2)+'*',
+    '',
+    '━━━━━━━━━━━━━━━━━━━',
+    '*Banking Details (FNB EFT):*',
+    'Account Name: Artifacts Coffee Roastary',
+    'Account Number: 62929285692',
+    'Branch Code: 250655',
+    'Reference: *'+data.ref+'*',
+    '━━━━━━━━━━━━━━━━━━━',
+    '',
+    'Please use your order reference as the payment reference — it helps us match your payment.',
+    '',
+    'We roast and ship as soon as payment reflects! 🔥',
+    '',
+    '— Artifacts Coffee',
+    'hello@artifactscoffee.co.za',
+  ].join('\n');
+}
+
+function copyWaDraft() {
+  var text = document.getElementById('wa-draft').textContent;
+  navigator.clipboard.writeText(text).then(function(){
+    var b=event.target, o=b.textContent;
+    b.textContent='Copied ✓'; setTimeout(function(){ b.textContent=o; },2000);
+  });
+}
+
+function openWhatsApp() {
+  var phone = (document.getElementById('c-phone').value||'').replace(/\D/g,'');
+  var text  = encodeURIComponent(document.getElementById('wa-draft').textContent);
+  window.open(phone ? 'https://wa.me/27'+phone.replace(/^0/,'')+`?text=${text}` : 'https://wa.me/?text='+text, '_blank');
+}
+</script>
+</body>
+</html>"qty-ctrl">
+        <button class="qty-btn" onclick="changeQty('${p.id}',-1)">−</button>
+        <span class="qty-val" id="qty-${p.id}">0</span>
+        <button class="qty-btn" onclick="changeQty('${p.id}',1)">+</button>
+      </div>
+      <div class="prod-line-price" id="lp-${p.id}">—</div>
+    </div>`;
+  }).join('');
+}
+
+function onSizeChange(id, sel) {
+  const opt = sel.options[sel.selectedIndex];
+  sizes[id] = opt.value; prices[id] = parseFloat(opt.dataset.price);
+  updateLinePrice(id); updateSummary();
+}
+
+function changeQty(id, d) {
+  qtys[id] = Math.max(0, (qtys[id]||0) + d);
+  document.getElementById('qty-'+id).textContent = qtys[id];
+  updateLinePrice(id); updateSummary();
+}
+
+function updateLinePrice(id) {
+  const el = document.getElementById('lp-'+id);
+  el.textContent = qtys[id] > 0 ? `R${(prices[id]*qtys[id]).toFixed(0)}` : '—';
+}
+
+// ── DELIVERY ──────────────────────────────────────────────────────────────────
+function switchDelivery(mode) {
+  deliveryMode = mode;
+  document.getElementById('tab-deliver').classList.toggle('active', mode==='deliver');
+  document.getElementById('tab-collect').classList.toggle('active', mode==='collect');
+  document.getElementById('address-wrap').style.display = mode==='deliver' ? '' : 'none';
+  document.getElementById('pudo-wrap').style.display    = mode==='collect' ? '' : 'none';
+  if (mode==='collect') {
+    selectedRate = { label:'TCG PUDO Collect', price:60 };
+    document.getElementById('rate-wrap').style.display = 'none';
+    document.getElementById('rate-status').textContent = '';
+  } else {
+    selectedRate = null;
+  }
+  updateSummary();
+}
+
+let fetchTimer;
+function onProvinceChange() { clearTimeout(fetchTimer); fetchTimer = setTimeout(fetchRates, 500); }
+function onPostalInput()    { if(document.getElementById('d-postal').value.length===4){ clearTimeout(fetchTimer); fetchTimer = setTimeout(fetchRates, 500); } }
+
+async function fetchRates() {
+  const province = document.getElementById('d-province').value;
+  const postal   = document.getElementById('d-postal').value;
+  if (!province || postal.length < 4) return;
+
+  const statusEl = document.getElementById('rate-status');
+  statusEl.textContent = '⏳ Loading rates…';
+  selectedRate = null; updateSummary();
+
+  const address = {
+    suburb: document.getElementById('d-suburb').value || '',
+    city:   document.getElementById('d-city').value   || '',
+    province, postalCode: postal, country:'ZA',
+  };
+  const items = PRODUCTS.filter(p=>qtys[p.id]>0).map(p=>({name:p.name,size:sizes[p.id],qty:qtys[p.id]}));
+
+  try {
+    const res  = await fetch('/.netlify/functions/getShipping', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ destination:address, cartItems:items, totalWeightKg:getKg(), subtotal:getSub() }),
+    });
+    const data = await res.json();
+    const quotes = data.quotes || [];
+    renderRates(quotes.length ? quotes : null);
+    statusEl.textContent = quotes.length ? '' : 'No live rates — using fallback.';
+  } catch {
+    renderRates(null);
+    statusEl.textContent = 'Rate fetch failed — using fallback.';
+  }
+}
+
+function renderRates(quotes) {
+  const fallback = [
+    { service:'Gauteng Door-to-Door', price:100, etaDays:'1–2' },
+    { service:'Rest of SA Door-to-Door', price:150, etaDays:'2–5' },
+  ];
+  const list = quotes || fallback;
+  document.getElementById('rate-wrap').style.display = '';
+  document.getElementById('rate-list').innerHTML = list.map((q,i)=>`
+    <div class="rate-option${i===0?' selected':''}" onclick="selectRate(this,'${q.service}',${q.price})">
+      <input type="radio" name="rate" ${i===0?'checked':''}>
+      <div class="rate-label-text"><strong>${q.service}</strong><br><span style="font-size:11px;color:var(--muted);">${q.etaDays||'2–5'} business days</span></div>
+      <span class="rate-price">R${q.price}</span>
+    </div>`).join('');
+  selectedRate = { label:list[0].service, price:list[0].price };
+  updateSummary();
+}
+
+function selectRate(el, label, price) {
+  document.querySelectorAll('.rate-option').forEach(r=>{ r.classList.remove('selected'); r.querySelector('input').checked=false; });
+  el.classList.add('selected'); el.querySelector('input').checked = true;
+  selectedRate = { label, price }; updateSummary();
+}
+
+// ── DISCOUNT ──────────────────────────────────────────────────────────────────
+function applyDiscount() {
+  const code = document.getElementById('disc-code').value.trim().toUpperCase();
+  const el   = document.getElementById('discount-status');
+  if (!code) { el.textContent=''; return; }
+  if (DISC_CODES[code] !== undefined) {
+    appliedDisc = { code, amount: DISC_CODES[code] };
+    el.style.color='#22c55e'; el.textContent=`✓ ${code} — R${DISC_CODES[code]} off`;
+    document.getElementById('disc-amount').value='';
+  } else {
+    appliedDisc = { code:'', amount:0 };
+    el.style.color='#ef4444'; el.textContent=`✗ Code not recognised — use manual amount if needed`;
+  }
+  updateSummary();
+}
+
+// ── TOTALS ────────────────────────────────────────────────────────────────────
+function getSub()  { return PRODUCTS.reduce((s,p)=>s+(qtys[p.id]||0)*prices[p.id],0); }
+function getKg()   { return Math.max(0.1, PRODUCTS.reduce((s,p)=>{ const sz=(sizes[p.id]||'').toLowerCase(); const kg=sz.match(/([0-9.]+)\s*kg/); if(kg)return s+parseFloat(kg[1])*(qtys[p.id]||0); const g=sz.match(/([0-9]+)\s*g/); if(g)return s+parseFloat(g[1])/1000*(qtys[p.id]||0); return s+(qtys[p.id]||0)*0.25; },0)); }
+function getShip() { const ov=parseFloat(document.getElementById('d-ship-override').value); return !isNaN(ov)?ov:(deliveryMode==='collect'?60:(selectedRate?selectedRate.price:0)); }
+function getDisc() { const m=parseFloat(document.getElementById('disc-amount').value)||0; return Math.max(m,appliedDisc.amount); }
+
+function updateSummary() {
+  const items = PRODUCTS.filter(p=>(qtys[p.id]||0)>0);
+  const sumEl = document.getElementById('summary-items');
+  if (!items.length) {
+    sumEl.innerHTML='<p class="sum-empty">No items added yet.</p>';
+  } else {
+    sumEl.innerHTML = items.map(p=>`
+      <div class="sum-line">
+        <span class="sum-name">${p.name}<br><span style="color:var(--muted);font-size:11px;">${sizes[p.id]}</span></span>
+        <span style="color:var(--muted);font-size:11px;align-self:center;">×${qtys[p.id]}</span>
+        <span class="sum-price">R${(prices[p.id]*qtys[p.id]).toFixed(0)}</span>
+      </div>`).join('');
+  }
+  const sub=getSub(), ship=getShip(), disc=getDisc(), total=Math.max(0,sub+ship-disc);
+  document.getElementById('sum-sub').textContent   = `R ${sub.toFixed(2)}`;
+  document.getElementById('sum-ship').textContent  = ship>0?`R ${ship.toFixed(2)}`:'—';
+  document.getElementById('sum-total').textContent = `R ${total.toFixed(2)}`;
+  const dr=document.getElementById('sum-disc-row');
+  if(disc>0){ dr.style.display='flex'; document.getElementById('sum-disc').textContent=`− R${disc.toFixed(2)}`; }
+  else dr.style.display='none';
+
+  // Trigger rate fetch if items added and address filled
+  if (deliveryMode==='deliver' && items.length && !selectedRate) {
+    const prov=document.getElementById('d-province').value;
+    const post=document.getElementById('d-postal').value;
+    if (prov && post.length===4) fetchRates();
+  }
+}
+
+// ── VALIDATION ────────────────────────────────────────────────────────────────
+function validate() {
+  const items  = PRODUCTS.filter(p=>(qtys[p.id]||0)>0);
+  const name   = document.getElementById('c-name').value.trim();
+  const email  = document.getElementById('c-email').value.trim();
+  const hasShip= deliveryMode==='collect'||!!selectedRate||document.getElementById('d-ship-override').value!=='';
+  const valEl  = document.getElementById('pay-validation');
+  let msg = '';
+  if (!items.length)      msg = 'Add at least one product.';
+  else if (!name||!email) msg = 'Customer name and email required.';
+  else if (!hasShip)      msg = 'Select a shipping rate or enter an override.';
+  valEl.textContent = msg;
+  valEl.style.display = msg ? 'block' : 'none';
+  return !msg;
+}
+
+// ── PAYFAST ───────────────────────────────────────────────────────────────────
+function payViaPayFast() {
+  if (!validate()) return;
+  const name  = document.getElementById('c-name').value.trim();
+  const email = document.getElementById('c-email').value.trim();
+  const phone = document.getElementById('c-phone').value.trim();
+  const sub=getSub(), ship=getShip(), disc=getDisc(), total=Math.max(0,sub+ship-disc);
+  const desc  = PRODUCTS.filter(p=>qtys[p.id]>0).map(p=>`${qtys[p.id]}x ${p.name} (${sizes[p.id]})`).join(', ');
+  const addr  = [document.getElementById('d-address').value,document.getElementById('d-suburb').value,document.getElementById('d-city').value,document.getElementById('d-province').value].filter(Boolean).join(', ');
+  const ship_label = selectedRate?selectedRate.label:(deliveryMode==='collect'?'PUDO Collect':'Manual');
+
+  if(!confirm(`Submit PayFast order for ${name} (${email})?\n\nTotal: R${total.toFixed(2)}\n${desc}`)) return;
+
+  document.getElementById('pf-name').value       = name.split(' ')[0];
+  document.getElementById('pf-email').value      = email;
+  document.getElementById('pf-pid').value        = `ADMIN-${Date.now()}`;
+  document.getElementById('pf-amount').value     = total.toFixed(2);
+  document.getElementById('pf-desc').value       = `[ADMIN] ${desc}`;
+  document.getElementById('pf-disc').value       = appliedDisc.code||'';
+  document.getElementById('pf-ship-method').value= ship_label;
+  document.getElementById('pf-ship-amt').value   = ship.toFixed(2);
+  document.getElementById('pf-ship-addr').value  = addr;
+  document.getElementById('pf-phone').value      = phone;
+  document.getElementById('pf-form').submit();
+}
+
+// ── EFT ───────────────────────────────────────────────────────────────────────
+async function payViaEFT() {
+  if (!validate()) return;
+  const name  = document.getElementById('c-name').value.trim();
+  const email = document.getElementById('c-email').value.trim();
+  const phone = document.getElementById('c-phone').value.trim();
+  const sub=getSub(), ship=getShip(), disc=getDisc(), total=Math.max(0,sub+ship-disc);
+  const addr  = [document.getElementById('d-address').value,document.getElementById('d-suburb').value,document.getElementById('d-city').value,document.getElementById('d-province').value].filter(Boolean).join(', ');
+  const ship_label = selectedRate?selectedRate.label:(deliveryMode==='collect'?'PUDO Collect':'Manual');
+  const notes = document.getElementById('admin-notes').value.trim();
+
+  const btn = document.getElementById('btn-eft');
+  btn.textContent='Creating order…'; btn.style.opacity='0.5'; btn.style.pointerEvents='none';
+
+  try {
+    const res  = await fetch('/.netlify/functions/createManualOrder', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        adminKey,
+        customer:     { name, email, phone },
+        items:        PRODUCTS.filter(p=>qtys[p.id]>0).map(p=>({ name:p.name, size:sizes[p.id], price:prices[p.id], qty:qtys[p.id] })),
+        shipping:     { method:ship_label, amount:ship, address:addr },
+        discountCode: appliedDisc.code||null,
+        discountAmt:  disc,
+        notes,
+        paymentMethod:'eft',
+      }),
+    });
+    const data = await res.json();
+    if (!res.ok||!data.success) {
+      if (res.status===401) { alert('Admin code rejected. Reload and enter the correct code.'); return; }
+      throw new Error(data.error||'Server error');
+    }
+    showConfirmation(data, total);
+  } catch(e) {
+    alert(`Error: ${e.message}`);
+  } finally {
+    btn.textContent='Send EFT Request'; btn.style.opacity=''; btn.style.pointerEvents='';
+  }
+}
+
+// ── CONFIRMATION ──────────────────────────────────────────────────────────────
+function showConfirmation(data, total) {
+  lastData = data;
+  document.getElementById('admin-main').style.display   = 'none';
+  document.getElementById('confirm-screen').style.display = 'block';
+  document.getElementById('conf-ref').textContent        = data.ref;
+  document.getElementById('conf-ref-inline').textContent = data.ref;
+  document.getElementById('conf-amount').textContent     = `R ${total.toFixed(2)}`;
+
+  const cust   = data.customer||{};
+  const fname  = (cust.name||'').split(' ')[0]||'there';
+  const items  = data.itemDesc||'';
+
+  document.getElementById('wa-draft').textContent = [
+    `Hi ${fname} 👋`,
+    ``,
+    `Your Artifacts Coffee order has been created. Here's what you need to pay:`,
+    ``,
+    `*Order Ref:* ${data.ref}`,
+    `*Items:* ${items}`,
+    `*Amount Due: R${total.toFixed(2)}*`,
+    ``,
+    `━━━━━━━━━━━━━━━━━━━`,
+    `*Banking Details (FNB EFT):*`,
+    `Account Name: Artifacts Coffee Roastary`,
+    `Account Number: 62929285692`,
+    `Branch Code: 250655`,
+    `Reference: *${data.ref}*`,
+    `━━━━━━━━━━━━━━━━━━━`,
+    ``,
+    `Please use your order reference as the payment reference — it helps us match your payment.`,
+    ``,
+    `We roast and ship as soon as payment reflects! 🔥`,
+    ``,
+    `— Artifacts Coffee`,
+    `hello@artifactscoffee.co.za`,
+  ].join('\n');
+}
+
+function copyWaDraft() {
+  const text = document.getElementById('wa-draft').textContent;
+  navigator.clipboard.writeText(text).then(()=>{
+    const b=event.target; const o=b.textContent;
+    b.textContent='Copied ✓'; setTimeout(()=>b.textContent=o,2000);
+  });
+}
+
+function openWhatsApp() {
+  const phone = document.getElementById('c-phone')?.value?.replace(/\D/g,'')||'';
+  const text  = encodeURIComponent(document.getElementById('wa-draft').textContent);
+  window.open(phone?`https://wa.me/27${phone.replace(/^0/,'')}?text=${text}`:`https://wa.me/?text=${text}`,'_blank');
+}
+</script>
+</body>
+</html>

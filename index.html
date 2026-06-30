@@ -363,7 +363,7 @@
       "description": "Specialty-grade washed single origin from Nyeri, Kenya. Score 88. Tasting notes of blackcurrant, bright citrus and florals. Roasted fresh weekly in Johannesburg.",
       "brand": { "@type": "Brand", "name": "Artifacts Coffee Roastery" },
       "url": "https://artifactscoffee.co.za/#ke",
-      "image": "https://artifactscoffee.co.za/images/kenya-landscape.jpg",
+      "image": "https://artifactscoffee.co.za/images/logo.png",
       "category": "Coffee Beans",
       "additionalProperty": [
         { "@type": "PropertyValue", "name": "Origin", "value": "Nyeri, Kenya" },
@@ -495,7 +495,7 @@
 <!-- KENYA DROP 004 — LIVE -->
 <section class="product-section ke-theme" id="ke">
   <div class="p-visual">
-    <div class="p-close" style="background-image:url('images/kenya-landscape.jpg');"></div>
+    <div class="p-close" style="background:linear-gradient(160deg,#1a0a0b 0%,#3d1012 50%,#C8373E 100%);"></div>
     <div class="p-accent"></div>
     <span class="p-code">KE &middot; 004</span>
   </div>
@@ -799,4 +799,63 @@
     </div>
     <!-- PUDO INFO (collect mode only) -->
     <div id="pudo-info" class="shipping-box" style="display:none;margin-top:10px;">
-      <p style="fon
+      <p style="font-size:12px;color:var(--muted);line-height:1.7;">Drop your order at any <strong style="color:var(--white);">TCG PUDO Locker</strong> near you. You'll receive a booking reference by email after payment. R60 flat rate nationwide.</p>
+    </div>
+    <!-- CONTACT + ADDRESS (phone always visible; full address hidden in collect mode) -->
+    <div class="shipping-box" style="margin-top:10px;">
+      <span class="sz-label" style="display:block;margin-bottom:6px;">Your Details</span>
+      <input id="ship-phone" type="tel" autocomplete="tel" placeholder="Phone number" class="ship-field" style="margin-bottom:8px;" />
+      <div id="ship-address-wrap">
+        <select id="ship-province" autocomplete="address-level1" class="ship-field" aria-label="Province" required style="margin-bottom:8px;">
+          <option value="" disabled selected hidden>Select province</option>
+          <option>Eastern Cape</option><option>Free State</option><option>Gauteng</option>
+          <option>KwaZulu-Natal</option><option>Limpopo</option><option>Mpumalanga</option>
+          <option>Northern Cape</option><option>North West</option><option>Western Cape</option>
+        </select>
+        <input id="ship-address-line1" type="text" autocomplete="address-line1" placeholder="Street address" style="width:100%;margin-bottom:8px;background:#0f0f0f;border:1px solid var(--border);color:var(--white);padding:10px 12px;font-size:13px;" />
+        <input id="ship-suburb" type="text" autocomplete="address-level3" placeholder="Suburb" style="width:100%;margin-bottom:8px;background:#0f0f0f;border:1px solid var(--border);color:var(--white);padding:10px 12px;font-size:13px;" />
+        <div class="ship-row-2">
+          <input id="ship-city" type="text" autocomplete="address-level2" placeholder="City" style="background:#0f0f0f;border:1px solid var(--border);color:var(--white);padding:10px 12px;font-size:13px;" />
+          <input id="ship-postal-code" type="text" autocomplete="postal-code" placeholder="Postal code" style="background:#0f0f0f;border:1px solid var(--border);color:var(--white);padding:10px 12px;font-size:13px;" />
+        </div>
+      </div>
+      <div id="shipping-validation-status" style="font-size:11px;color:var(--muted);margin-top:8px;">Rates load automatically when province &amp; postal code are set.</div>
+    </div>
+    <div class="shipping-box" style="margin-top:10px;">
+      <span class="sz-label" style="display:block;margin-bottom:6px;">Discount Code</span>
+      <div style="display:flex;gap:8px;">
+        <input id="discount-code-input" type="text" autocomplete="off" placeholder="Enter discount code" style="flex:1;background:#0f0f0f;border:1px solid rgba(255,255,255,0.25);color:var(--white);padding:12px 14px;font-size:14px;text-transform:uppercase;letter-spacing:0.08em;border-radius:4px 0 0 4px;" />
+        <button type="button" onclick="applyDiscountCode()" style="width:auto;padding:12px 18px;margin:0;font-size:14px;font-family:'DM Mono',monospace;letter-spacing:0.08em;background:var(--cyan);color:black;border:none;border-radius:0 4px 4px 0;flex-shrink:0;cursor:pointer;">Apply</button>
+      </div>
+      <div id="discount-status" style="font-size:11px;color:var(--muted);margin-top:8px;">Have a promo link? Your code can auto-apply here.</div>
+    </div>
+  </div>
+  <!-- STICKY CART FOOTER -->
+  <div class="cart-footer">
+    <div id="total-price" style="font-family:'Bebas Neue',sans-serif;font-size:30px;margin-bottom:10px;">Total: R 0.00</div>
+    <form action="https://www.payfast.co.za/eng/process" method="post" id="payfast-form">
+      <input type="hidden" name="merchant_id" value="34420469">
+      <input type="hidden" name="merchant_key" value="q6qjvvpwgddvi">
+      <input type="hidden" name="return_url" value="https://artifactscoffee.co.za/success">
+      <input type="hidden" name="cancel_url" value="https://artifactscoffee.co.za/cancel">
+      <input type="hidden" name="notify_url" value="https://artifactscoffee.co.za/.netlify/functions/payfast-notify">
+      <input type="hidden" name="name_first" id="pf_name">
+      <input type="hidden" name="email_address" id="pf_email">
+      <input type="hidden" name="m_payment_id" id="pf_payment_id">
+      <input type="hidden" name="amount" id="pf_amount">
+      <input type="hidden" name="item_name" id="pf_item_name" value="Artifacts Coffee Order">
+      <input type="hidden" name="item_description" id="pf_item_desc">
+      <input type="hidden" name="custom_str1" id="pf_discount_code">
+      <input type="hidden" name="custom_str2" id="pf_shipping_method">
+      <input type="hidden" name="custom_str3" id="pf_shipping_amount">
+      <input type="hidden" name="custom_str4" id="pf_shipping_address">
+      <input type="hidden" name="custom_str5" id="pf_shipping_phone">
+      <p style="font-size:10px;color:var(--muted);margin-bottom:10px;text-align:center;">By clicking pay, you&#8217;ll be redirected to PayFast to complete your purchase.</p>
+      <button type="submit" class="pay-btn">Pay Securely</button>
+    </form>
+  </div>
+</div>
+
+<script src="js/main.js" defer></script>
+</body>
+</html>
