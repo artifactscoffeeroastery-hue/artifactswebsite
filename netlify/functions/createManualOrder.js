@@ -78,12 +78,12 @@ exports.handler = async (event) => {
   const ref        = makeRef();
 
   // ── Insert into Supabase ─────────────────────────────────────────────────────
-  const supabaseUrl = process.env.SUPABASE_URL;
+  const supabaseUrl = (process.env.SUPABASE_URL || '').replace(/\/$/, '');
   const serviceKey  = process.env.SUPABASE_SERVICE_KEY;
 
   if (!supabaseUrl || !serviceKey) {
-    console.error('Supabase env vars missing');
-    return { statusCode: 500, headers: CORS, body: JSON.stringify({ error: 'Server config error' }) };
+    console.error('Supabase env vars missing — URL:', !!supabaseUrl, 'KEY:', !!serviceKey);
+    return { statusCode: 500, headers: CORS, body: JSON.stringify({ error: 'Server config error: missing env vars' }) };
   }
 
   const insertRes = await fetch(`${supabaseUrl}/rest/v1/orders`, {
@@ -115,7 +115,7 @@ exports.handler = async (event) => {
   if (!insertRes.ok) {
     const err = await insertRes.text();
     console.error('Supabase insert error:', insertRes.status, err);
-    return { statusCode: 500, headers: CORS, body: JSON.stringify({ error: 'Failed to save order' }) };
+    return { statusCode: 500, headers: CORS, body: JSON.stringify({ error: `Supabase ${insertRes.status}: ${err}` }) };
   }
 
   // ── Record discount use ──────────────────────────────────────────────────────
