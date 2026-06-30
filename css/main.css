@@ -1,7 +1,7 @@
   :root {
     color-scheme: dark;
     --cyan:#0FA8DF;--yellow:#E1FF01;--black:#020c1a;--off:#101010;--mid:#161616;
-    --border:#1E1E1E;--white:#F2F2F2;--muted:#888;--ke:#C8373E;
+    --border:#1E1E1E;--white:#F2F2F2;--muted:#888;--ke:#E1FF01;
   }
   *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
   html{scroll-behavior:smooth;background:var(--black);forced-color-adjust:none;-webkit-forced-color-adjust:none;overflow-x:hidden;}
@@ -135,9 +135,11 @@
   .gt-theme{border-top:3px solid var(--cyan);}
   .mx-theme{border-top:3px solid var(--yellow);}
   .ni-theme{border-top:3px solid var(--white);}
-  .ke-theme{border-top:3px solid var(--ke);}
+  .ke-theme{border-top:none;}
+  .ke-theme .p-visual{border-top:none;}
+  .ke-theme .p-info{border-top:3px solid var(--ke);}
   .ke-theme .p-accent{background:var(--ke);}
-  .ke-theme .p-code{background:var(--ke);color:#fff;}
+  .ke-theme .p-code{background:var(--ke);color:var(--black);}
   .p-info{flex:0 0 50%;padding:64px 54px;background:var(--off);border-left:1px solid var(--border);display:flex;flex-direction:column;justify-content:center;}
   .product-section.flip .p-info{border-left:none;border-right:1px solid var(--border);}
   .p-num{font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;letter-spacing:0.28em;text-transform:uppercase;margin-bottom:6px;}
@@ -160,9 +162,9 @@
   .sel-c{background:var(--cyan);color:var(--black);outline:2px solid var(--cyan);outline-offset:2px;}
   .sel-y{background:var(--yellow);color:var(--black);outline:2px solid var(--yellow);outline-offset:2px;}
   .sel-w{background:var(--white);color:var(--black);outline:2px solid var(--white);outline-offset:2px;}
-  .sel-k{background:var(--ke);color:#fff;outline:2px solid var(--ke);outline-offset:2px;}
+  .sel-k{background:var(--ke);color:var(--black);outline:2px solid var(--ke);outline-offset:2px;}
   .pill-ke{border-color:var(--ke);color:var(--ke);}
-  .btn-ke{background:var(--ke);color:#fff;}
+  .btn-ke{background:var(--ke);color:var(--black);}
   .price-row{display:flex;align-items:baseline;gap:8px;margin-bottom:22px;}
   .p-curr{font-family:'Barlow Condensed',sans-serif;font-size:20px;color:#666;}
   .p-amount{font-family:'Bebas Neue',sans-serif;font-size:58px;line-height:1;letter-spacing:0.02em;}
@@ -556,4 +558,10 @@
     .phil-left,.phil-right{padding:40px 14px;}
     .cart-header{padding:14px 12px 12px!important;}
     .cart-step{padding:12px 12px 8px!important;}
-    .cart-footer{pa
+    .cart-footer{padding:10px 12px 18px!important;}
+    #founder-cart-banner{margin:0 -12px!important;padding:10px 12px 12px!important;}
+    .obj-section,.compare-section,.faq-section,.entheos-section{padding:52px 14px;}
+    .office-strip,.cup-section{padding:28px 14px;}
+    .office-strip-form{grid-template-columns:1fr;}
+    .hero-title{font-size:clamp(44px,15vw,64px);}
+  }
