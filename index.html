@@ -789,10 +789,9 @@
   <div id="step-shipping" class="cart-step" style="display:none;">
     <div id="cart-list" style="margin-bottom:20px;"></div>
     <!-- COLLECT / DELIVER TABS -->
-    <div class="ship-tabs ship-tabs-3">
-      <button id="tab-deliver" class="ship-tab ship-tab-active" onclick="setDeliverMode('deliver')">Deliver</button>
-      <button id="tab-collect" class="ship-tab" onclick="setDeliverMode('collect')">PUDO Locker</button>
-      <button id="tab-pickup" class="ship-tab" onclick="setDeliverMode('pickup')">Collect from us</button>
+    <div class="ship-tabs" id="ship-tabs">
+      <button id="tab-deliver" class="ship-tab ship-tab-active" onclick="setDeliverMode('deliver')">Deliver to me</button>
+      <button id="tab-collect" class="ship-tab" onclick="setDeliverMode('collect')">Collect (PUDO)</button>
     </div>
     <div class="shipping-box">
       <span class="sz-label">Courier</span>
@@ -808,7 +807,7 @@
     </div>
     <!-- COLLECT-FROM-US INFO (pickup mode only) -->
     <div id="pickup-info" class="shipping-box" style="display:none;margin-top:10px;">
-      <p style="font-size:12px;color:var(--muted);line-height:1.7;">Collect your order directly from us &mdash; <strong id="pickup-point" style="color:var(--white);">Mossel Bay</strong>. <strong style="color:var(--white);">Free</strong>, no courier. Pay online now and we'll have your coffee ready. Tap below to message us and arrange a pickup time.</p>
+      <p style="font-size:12px;color:var(--muted);line-height:1.7;">Collect your order directly from us. Pay online now and we'll have your coffee ready. Tap below to message us and arrange a pickup time.</p>
       <a id="pickup-wa-btn" href="#" target="_blank" rel="noopener" class="wa-btn">Arrange collection on WhatsApp</a>
     </div>
     <!-- CONTACT + ADDRESS (phone always visible; full address hidden in collect mode) -->

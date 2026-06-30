@@ -4,13 +4,13 @@ const productQtys = { gt:1, mx:1, ni:1, dp:1 };
 let currentUser = null, activeDiscount = null, activeShippingQuote = null;
 let deliverMode = 'deliver'; // 'deliver' | 'collect' (PUDO) | 'pickup' (collect from us)
 let lastQuotes = null; // cache last fetched shipping quotes
-// ── COLLECT-FROM-US CONFIG ──  ⚠️ set these two values
+// ── COLLECT-FROM-US CONFIG ──
 const COLLECT_WHATSAPP = '27613832478'; // your WhatsApp number, intl format, digits only
-const COLLECT_POINT    = 'Mossel Bay';  // collection location shown to the customer
 const discountCodes = {
   FOUNDER20:   { type:'fixed',   value:20,  label:'R20 off — Founder'        },
   DISCOVERY15: { type:'percent', value:15,  label:'15% off order subtotal'    },
-  SAMPLE25:    { type:'fixed',   value:25,  label:'R25 off order subtotal'    }
+  SAMPLE25:    { type:'fixed',   value:25,  label:'R25 off order subtotal'    },
+  FAMILY:      { type:'collect', value:0,   label:'Friends & Family — Free Collection' }
 };
 function setStatus(id, msg, kind) {
   const el = document.getElementById(id); if (!el) return;
@@ -283,17 +283,32 @@ function calcTotal() {
 function getDiscount(sub) {
   if (!activeDiscount||sub<=0) return 0;
   const r=activeDiscount.rule;
+  if (r.type==='collect') return 0; // collect code = free shipping only, full coffee price
   return r.type==='percent' ? Math.min(sub,sub*r.value/100) : Math.min(sub,r.value);
 }
 function applyDiscountCode(code) {
   const inp = document.getElementById('discount-code-input');
   const c = (code||(inp?inp.value:'')||'').trim().toUpperCase();
-  if (!c) { activeDiscount=null; sessionStorage.removeItem('ac_disc'); setStatus('discount-status','Enter a code then tap Apply.','error'); calcTotal(); return; }
+  if (!c) { activeDiscount=null; sessionStorage.removeItem('ac_disc'); setCollectUnlocked(false); setStatus('discount-status','Enter a code then tap Apply.','error'); calcTotal(); return; }
   const m = discountCodes[c];
-  if (!m) { activeDiscount=null; sessionStorage.removeItem('ac_disc'); setStatus('discount-status',`Code "${c}" not recognised.`,'error'); calcTotal(); return; }
+  if (!m) { activeDiscount=null; sessionStorage.removeItem('ac_disc'); setCollectUnlocked(false); setStatus('discount-status',`Code "${c}" not recognised.`,'error'); calcTotal(); return; }
   activeDiscount={code:c,rule:m}; if (inp) inp.value=c;
   sessionStorage.setItem('ac_disc', JSON.stringify(activeDiscount));
-  setStatus('discount-status',`Applied ${c}: ${m.label}.`,'success'); calcTotal();
+  if (m.type==='collect') {
+    setCollectUnlocked(true);
+    setStatus('discount-status',`${m.label} — no shipping, collect from us.`,'success');
+  } else {
+    setCollectUnlocked(false);
+    setStatus('discount-status',`Applied ${c}: ${m.label}.`,'success');
+  }
+  calcTotal();
+}
+// Friends & Family collection unlock — hides delivery tabs and forces free pickup
+function setCollectUnlocked(on) {
+  const tabs = document.getElementById('ship-tabs');
+  if (tabs) tabs.style.display = on ? 'none' : '';
+  if (on) setDeliverMode('pickup');
+  else if (deliverMode==='pickup') setDeliverMode('deliver');
 }
 function tryAutoApplyDiscount() {
   const p = new URLSearchParams(window.location.search);
@@ -393,10 +408,9 @@ function setDeliverMode(mode) {
   if (tabDeliver) tabDeliver.classList.toggle('ship-tab-active', mode==='deliver');
   if (tabCollect) tabCollect.classList.toggle('ship-tab-active', mode==='collect');
   if (tabPickup)  tabPickup.classList.toggle('ship-tab-active',  mode==='pickup');
-  const ptLabel = document.getElementById('pickup-point'); if (ptLabel) ptLabel.textContent = COLLECT_POINT;
   if (mode==='pickup') {
     // Free collection from us — no courier, no shipping charge, phone only
-    if (shipSel) shipSel.innerHTML = `<option value="0" data-rate="0" data-code="pickup">Collect from ${COLLECT_POINT} - R0.00</option>`;
+    if (shipSel) shipSel.innerHTML = `<option value="0" data-rate="0" data-code="pickup">Collect from us - R0.00</option>`;
     if (shipWrap) shipWrap.style.display = 'none';
     updatePickupWhatsApp();
     calcTotal();
@@ -413,7 +427,7 @@ function updatePickupWhatsApp() {
   const items = cart.map(i=>`${i.qty}x ${i.name} (${i.size||'1kg'})`).join(', ') || 'my order';
   const sub   = cart.reduce((s,i)=>s+i.price*i.qty,0);
   const name  = (currentUser&&currentUser.name) || (document.getElementById('guest-name')||{}).value || '';
-  const text  = `Hi Artifacts Coffee! I'd like to collect from ${COLLECT_POINT}.\nName: ${name}\nOrder: ${items}\nTotal: R${sub.toFixed(2)}`;
+  const text  = `Hi Artifacts Coffee! I'd like to collect my order.\nName: ${name}\nOrder: ${items}\nTotal: R${sub.toFixed(2)}`;
   btn.href = `https://wa.me/${COLLECT_WHATSAPP}?text=${encodeURIComponent(text)}`;
 }
 

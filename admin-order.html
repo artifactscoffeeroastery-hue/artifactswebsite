@@ -214,7 +214,6 @@ textarea.field-input{resize:vertical;min-height:72px;}
       <option value="pudo">PUDO Collect (Locker)</option>
       <option value="collection">Customer Collection</option>
       <option value="personal">Personal Delivery</option>
-      <option value="pep">PEP Stores (Mossel Bay)</option>
     </select>
 
     <!-- Courier: province + postal + live rates -->
@@ -275,15 +274,6 @@ textarea.field-input{resize:vertical;min-height:72px;}
       <div class="field-group">
         <label class="field-label">Delivery Address</label>
         <input class="field-input" id="d-personal-address" type="text" placeholder="Full delivery address">
-      </div>
-    </div>
-
-    <!-- PEP Stores -->
-    <div id="fw-pep" style="display:none;">
-      <div class="fulfil-note">&#128230; PEP Stores — parcel sent via PEP to recipient. No integration — record details below for the quote and invoice.</div>
-      <div class="field-group">
-        <label class="field-label">Recipient Address (for document)</label>
-        <input class="field-input" id="d-pep-address" type="text" placeholder="e.g. 12 Main St, Mossel Bay, 6500">
       </div>
     </div>
 
@@ -522,7 +512,7 @@ function updateLinePrice(id) {
 
 function switchFulfil(mode) {
   fulfilMode = mode;
-  var sections = ['courier','pudo','collection','personal','pep'];
+  var sections = ['courier','pudo','collection','personal'];
   sections.forEach(function(s){ document.getElementById('fw-'+s).style.display = s===mode?'':'none'; });
   if (mode==='pudo')       { selectedRate={label:'TCG PUDO Locker',price:60}; }
   else if (mode==='collection') { selectedRate={label:'Customer Collection',price:0}; }
@@ -587,12 +577,11 @@ function getShip() {
 }
 function getDisc() { var m=parseFloat(document.getElementById('disc-amount').value)||0; return Math.max(m,appliedDisc.amount); }
 function getFulfilLabel() {
-  return {courier:'Door-to-Door Courier',pudo:'PUDO Locker Collect',collection:'Customer Collection',personal:'Personal Delivery',pep:'PEP Stores (Mossel Bay)'}[fulfilMode]||fulfilMode;
+  return {courier:'Door-to-Door Courier',pudo:'PUDO Locker Collect',collection:'Customer Collection',personal:'Personal Delivery'}[fulfilMode]||fulfilMode;
 }
 function getFulfilAddress() {
   if(fulfilMode==='courier'){ return [document.getElementById('d-address').value,document.getElementById('d-suburb').value,document.getElementById('d-city').value,document.getElementById('d-province').value].filter(Boolean).join(', '); }
   if(fulfilMode==='personal'){ return document.getElementById('d-personal-address').value||''; }
-  if(fulfilMode==='pep'){ return document.getElementById('d-pep-address').value||''; }
   return '';
 }
 
