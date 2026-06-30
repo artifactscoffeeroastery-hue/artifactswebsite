@@ -3,7 +3,7 @@
 **Repo:** artifactscoffeeroastery-hue/artifactswebsite  
 **Live site:** https://artifactscoffee.co.za  
 **Stack:** Static HTML/CSS/JS · Netlify · Supabase · PayFast  
-**Last updated:** 2026-06-30
+**Last updated:** 2026-06-30 (Session 10)
 
 ---
 
@@ -186,6 +186,16 @@ Live bar replaces coming-soon bar above origin cards.
 - `netlify/functions/createManualOrder.js` created — EFT/PayFast split, Supabase insert (`placed_by:'admin'`), EFT status `awaiting_payment`, returns banking details + WhatsApp draft
 - `ADMIN_ORDER_KEY` env var added to Netlify (secret) — required for `createManualOrder.js`
 - Dev artifact cleanup: `.gitignore` updated, lock files documented as recurring issue
+
+### Session 10 (Admin Quote/Invoice System)
+- **Fulfillment modes** — replaced courier/PUDO-only delivery section with 5-option select: Door-to-Door Courier, PUDO Locker, Customer Collection (free), Personal Delivery, PEP Stores Mossel Bay
+- **Quote generation** — "Generate Quote" button builds `docState` object and renders inline dark preview in `#quote-screen` with items, totals, fulfilment label, accent-coloured total
+- **Quote → Invoice conversion** — "Convert to Invoice" assigns `INV-{timestamp}` ref, toggles `qs-quote-actions` → `qs-invoice-actions`, reveals FNB banking details
+- **Print-ready document** (`buildDocHTML`) — opens standalone white HTML page in new tab for either quote or invoice; has Print/Save PDF button; invoice includes banking section
+- **Send actions** — `sendDocWhatsApp()` opens `wa.me` with formatted message; `sendDocEmail()` opens `mailto:` with full order breakdown
+- **EFT from invoice** — triggers `payViaEFT()` → `createManualOrder.js` → `confirm-screen` with banking + WA draft
+- Banking details: FNB · Artifacts Coffee Roastary · Acc `62929285692` · Branch `250655`
+- `docState` object holds all order data (customer, items, totals, fulfilment, refs, dates) — persists through quote→invoice→payment flow
 
 ## Known / Watch Items
 
