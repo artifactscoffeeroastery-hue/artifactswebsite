@@ -5,7 +5,7 @@ let currentUser = null, activeDiscount = null, activeShippingQuote = null;
 let deliverMode = 'deliver'; // 'deliver' | 'collect' (PUDO) | 'pickup' (collect from us)
 let lastQuotes = null; // cache last fetched shipping quotes
 // ── COLLECT-FROM-US CONFIG ──  ⚠️ set these two values
-const COLLECT_WHATSAPP = '27XXXXXXXXX'; // your WhatsApp number, intl format, digits only (e.g. 27821234567)
+const COLLECT_WHATSAPP = '27613832478'; // your WhatsApp number, intl format, digits only
 const COLLECT_POINT    = 'Mossel Bay';  // collection location shown to the customer
 const discountCodes = {
   FOUNDER20:   { type:'fixed',   value:20,  label:'R20 off — Founder'        },
