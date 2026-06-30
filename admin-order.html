@@ -124,6 +124,28 @@ textarea.field-input{resize:vertical;min-height:72px;}
 .action-btn:hover{background:var(--mid);}
 .action-btn.primary{background:var(--ke);border-color:var(--ke);color:#fff;}
 
+/* FULFILLMENT */
+.fulfil-select{width:100%;background:var(--off);border:1px solid var(--border);color:var(--white);padding:11px 14px;font-family:'DM Mono',monospace;font-size:13px;outline:none;cursor:pointer;appearance:none;margin-bottom:14px;}
+.fulfil-select:focus{border-color:var(--cyan);}
+.fulfil-note{font-size:11px;color:var(--muted);padding:10px 14px;background:var(--mid);border:1px solid var(--border);margin-bottom:14px;}
+/* QUOTE/DOC BUTTONS */
+.btn-quote{background:transparent;border:1px solid var(--cyan)!important;color:var(--cyan);}
+/* QUOTE SCREEN */
+#quote-screen{display:none;padding:28px;max-width:680px;}
+.doc-type-badge{display:inline-block;font-family:'Bebas Neue',sans-serif;font-size:11px;letter-spacing:0.22em;padding:4px 12px;margin-bottom:16px;}
+.doc-type-badge.quote{background:rgba(15,168,223,0.15);border:1px solid rgba(15,168,223,0.4);color:var(--cyan);}
+.doc-type-badge.invoice{background:rgba(225,255,1,0.12);border:1px solid rgba(225,255,1,0.35);color:var(--yellow);}
+.doc-preview-box{background:var(--mid);border:1px solid var(--border);padding:20px 24px;margin:16px 0;font-size:12px;color:#ccc;line-height:1.8;}
+.doc-preview-title{font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:0.06em;margin-bottom:4px;}
+.doc-preview-line{display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--border);}
+.doc-preview-line:last-child{border-bottom:none;}
+.doc-preview-label{color:var(--muted);}
+.convert-bar{background:var(--off);border:1px solid var(--border);border-left:3px solid var(--yellow);padding:14px 18px;margin:16px 0;display:flex;align-items:center;justify-content:space-between;gap:16px;}
+.convert-bar p{font-size:12px;color:var(--muted);}
+.convert-btn{background:var(--yellow);color:var(--black);border:none;padding:10px 20px;font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:0.08em;cursor:pointer;white-space:nowrap;}
+.convert-btn:hover{opacity:0.88;}
+/* updated action-btn primary → cyan */
+.action-btn.primary{background:var(--cyan);border-color:var(--cyan);color:var(--black);}
 @media(max-width:768px){
   .admin-main{grid-template-columns:1fr;}
   .admin-right{position:static;height:auto;}
@@ -184,15 +206,19 @@ textarea.field-input{resize:vertical;min-height:72px;}
     </div>
   </div>
 
-  <!-- DELIVERY -->
+  <!-- FULFILLMENT -->
   <div class="section-gap">
-    <p class="section-title">Delivery</p>
-    <div class="tab-row">
-      <button class="tab-btn active" id="tab-deliver" onclick="switchDelivery('deliver')">Door-to-Door</button>
-      <button class="tab-btn" id="tab-collect" onclick="switchDelivery('collect')">PUDO Collect</button>
-    </div>
+    <p class="section-title">Fulfillment</p>
+    <select class="fulfil-select" id="fulfil-mode" onchange="switchFulfil(this.value)">
+      <option value="courier">Door-to-Door Courier</option>
+      <option value="pudo">PUDO Collect (Locker)</option>
+      <option value="collection">Customer Collection</option>
+      <option value="personal">Personal Delivery</option>
+      <option value="pep">PEP Stores (Mossel Bay)</option>
+    </select>
 
-    <div id="address-wrap">
+    <!-- Courier: province + postal + live rates -->
+    <div id="fw-courier">
       <div class="field-row">
         <div class="field-group">
           <label class="field-label">Province *</label>
@@ -222,9 +248,15 @@ textarea.field-input{resize:vertical;min-height:72px;}
           <input class="field-input" id="d-city" type="text" placeholder="City">
         </div>
       </div>
+      <div id="rate-wrap" style="display:none;margin-top:12px;">
+        <p class="field-label" style="margin-bottom:8px;">Live Rates</p>
+        <div id="rate-list"></div>
+      </div>
+      <div id="rate-status"></div>
     </div>
 
-    <div id="pudo-wrap" style="display:none;">
+    <!-- PUDO -->
+    <div id="fw-pudo" style="display:none;">
       <div class="rate-option selected">
         <input type="radio" name="rate" checked>
         <div class="rate-label-text"><strong>TCG PUDO Locker</strong><br><span style="font-size:11px;color:var(--muted);">Customer collects from nearest locker · nationwide</span></div>
@@ -232,16 +264,32 @@ textarea.field-input{resize:vertical;min-height:72px;}
       </div>
     </div>
 
-    <div id="rate-wrap" style="display:none;margin-top:12px;">
-      <p class="field-label" style="margin-bottom:8px;">Live Rates</p>
-      <div id="rate-list"></div>
+    <!-- Customer Collection -->
+    <div id="fw-collection" style="display:none;">
+      <div class="fulfil-note">&#128205; Customer collects in person — no shipping required. Set a pickup arrangement in the notes below.</div>
     </div>
-    <div id="rate-status"></div>
+
+    <!-- Personal Delivery -->
+    <div id="fw-personal" style="display:none;">
+      <div class="fulfil-note">&#128663; You will deliver personally. Enter a delivery address below and set a shipping amount override if needed.</div>
+      <div class="field-group">
+        <label class="field-label">Delivery Address</label>
+        <input class="field-input" id="d-personal-address" type="text" placeholder="Full delivery address">
+      </div>
+    </div>
+
+    <!-- PEP Stores -->
+    <div id="fw-pep" style="display:none;">
+      <div class="fulfil-note">&#128230; PEP Stores — parcel sent via PEP to recipient. No integration — record details below for the quote and invoice.</div>
+      <div class="field-group">
+        <label class="field-label">Recipient Address (for document)</label>
+        <input class="field-input" id="d-pep-address" type="text" placeholder="e.g. 12 Main St, Mossel Bay, 6500">
+      </div>
+    </div>
 
     <div class="field-group" style="margin-top:14px;">
-      <label class="field-label">Override Shipping Amount (R) — optional</label>
-      <input class="field-input" id="d-ship-override" type="number" placeholder="Leave blank to use live rate" min="0" step="1" oninput="updateSummary()">
-      <p class="hint">Enter 0 for free shipping, or any amount to bypass the live quote.</p>
+      <label class="field-label">Shipping Amount Override (R) — optional</label>
+      <input class="field-input" id="d-ship-override" type="number" placeholder="Leave blank to use live rate · enter 0 for free" min="0" step="1" oninput="updateSummary()">
     </div>
   </div>
 
@@ -287,9 +335,10 @@ textarea.field-input{resize:vertical;min-height:72px;}
 
   <div class="pay-section">
     <p id="pay-validation"></p>
+    <button class="pay-btn btn-quote" onclick="generateQuote()" id="btn-quote">Generate Quote</button>
     <button class="pay-btn btn-payfast" onclick="payViaPayFast()">Pay via PayFast</button>
-    <button class="pay-btn btn-eft" onclick="payViaEFT()">Send EFT Request</button>
-    <p class="pay-note-text">PayFast → customer pays online.<br>EFT → you share banking details manually.</p>
+    <button class="pay-btn btn-eft" id="btn-eft" onclick="payViaEFT()">Send EFT Request</button>
+    <p class="pay-note-text">Quote → share with customer first.<br>PayFast → online payment link.<br>EFT → bank transfer details.</p>
   </div>
 
   <!-- Hidden PayFast form -->
@@ -314,6 +363,51 @@ textarea.field-input{resize:vertical;min-height:72px;}
 </div><!-- /admin-right -->
 
 </div><!-- /admin-main -->
+
+<!-- QUOTE SCREEN -->
+<div id="quote-screen">
+  <p style="font-size:11px;letter-spacing:0.2em;color:var(--muted);text-transform:uppercase;margin-bottom:10px;">Manual Order · <span id="qs-type-label">Quote</span></p>
+  <div class="confirm-ref" id="qs-ref" style="color:var(--cyan);">—</div>
+  <span class="doc-type-badge quote" id="qs-badge">QUOTE · AWAITING ACCEPTANCE</span>
+
+  <div class="doc-preview-box" id="qs-preview"></div>
+
+  <!-- Quote actions -->
+  <div id="qs-quote-actions">
+    <div class="convert-bar">
+      <p>Customer accepted? Convert to an Invoice and proceed with payment.</p>
+      <button class="convert-btn" onclick="convertToInvoice()">Convert to Invoice ▶</button>
+    </div>
+    <div class="action-row">
+      <button class="action-btn" onclick="openDoc('quote')">&#128196; Open / Print Quote</button>
+      <button class="action-btn" onclick="sendDocWhatsApp()">&#128242; WhatsApp</button>
+      <button class="action-btn" onclick="sendDocEmail('quote')">&#9993; Email Quote</button>
+      <button class="action-btn primary" onclick="location.reload()">New Order</button>
+    </div>
+  </div>
+
+  <!-- Invoice actions (shown after conversion) -->
+  <div id="qs-invoice-actions" style="display:none;">
+    <div class="banking-card" style="border-left-color:var(--yellow);">
+      <div class="banking-row"><span class="banking-label">Bank</span><span class="banking-value">First National Bank (FNB)</span></div>
+      <div class="banking-row"><span class="banking-label">Account Name</span><span class="banking-value">Artifacts Coffee Roastary</span></div>
+      <div class="banking-row"><span class="banking-label">Account Number</span><span class="banking-value">62929285692</span></div>
+      <div class="banking-row"><span class="banking-label">Branch Code</span><span class="banking-value">250655</span></div>
+      <div class="banking-row"><span class="banking-label">Reference</span><span class="banking-value ref" style="color:var(--yellow);" id="qs-ref-inline">—</span></div>
+      <div class="banking-row"><span class="banking-label">Amount Due</span><span class="banking-value ref" style="color:var(--yellow);" id="qs-amount">—</span></div>
+    </div>
+    <div class="action-row" style="margin-bottom:10px;">
+      <button class="action-btn" onclick="openDoc('invoice')">&#128196; Open / Print Invoice</button>
+      <button class="action-btn" onclick="sendDocWhatsApp()">&#128242; WhatsApp</button>
+      <button class="action-btn" onclick="sendDocEmail('invoice')">&#9993; Email Invoice</button>
+    </div>
+    <div class="action-row">
+      <button class="action-btn" style="background:var(--cyan);color:var(--black);border-color:var(--cyan);" onclick="payViaPayFast()">Pay via PayFast</button>
+      <button class="action-btn" style="border-color:rgba(225,255,1,0.5);color:var(--yellow);" onclick="sendEFTFromInvoice()">Send EFT Request</button>
+      <button class="action-btn primary" onclick="location.reload()">New Order</button>
+    </div>
+  </div>
+</div>
 
 <!-- CONFIRMATION SCREEN -->
 <div id="confirm-screen">
@@ -366,10 +460,13 @@ const DISC_CODES = { 'FOUNDER20': 20 };
 // ── STATE ─────────────────────────────────────────────────────────────────────
 let adminKey = '';
 let qtys   = {}, sizes = {}, prices = {};
-let deliveryMode = 'deliver';
+let fulfilMode   = 'courier';     // courier | pudo | collection | personal | pep
+let deliveryMode = 'deliver';     // kept for rate-fetch compat
 let selectedRate = null;          // { label, price }
 let appliedDisc  = { code:'', amount:0 };
 let lastData     = null;
+let docState     = null;          // { type:'quote'|'invoice', ref, total, customer, items, fulfil, disc }
+let currentDocType = 'quote';
 
 // ── GATE ──────────────────────────────────────────────────────────────────────
 document.getElementById('gate-input').addEventListener('keydown', e => { if(e.key==='Enter') checkGate(); });
@@ -423,14 +520,13 @@ function updateLinePrice(id) {
   el.textContent = qtys[id] > 0 ? 'R'+(prices[id]*qtys[id]).toFixed(0) : '—';
 }
 
-function switchDelivery(mode) {
-  deliveryMode = mode;
-  document.getElementById('tab-deliver').classList.toggle('active', mode==='deliver');
-  document.getElementById('tab-collect').classList.toggle('active', mode==='collect');
-  document.getElementById('address-wrap').style.display = mode==='deliver' ? '' : 'none';
-  document.getElementById('pudo-wrap').style.display    = mode==='collect' ? '' : 'none';
-  if (mode==='collect') { selectedRate={label:'TCG PUDO Collect',price:60}; document.getElementById('rate-wrap').style.display='none'; document.getElementById('rate-status').textContent=''; }
-  else { selectedRate=null; }
+function switchFulfil(mode) {
+  fulfilMode = mode;
+  var sections = ['courier','pudo','collection','personal','pep'];
+  sections.forEach(function(s){ document.getElementById('fw-'+s).style.display = s===mode?'':'none'; });
+  if (mode==='pudo')       { selectedRate={label:'TCG PUDO Locker',price:60}; }
+  else if (mode==='collection') { selectedRate={label:'Customer Collection',price:0}; }
+  else                     { selectedRate=null; }
   updateSummary();
 }
 
@@ -482,8 +578,23 @@ function applyDiscount() {
 
 function getSub()  { return PRODUCTS.reduce(function(s,p){ return s+(qtys[p.id]||0)*prices[p.id]; },0); }
 function getKg()   { return Math.max(0.1,PRODUCTS.reduce(function(s,p){ var sz=(sizes[p.id]||'').toLowerCase(),kg=sz.match(/([0-9.]+)\s*kg/),g=sz.match(/([0-9]+)\s*g/); if(kg)return s+parseFloat(kg[1])*(qtys[p.id]||0); if(g)return s+parseFloat(g[1])/1000*(qtys[p.id]||0); return s+(qtys[p.id]||0)*0.25; },0)); }
-function getShip() { var ov=parseFloat(document.getElementById('d-ship-override').value); return !isNaN(ov)?ov:(deliveryMode==='collect'?60:(selectedRate?selectedRate.price:0)); }
+function getShip() {
+  var ov=parseFloat(document.getElementById('d-ship-override').value);
+  if(!isNaN(ov)) return ov;
+  if(fulfilMode==='collection') return 0;
+  if(fulfilMode==='pudo') return 60;
+  return selectedRate?selectedRate.price:0;
+}
 function getDisc() { var m=parseFloat(document.getElementById('disc-amount').value)||0; return Math.max(m,appliedDisc.amount); }
+function getFulfilLabel() {
+  return {courier:'Door-to-Door Courier',pudo:'PUDO Locker Collect',collection:'Customer Collection',personal:'Personal Delivery',pep:'PEP Stores (Mossel Bay)'}[fulfilMode]||fulfilMode;
+}
+function getFulfilAddress() {
+  if(fulfilMode==='courier'){ return [document.getElementById('d-address').value,document.getElementById('d-suburb').value,document.getElementById('d-city').value,document.getElementById('d-province').value].filter(Boolean).join(', '); }
+  if(fulfilMode==='personal'){ return document.getElementById('d-personal-address').value||''; }
+  if(fulfilMode==='pep'){ return document.getElementById('d-pep-address').value||''; }
+  return '';
+}
 
 function updateSummary() {
   var items=PRODUCTS.filter(function(p){ return (qtys[p.id]||0)>0; });
@@ -496,13 +607,13 @@ function updateSummary() {
   document.getElementById('sum-total').textContent='R '+total.toFixed(2);
   var dr=document.getElementById('sum-disc-row');
   if(disc>0){ dr.style.display='flex'; document.getElementById('sum-disc').textContent='− R'+disc.toFixed(2); } else dr.style.display='none';
-  if(deliveryMode==='deliver'&&items.length&&!selectedRate){ var prov=document.getElementById('d-province').value,post=document.getElementById('d-postal').value; if(prov&&post.length===4)fetchRates(); }
 }
 
 function validate() {
   var items=PRODUCTS.filter(function(p){ return (qtys[p.id]||0)>0; });
   var name=document.getElementById('c-name').value.trim(), email=document.getElementById('c-email').value.trim();
-  var hasShip=deliveryMode==='collect'||!!selectedRate||document.getElementById('d-ship-override').value!=='';
+  var noShipNeeded=(fulfilMode==='collection'||fulfilMode==='personal'||fulfilMode==='pep');
+  var hasShip=noShipNeeded||!!selectedRate||document.getElementById('d-ship-override').value!=='';
   var valEl=document.getElementById('pay-validation'), msg='';
   if(!items.length) msg='Add at least one product.';
   else if(!name||!email) msg='Customer name and email required.';
@@ -515,8 +626,7 @@ function payViaPayFast() {
   var name=document.getElementById('c-name').value.trim(), email=document.getElementById('c-email').value.trim(), phone=document.getElementById('c-phone').value.trim();
   var sub=getSub(),ship=getShip(),disc=getDisc(),total=Math.max(0,sub+ship-disc);
   var desc=PRODUCTS.filter(function(p){ return qtys[p.id]>0; }).map(function(p){ return qtys[p.id]+'x '+p.name+' ('+sizes[p.id]+')'; }).join(', ');
-  var addr=[document.getElementById('d-address').value,document.getElementById('d-suburb').value,document.getElementById('d-city').value,document.getElementById('d-province').value].filter(Boolean).join(', ');
-  var ship_label=selectedRate?selectedRate.label:(deliveryMode==='collect'?'PUDO Collect':'Manual');
+  var addr=getFulfilAddress();
   if(!confirm('Submit PayFast for '+name+' ('+email+')?\n\nTotal: R'+total.toFixed(2)+'\n'+desc)) return;
   document.getElementById('pf-name').value=name.split(' ')[0];
   document.getElementById('pf-email').value=email;
@@ -524,7 +634,7 @@ function payViaPayFast() {
   document.getElementById('pf-amount').value=total.toFixed(2);
   document.getElementById('pf-desc').value='[ADMIN] '+desc;
   document.getElementById('pf-disc').value=appliedDisc.code||'';
-  document.getElementById('pf-ship-method').value=ship_label;
+  document.getElementById('pf-ship-method').value=getFulfilLabel();
   document.getElementById('pf-ship-amt').value=ship.toFixed(2);
   document.getElementById('pf-ship-addr').value=addr;
   document.getElementById('pf-phone').value=phone;
@@ -535,407 +645,158 @@ async function payViaEFT() {
   if(!validate()) return;
   var name=document.getElementById('c-name').value.trim(), email=document.getElementById('c-email').value.trim(), phone=document.getElementById('c-phone').value.trim();
   var sub=getSub(),ship=getShip(),disc=getDisc(),total=Math.max(0,sub+ship-disc);
-  var addr=[document.getElementById('d-address').value,document.getElementById('d-suburb').value,document.getElementById('d-city').value,document.getElementById('d-province').value].filter(Boolean).join(', ');
-  var ship_label=selectedRate?selectedRate.label:(deliveryMode==='collect'?'PUDO Collect':'Manual');
-  var notes=document.getElementById('admin-notes').value.trim();
+  var addr=getFulfilAddress(), notes=document.getElementById('admin-notes').value.trim();
   var btn=document.getElementById('btn-eft');
   btn.textContent='Creating order…'; btn.style.opacity='0.5'; btn.style.pointerEvents='none';
   try {
-    var res=await fetch('/.netlify/functions/createManualOrder',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({adminKey:adminKey,customer:{name:name,email:email,phone:phone},items:PRODUCTS.filter(function(p){return qtys[p.id]>0;}).map(function(p){return{name:p.name,size:sizes[p.id],price:prices[p.id],qty:qtys[p.id]};}),shipping:{method:ship_label,amount:ship,address:addr},discountCode:appliedDisc.code||null,discountAmt:disc,notes:notes,paymentMethod:'eft'})});
+    var res=await fetch('/.netlify/functions/createManualOrder',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({adminKey:adminKey,customer:{name:name,email:email,phone:phone},items:PRODUCTS.filter(function(p){return qtys[p.id]>0;}).map(function(p){return{name:p.name,size:sizes[p.id],price:prices[p.id],qty:qtys[p.id]};}),shipping:{method:getFulfilLabel(),amount:ship,address:addr},discountCode:appliedDisc.code||null,discountAmt:disc,notes:notes,paymentMethod:'eft'})});
     var data=await res.json();
-    if(!res.ok||!data.success){ if(res.status===401){alert('Admin code rejected. Reload and re-enter.');return;} throw new Error(data.error||'Server error'); }
+    if(!res.ok||!data.success){ if(res.status===401){alert('Admin code rejected.');return;} throw new Error(data.error||'Server error'); }
     showConfirmation(data,total);
   } catch(e){ alert('Error: '+e.message); }
   finally { btn.textContent='Send EFT Request'; btn.style.opacity=''; btn.style.pointerEvents=''; }
 }
 
-function showConfirmation(data,total) {
-  lastData=data;
-  document.getElementById('admin-main').style.display='none';
-  document.getElementById('confirm-screen').style.display='block';
-  document.getElementById('conf-ref').textContent=data.ref;
-  document.getElementById('conf-ref-inline').textContent=data.ref;
-  document.getElementById('conf-amount').textContent='R '+total.toFixed(2);
-  var cust=data.customer||{}, fname=(cust.name||'').split(' ')[0]||'there', items=data.itemDesc||'';
-  document.getElementById('wa-draft').textContent=[
-    'Hi '+fname+' 👋','',
-    'Your Artifacts Coffee order has been created. Here’s what you need to pay:','',
-    '*Order Ref:* '+data.ref,'*Items:* '+items,'*Amount Due: R'+total.toFixed(2)+'*','',
-    '━━━━━━━━━━━━━━━━━━━',
-    '*Banking Details (FNB EFT):*',
-    'Account Name: Artifacts Coffee Roastary',
-    'Account Number: 62929285692',
-    'Branch Code: 250655',
-    'Reference: *'+data.ref+'*',
-    '━━━━━━━━━━━━━━━━━━━','',
-    'Please use your order reference as the payment reference.',
-    'We roast and ship as soon as payment reflects! 🔥','',
-    '— Artifacts Coffee','hello@artifactscoffee.co.za'
-  ].join('\n');
-}
-
-function copyWaDraft() {
-  var text=document.getElementById('wa-draft').textContent;
-  navigator.clipboard.writeText(text).then(function(){ var b=event.target,o=b.textContent; b.textContent='Copied ✓'; setTimeout(function(){b.textContent=o;},2000); });
-}
-function openWhatsApp() {
-  var phone=(document.getElementById('c-phone').value||'').replace(/\D/g,'');
-  var text=encodeURIComponent(document.getElementById('wa-draft').textContent);
-  window.open(phone?'https://wa.me/27'+phone.replace(/^0/,'')+('?text='+text):'https://wa.me/?text='+text,'_blank');
-}
-</script>
-</body>
-</html>
-d. Reload and enter the correct code.'); return; }
-      throw new Error(data.error||'Server error');
-    }
-    showConfirmation(data, total);
-  } catch(e) {
-    alert('Error: '+e.message);
-  } finally {
-    btn.textContent='Send EFT Request'; btn.style.opacity=''; btn.style.pointerEvents='';
-  }
-}
-
-// ── CONFIRMATION ──────────────────────────────────────────────────────────────
-function showConfirmation(data, total) {
-  lastData = data;
-  document.getElementById('admin-main').style.display    = 'none';
-  document.getElementById('confirm-screen').style.display = 'block';
-  document.getElementById('conf-ref').textContent         = data.ref;
-  document.getElementById('conf-ref-inline').textContent  = data.ref;
-  document.getElementById('conf-amount').textContent      = 'R '+total.toFixed(2);
-  var cust  = data.customer||{};
-  var fname = (cust.name||'').split(' ')[0]||'there';
-  var items = data.itemDesc||'';
-  document.getElementById('wa-draft').textContent = [
-    'Hi '+fname+' 👋',
-    '',
-    'Your Artifacts Coffee order has been created. Here’s what you need to pay:',
-    '',
-    '*Order Ref:* '+data.ref,
-    '*Items:* '+items,
-    '*Amount Due: R'+total.toFixed(2)+'*',
-    '',
-    '━━━━━━━━━━━━━━━━━━━',
-    '*Banking Details (FNB EFT):*',
-    'Account Name: Artifacts Coffee Roastary',
-    'Account Number: 62929285692',
-    'Branch Code: 250655',
-    'Reference: *'+data.ref+'*',
-    '━━━━━━━━━━━━━━━━━━━',
-    '',
-    'Please use your order reference as the payment reference — it helps us match your payment.',
-    '',
-    'We roast and ship as soon as payment reflects! 🔥',
-    '',
-    '— Artifacts Coffee',
-    'hello@artifactscoffee.co.za',
-  ].join('\n');
-}
-
-function copyWaDraft() {
-  var text = document.getElementById('wa-draft').textContent;
-  navigator.clipboard.writeText(text).then(function(){
-    var b=event.target, o=b.textContent;
-    b.textContent='Copied ✓'; setTimeout(function(){ b.textContent=o; },2000);
-  });
-}
-
-function openWhatsApp() {
-  var phone = (document.getElementById('c-phone').value||'').replace(/\D/g,'');
-  var text  = encodeURIComponent(document.getElementById('wa-draft').textContent);
-  window.open(phone ? 'https://wa.me/27'+phone.replace(/^0/,'')+`?text=${text}` : 'https://wa.me/?text='+text, '_blank');
-}
-</script>
-</body>
-</html>"qty-ctrl">
-        <button class="qty-btn" onclick="changeQty('${p.id}',-1)">−</button>
-        <span class="qty-val" id="qty-${p.id}">0</span>
-        <button class="qty-btn" onclick="changeQty('${p.id}',1)">+</button>
-      </div>
-      <div class="prod-line-price" id="lp-${p.id}">—</div>
-    </div>`;
-  }).join('');
-}
-
-function onSizeChange(id, sel) {
-  const opt = sel.options[sel.selectedIndex];
-  sizes[id] = opt.value; prices[id] = parseFloat(opt.dataset.price);
-  updateLinePrice(id); updateSummary();
-}
-
-function changeQty(id, d) {
-  qtys[id] = Math.max(0, (qtys[id]||0) + d);
-  document.getElementById('qty-'+id).textContent = qtys[id];
-  updateLinePrice(id); updateSummary();
-}
-
-function updateLinePrice(id) {
-  const el = document.getElementById('lp-'+id);
-  el.textContent = qtys[id] > 0 ? `R${(prices[id]*qtys[id]).toFixed(0)}` : '—';
-}
-
-// ── DELIVERY ──────────────────────────────────────────────────────────────────
-function switchDelivery(mode) {
-  deliveryMode = mode;
-  document.getElementById('tab-deliver').classList.toggle('active', mode==='deliver');
-  document.getElementById('tab-collect').classList.toggle('active', mode==='collect');
-  document.getElementById('address-wrap').style.display = mode==='deliver' ? '' : 'none';
-  document.getElementById('pudo-wrap').style.display    = mode==='collect' ? '' : 'none';
-  if (mode==='collect') {
-    selectedRate = { label:'TCG PUDO Collect', price:60 };
-    document.getElementById('rate-wrap').style.display = 'none';
-    document.getElementById('rate-status').textContent = '';
-  } else {
-    selectedRate = null;
-  }
-  updateSummary();
-}
-
-let fetchTimer;
-function onProvinceChange() { clearTimeout(fetchTimer); fetchTimer = setTimeout(fetchRates, 500); }
-function onPostalInput()    { if(document.getElementById('d-postal').value.length===4){ clearTimeout(fetchTimer); fetchTimer = setTimeout(fetchRates, 500); } }
-
-async function fetchRates() {
-  const province = document.getElementById('d-province').value;
-  const postal   = document.getElementById('d-postal').value;
-  if (!province || postal.length < 4) return;
-
-  const statusEl = document.getElementById('rate-status');
-  statusEl.textContent = '⏳ Loading rates…';
-  selectedRate = null; updateSummary();
-
-  const address = {
-    suburb: document.getElementById('d-suburb').value || '',
-    city:   document.getElementById('d-city').value   || '',
-    province, postalCode: postal, country:'ZA',
+function generateQuote() {
+  if(!validate()) return;
+  docState={
+    type:'quote',
+    customer:{name:document.getElementById('c-name').value.trim(),email:document.getElementById('c-email').value.trim(),phone:document.getElementById('c-phone').value.trim()},
+    items:PRODUCTS.filter(function(p){return qtys[p.id]>0;}).map(function(p){return{name:p.name,size:sizes[p.id],price:prices[p.id],qty:qtys[p.id]};}),
+    sub:getSub(),ship:getShip(),disc:getDisc(),
+    fulfilLabel:getFulfilLabel(),fulfilAddress:getFulfilAddress(),
+    discCode:appliedDisc.code||null,
+    notes:document.getElementById('admin-notes').value.trim(),
+    ref:'QT-'+Date.now(),
+    date:new Date().toLocaleDateString('en-ZA',{day:'2-digit',month:'short',year:'numeric'})
   };
-  const items = PRODUCTS.filter(p=>qtys[p.id]>0).map(p=>({name:p.name,size:sizes[p.id],qty:qtys[p.id]}));
-
-  try {
-    const res  = await fetch('/.netlify/functions/getShipping', {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ destination:address, cartItems:items, totalWeightKg:getKg(), subtotal:getSub() }),
-    });
-    const data = await res.json();
-    const quotes = data.quotes || [];
-    renderRates(quotes.length ? quotes : null);
-    statusEl.textContent = quotes.length ? '' : 'No live rates — using fallback.';
-  } catch {
-    renderRates(null);
-    statusEl.textContent = 'Rate fetch failed — using fallback.';
-  }
+  docState.total=Math.max(0,docState.sub+docState.ship-docState.disc);
+  showQuoteScreen('quote');
 }
 
-function renderRates(quotes) {
-  const fallback = [
-    { service:'Gauteng Door-to-Door', price:100, etaDays:'1–2' },
-    { service:'Rest of SA Door-to-Door', price:150, etaDays:'2–5' },
-  ];
-  const list = quotes || fallback;
-  document.getElementById('rate-wrap').style.display = '';
-  document.getElementById('rate-list').innerHTML = list.map((q,i)=>`
-    <div class="rate-option${i===0?' selected':''}" onclick="selectRate(this,'${q.service}',${q.price})">
-      <input type="radio" name="rate" ${i===0?'checked':''}>
-      <div class="rate-label-text"><strong>${q.service}</strong><br><span style="font-size:11px;color:var(--muted);">${q.etaDays||'2–5'} business days</span></div>
-      <span class="rate-price">R${q.price}</span>
-    </div>`).join('');
-  selectedRate = { label:list[0].service, price:list[0].price };
-  updateSummary();
+function showQuoteScreen(type) {
+  currentDocType=type;
+  var qs=document.getElementById('quote-screen');
+  qs.style.display='block';
+  qs.scrollIntoView({behavior:'smooth'});
+  var ref=type==='invoice'?(docState.invoiceRef||docState.ref):docState.ref;
+  var badge=document.getElementById('qs-badge');
+  badge.textContent=type==='invoice'?'INVOICE':'QUOTE · AWAITING ACCEPTANCE';
+  badge.className='doc-type-badge '+(type==='invoice'?'invoice':'quote');
+  var refEl=document.getElementById('qs-ref');
+  refEl.textContent=ref;
+  refEl.style.color=type==='invoice'?'var(--yellow)':'var(--cyan)';
+  // Build inline preview
+  var previewHtml='<p class="doc-preview-title">'+ref+'</p>';
+  previewHtml+='<p style="font-size:11px;color:var(--muted);margin-bottom:12px;">'+docState.date+' · '+docState.customer.name+' · '+docState.customer.email+'</p>';
+  previewHtml+=docState.items.map(function(it){ return '<div class="doc-preview-line"><span>'+it.qty+'× '+it.name+' ('+it.size+')</span><span>R '+(it.price*it.qty).toFixed(2)+'</span></div>'; }).join('');
+  previewHtml+='<div style="margin-top:12px;border-top:1px solid var(--border);padding-top:8px;">';
+  previewHtml+='<div class="doc-preview-line"><span style="color:var(--muted);">Subtotal</span><span>R '+docState.sub.toFixed(2)+'</span></div>';
+  if(docState.ship>0) previewHtml+='<div class="doc-preview-line"><span style="color:var(--muted);">Shipping ('+docState.fulfilLabel+')</span><span>R '+docState.ship.toFixed(2)+'</span></div>';
+  if(docState.disc>0) previewHtml+='<div class="doc-preview-line"><span style="color:var(--muted);">Discount</span><span>− R'+docState.disc.toFixed(2)+'</span></div>';
+  previewHtml+='<div class="doc-preview-line" style="font-family:\'Bebas Neue\',sans-serif;font-size:18px;border-bottom:none;"><span>TOTAL</span><span style="color:'+(type==='invoice'?'var(--yellow)':'var(--cyan)')+';">R '+docState.total.toFixed(2)+'</span></div>';
+  previewHtml+='</div>';
+  document.getElementById('qs-preview').innerHTML=previewHtml;
+  // Toggle action panels
+  var qa=document.getElementById('qs-quote-actions'), ia=document.getElementById('qs-invoice-actions');
+  if(type==='invoice'){
+    qa.style.display='none'; ia.style.display='block';
+    document.getElementById('qs-ref-inline').textContent=ref;
+    document.getElementById('qs-amount').textContent='R '+docState.total.toFixed(2);
+  } else { qa.style.display='block'; ia.style.display='none'; }
 }
 
-function selectRate(el, label, price) {
-  document.querySelectorAll('.rate-option').forEach(r=>{ r.classList.remove('selected'); r.querySelector('input').checked=false; });
-  el.classList.add('selected'); el.querySelector('input').checked = true;
-  selectedRate = { label, price }; updateSummary();
+function convertToInvoice() {
+  docState.type='invoice';
+  docState.invoiceRef='INV-'+Date.now();
+  docState.invoiceDate=new Date().toLocaleDateString('en-ZA',{day:'2-digit',month:'short',year:'numeric'});
+  showQuoteScreen('invoice');
 }
 
-// ── DISCOUNT ──────────────────────────────────────────────────────────────────
-function applyDiscount() {
-  const code = document.getElementById('disc-code').value.trim().toUpperCase();
-  const el   = document.getElementById('discount-status');
-  if (!code) { el.textContent=''; return; }
-  if (DISC_CODES[code] !== undefined) {
-    appliedDisc = { code, amount: DISC_CODES[code] };
-    el.style.color='#22c55e'; el.textContent=`✓ ${code} — R${DISC_CODES[code]} off`;
-    document.getElementById('disc-amount').value='';
-  } else {
-    appliedDisc = { code:'', amount:0 };
-    el.style.color='#ef4444'; el.textContent=`✗ Code not recognised — use manual amount if needed`;
-  }
-  updateSummary();
+function openDoc(type) {
+  var html=buildDocHTML(type||currentDocType);
+  var w=window.open('','_blank');
+  w.document.write(html);
+  w.document.close();
 }
 
-// ── TOTALS ────────────────────────────────────────────────────────────────────
-function getSub()  { return PRODUCTS.reduce((s,p)=>s+(qtys[p.id]||0)*prices[p.id],0); }
-function getKg()   { return Math.max(0.1, PRODUCTS.reduce((s,p)=>{ const sz=(sizes[p.id]||'').toLowerCase(); const kg=sz.match(/([0-9.]+)\s*kg/); if(kg)return s+parseFloat(kg[1])*(qtys[p.id]||0); const g=sz.match(/([0-9]+)\s*g/); if(g)return s+parseFloat(g[1])/1000*(qtys[p.id]||0); return s+(qtys[p.id]||0)*0.25; },0)); }
-function getShip() { const ov=parseFloat(document.getElementById('d-ship-override').value); return !isNaN(ov)?ov:(deliveryMode==='collect'?60:(selectedRate?selectedRate.price:0)); }
-function getDisc() { const m=parseFloat(document.getElementById('disc-amount').value)||0; return Math.max(m,appliedDisc.amount); }
-
-function updateSummary() {
-  const items = PRODUCTS.filter(p=>(qtys[p.id]||0)>0);
-  const sumEl = document.getElementById('summary-items');
-  if (!items.length) {
-    sumEl.innerHTML='<p class="sum-empty">No items added yet.</p>';
-  } else {
-    sumEl.innerHTML = items.map(p=>`
-      <div class="sum-line">
-        <span class="sum-name">${p.name}<br><span style="color:var(--muted);font-size:11px;">${sizes[p.id]}</span></span>
-        <span style="color:var(--muted);font-size:11px;align-self:center;">×${qtys[p.id]}</span>
-        <span class="sum-price">R${(prices[p.id]*qtys[p.id]).toFixed(0)}</span>
-      </div>`).join('');
-  }
-  const sub=getSub(), ship=getShip(), disc=getDisc(), total=Math.max(0,sub+ship-disc);
-  document.getElementById('sum-sub').textContent   = `R ${sub.toFixed(2)}`;
-  document.getElementById('sum-ship').textContent  = ship>0?`R ${ship.toFixed(2)}`:'—';
-  document.getElementById('sum-total').textContent = `R ${total.toFixed(2)}`;
-  const dr=document.getElementById('sum-disc-row');
-  if(disc>0){ dr.style.display='flex'; document.getElementById('sum-disc').textContent=`− R${disc.toFixed(2)}`; }
-  else dr.style.display='none';
-
-  // Trigger rate fetch if items added and address filled
-  if (deliveryMode==='deliver' && items.length && !selectedRate) {
-    const prov=document.getElementById('d-province').value;
-    const post=document.getElementById('d-postal').value;
-    if (prov && post.length===4) fetchRates();
-  }
+function sendDocWhatsApp() {
+  var d=docState;
+  var type=currentDocType==='invoice'?'Invoice':'Quote';
+  var ref=currentDocType==='invoice'?(d.invoiceRef||d.ref):d.ref;
+  var txt='Hi '+d.customer.name.split(' ')[0]+' 👋\n\nPlease find your *Artifacts Coffee '+type+'* below:\n\n*'+ref+'* · '+d.date+'\n\n';
+  txt+=d.items.map(function(it){return '· '+it.qty+'x '+it.name+' ('+it.size+') — R '+(it.price*it.qty).toFixed(2);}).join('\n');
+  txt+='\n\nSubtotal: R '+d.sub.toFixed(2);
+  if(d.ship>0) txt+='\nShipping: R '+d.ship.toFixed(2);
+  if(d.disc>0) txt+='\nDiscount: − R'+d.disc.toFixed(2);
+  txt+='\n*Total: R '+d.total.toFixed(2)+'*';
+  txt+='\n\nFulfilment: '+d.fulfilLabel;
+  if(currentDocType==='invoice') txt+='\n\n🏦 *Banking Details*\nFirst National Bank\nArtifacts Coffee\nAcc: 62929285692\nBranch: 250655\nRef: '+ref;
+  else txt+='\n\nPlease confirm acceptance and we\'ll get your order ready ✓';
+  txt+='\n\nWith care,\nDenzel · Artifacts Coffee';
+  var phone=d.customer.phone.replace(/\D/g,'');
+  if(phone.startsWith('0')) phone='27'+phone.slice(1);
+  window.open('https://wa.me/'+phone+'?text='+encodeURIComponent(txt),'_blank');
 }
 
-// ── VALIDATION ────────────────────────────────────────────────────────────────
-function validate() {
-  const items  = PRODUCTS.filter(p=>(qtys[p.id]||0)>0);
-  const name   = document.getElementById('c-name').value.trim();
-  const email  = document.getElementById('c-email').value.trim();
-  const hasShip= deliveryMode==='collect'||!!selectedRate||document.getElementById('d-ship-override').value!=='';
-  const valEl  = document.getElementById('pay-validation');
-  let msg = '';
-  if (!items.length)      msg = 'Add at least one product.';
-  else if (!name||!email) msg = 'Customer name and email required.';
-  else if (!hasShip)      msg = 'Select a shipping rate or enter an override.';
-  valEl.textContent = msg;
-  valEl.style.display = msg ? 'block' : 'none';
-  return !msg;
+function sendDocEmail(type) {
+  var d=docState;
+  type=type||currentDocType;
+  var docType=type==='invoice'?'Invoice':'Quote';
+  var ref=type==='invoice'?(d.invoiceRef||d.ref):d.ref;
+  var subject='Artifacts Coffee '+docType+' · '+ref;
+  var body='Hi '+d.customer.name.split(' ')[0]+',\n\nPlease find your '+docType.toLowerCase()+' attached:\n\n';
+  body+=d.items.map(function(it){return it.qty+'x '+it.name+' ('+it.size+') — R '+(it.price*it.qty).toFixed(2);}).join('\n');
+  body+='\n\nSubtotal: R '+d.sub.toFixed(2);
+  if(d.ship>0) body+='\nShipping: R '+d.ship.toFixed(2);
+  if(d.disc>0) body+='\nDiscount: − R'+d.disc.toFixed(2);
+  body+='\nTotal: R '+d.total.toFixed(2);
+  body+='\n\nFulfilment: '+d.fulfilLabel;
+  if(type==='invoice') body+='\n\nBanking Details:\nFirst National Bank\nArtifacts Coffee\nAcc: 62929285692\nBranch: 250655\nRef: '+ref;
+  body+='\n\nWith care,\nDenzel\nArtifacts Coffee\nhello@artifactscoffee.co.za';
+  window.location.href='mailto:'+d.customer.email+'?subject='+encodeURIComponent(subject)+'&body='+encodeURIComponent(body);
 }
 
-// ── PAYFAST ───────────────────────────────────────────────────────────────────
-function payViaPayFast() {
-  if (!validate()) return;
-  const name  = document.getElementById('c-name').value.trim();
-  const email = document.getElementById('c-email').value.trim();
-  const phone = document.getElementById('c-phone').value.trim();
-  const sub=getSub(), ship=getShip(), disc=getDisc(), total=Math.max(0,sub+ship-disc);
-  const desc  = PRODUCTS.filter(p=>qtys[p.id]>0).map(p=>`${qtys[p.id]}x ${p.name} (${sizes[p.id]})`).join(', ');
-  const addr  = [document.getElementById('d-address').value,document.getElementById('d-suburb').value,document.getElementById('d-city').value,document.getElementById('d-province').value].filter(Boolean).join(', ');
-  const ship_label = selectedRate?selectedRate.label:(deliveryMode==='collect'?'PUDO Collect':'Manual');
-
-  if(!confirm(`Submit PayFast order for ${name} (${email})?\n\nTotal: R${total.toFixed(2)}\n${desc}`)) return;
-
-  document.getElementById('pf-name').value       = name.split(' ')[0];
-  document.getElementById('pf-email').value      = email;
-  document.getElementById('pf-pid').value        = `ADMIN-${Date.now()}`;
-  document.getElementById('pf-amount').value     = total.toFixed(2);
-  document.getElementById('pf-desc').value       = `[ADMIN] ${desc}`;
-  document.getElementById('pf-disc').value       = appliedDisc.code||'';
-  document.getElementById('pf-ship-method').value= ship_label;
-  document.getElementById('pf-ship-amt').value   = ship.toFixed(2);
-  document.getElementById('pf-ship-addr').value  = addr;
-  document.getElementById('pf-phone').value      = phone;
-  document.getElementById('pf-form').submit();
+function sendEFTFromInvoice() {
+  payViaEFT();
 }
 
-// ── EFT ───────────────────────────────────────────────────────────────────────
-async function payViaEFT() {
-  if (!validate()) return;
-  const name  = document.getElementById('c-name').value.trim();
-  const email = document.getElementById('c-email').value.trim();
-  const phone = document.getElementById('c-phone').value.trim();
-  const sub=getSub(), ship=getShip(), disc=getDisc(), total=Math.max(0,sub+ship-disc);
-  const addr  = [document.getElementById('d-address').value,document.getElementById('d-suburb').value,document.getElementById('d-city').value,document.getElementById('d-province').value].filter(Boolean).join(', ');
-  const ship_label = selectedRate?selectedRate.label:(deliveryMode==='collect'?'PUDO Collect':'Manual');
-  const notes = document.getElementById('admin-notes').value.trim();
-
-  const btn = document.getElementById('btn-eft');
-  btn.textContent='Creating order…'; btn.style.opacity='0.5'; btn.style.pointerEvents='none';
-
-  try {
-    const res  = await fetch('/.netlify/functions/createManualOrder', {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({
-        adminKey,
-        customer:     { name, email, phone },
-        items:        PRODUCTS.filter(p=>qtys[p.id]>0).map(p=>({ name:p.name, size:sizes[p.id], price:prices[p.id], qty:qtys[p.id] })),
-        shipping:     { method:ship_label, amount:ship, address:addr },
-        discountCode: appliedDisc.code||null,
-        discountAmt:  disc,
-        notes,
-        paymentMethod:'eft',
-      }),
-    });
-    const data = await res.json();
-    if (!res.ok||!data.success) {
-      if (res.status===401) { alert('Admin code rejected. Reload and enter the correct code.'); return; }
-      throw new Error(data.error||'Server error');
-    }
-    showConfirmation(data, total);
-  } catch(e) {
-    alert(`Error: ${e.message}`);
-  } finally {
-    btn.textContent='Send EFT Request'; btn.style.opacity=''; btn.style.pointerEvents='';
-  }
+function buildDocHTML(type) {
+  var d=docState;
+  var isInv=type==='invoice';
+  var ref=isInv?(d.invoiceRef||d.ref):d.ref;
+  var accentColor=isInv?'#E1FF01':'#0FA8DF';
+  var itemRows=d.items.map(function(it){return '<tr><td>'+it.name+'<br><small style="color:#666;">'+it.size+'</small></td><td style="text-align:center;">'+it.qty+'</td><td style="text-align:right;">R '+it.price.toFixed(2)+'</td><td style="text-align:right;">R '+(it.price*it.qty).toFixed(2)+'</td></tr>';}).join('');
+  var bankSection=isInv?'<div style="margin-top:28px;padding:16px;background:#f9f9f9;border-left:3px solid '+accentColor+';"><p style="font-size:11px;font-weight:700;letter-spacing:0.15em;text-transform:uppercase;margin-bottom:10px;">Banking Details</p><p style="font-size:13px;line-height:1.8;">First National Bank<br>Account Name: Artifacts Coffee<br>Account Number: 62929285692<br>Branch Code: 250655<br>Reference: <strong>'+ref+'</strong></p></div>':'';
+  var statusLabel=isInv?'INVOICE':'QUOTE — AWAITING ACCEPTANCE';
+  return '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Artifacts Coffee · '+statusLabel+'</title><link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@300;400&family=Barlow+Condensed:wght@400;600;700&display=swap" rel="stylesheet"><style>*{box-sizing:border-box;margin:0;padding:0;}body{font-family:\'DM Mono\',monospace;font-size:13px;line-height:1.6;color:#111;background:#fff;padding:48px;}@media print{body{padding:20px;}.no-print{display:none!important;}}</style></head><body><div style="max-width:640px;margin:0 auto;"><div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:32px;"><div><p style="font-family:\'Bebas Neue\',sans-serif;font-size:28px;letter-spacing:0.06em;">ARTIFACTS COFFEE</p><p style="font-size:11px;color:#666;">hello@artifactscoffee.co.za</p></div><div style="text-align:right;"><span style="display:inline-block;background:'+accentColor+';color:'+(isInv?'#111':'#111')+';font-family:\'Barlow Condensed\',sans-serif;font-size:11px;font-weight:700;letter-spacing:0.2em;padding:4px 12px;margin-bottom:8px;">'+statusLabel+'</span><p style="font-family:\'Barlow Condensed\',sans-serif;font-size:13px;font-weight:700;">'+ref+'</p><p style="font-size:12px;color:#666;">'+d.date+'</p></div></div><div style="margin-bottom:24px;padding:14px;background:#f9f9f9;"><p style="font-size:10px;font-weight:700;letter-spacing:0.15em;text-transform:uppercase;color:#999;margin-bottom:6px;">To</p><p style="font-size:13px;">'+d.customer.name+'</p><p style="font-size:12px;color:#666;">'+d.customer.email+(d.customer.phone?' · '+d.customer.phone:'')+'</p></div><table style="width:100%;border-collapse:collapse;margin-bottom:20px;"><thead><tr style="border-bottom:2px solid #111;"><th style="text-align:left;padding:8px 0;font-family:\'Barlow Condensed\',sans-serif;font-size:10px;font-weight:700;letter-spacing:0.15em;text-transform:uppercase;color:#999;">Product</th><th style="text-align:center;padding:8px 0;font-family:\'Barlow Condensed\',sans-serif;font-size:10px;font-weight:700;letter-spacing:0.15em;text-transform:uppercase;color:#999;">Qty</th><th style="text-align:right;padding:8px 0;font-family:\'Barlow Condensed\',sans-serif;font-size:10px;font-weight:700;letter-spacing:0.15em;text-transform:uppercase;color:#999;">Unit</th><th style="text-align:right;padding:8px 0;font-family:\'Barlow Condensed\',sans-serif;font-size:10px;font-weight:700;letter-spacing:0.15em;text-transform:uppercase;color:#999;">Total</th></tr></thead><tbody>'+itemRows+'</tbody></table><div style="text-align:right;border-top:1px solid #eee;padding-top:14px;"><p style="font-size:12px;color:#666;padding:3px 0;">Subtotal: R '+d.sub.toFixed(2)+'</p>'+(d.ship>0?'<p style="font-size:12px;color:#666;padding:3px 0;">Shipping ('+d.fulfilLabel+'): R '+d.ship.toFixed(2)+'</p>':'')+(d.disc>0?'<p style="font-size:12px;color:#666;padding:3px 0;">Discount: − R'+d.disc.toFixed(2)+'</p>':'')+'<p style="font-family:\'Bebas Neue\',sans-serif;font-size:24px;margin-top:8px;">TOTAL: R '+d.total.toFixed(2)+'</p></div><div style="margin-top:16px;padding:10px 14px;background:#f9f9f9;font-size:12px;"><strong>Fulfilment:</strong> '+d.fulfilLabel+(d.fulfilAddress?' · '+d.fulfilAddress:'')+'</div>'+bankSection+(d.notes?'<div style="margin-top:16px;padding:10px 14px;background:#f9f9f9;font-size:12px;"><strong>Notes:</strong> '+d.notes+'</div>':'')+'<div style="margin-top:40px;padding-top:20px;border-top:1px solid #eee;font-size:11px;color:#999;text-align:center;"><p>Artifacts Coffee · hello@artifactscoffee.co.za · artifactscoffee.co.za</p>'+(isInv?'':'<p style="margin-top:4px;">This quote is valid for 7 days from the date above.</p>')+'</div><div class="no-print" style="margin-top:24px;text-align:center;"><button onclick="window.print()" style="background:#111;color:#fff;border:none;padding:10px 24px;font-family:\'Barlow Condensed\',sans-serif;font-size:14px;font-weight:700;letter-spacing:0.12em;cursor:pointer;">PRINT / SAVE PDF</button></div></div></body></html>';
 }
 
-// ── CONFIRMATION ──────────────────────────────────────────────────────────────
-function showConfirmation(data, total) {
-  lastData = data;
-  document.getElementById('admin-main').style.display   = 'none';
-  document.getElementById('confirm-screen').style.display = 'block';
-  document.getElementById('conf-ref').textContent        = data.ref;
-  document.getElementById('conf-ref-inline').textContent = data.ref;
-  document.getElementById('conf-amount').textContent     = `R ${total.toFixed(2)}`;
-
-  const cust   = data.customer||{};
-  const fname  = (cust.name||'').split(' ')[0]||'there';
-  const items  = data.itemDesc||'';
-
-  document.getElementById('wa-draft').textContent = [
-    `Hi ${fname} 👋`,
-    ``,
-    `Your Artifacts Coffee order has been created. Here's what you need to pay:`,
-    ``,
-    `*Order Ref:* ${data.ref}`,
-    `*Items:* ${items}`,
-    `*Amount Due: R${total.toFixed(2)}*`,
-    ``,
-    `━━━━━━━━━━━━━━━━━━━`,
-    `*Banking Details (FNB EFT):*`,
-    `Account Name: Artifacts Coffee Roastary`,
-    `Account Number: 62929285692`,
-    `Branch Code: 250655`,
-    `Reference: *${data.ref}*`,
-    `━━━━━━━━━━━━━━━━━━━`,
-    ``,
-    `Please use your order reference as the payment reference — it helps us match your payment.`,
-    ``,
-    `We roast and ship as soon as payment reflects! 🔥`,
-    ``,
-    `— Artifacts Coffee`,
-    `hello@artifactscoffee.co.za`,
-  ].join('\n');
-}
-
-function copyWaDraft() {
-  const text = document.getElementById('wa-draft').textContent;
-  navigator.clipboard.writeText(text).then(()=>{
-    const b=event.target; const o=b.textContent;
-    b.textContent='Copied ✓'; setTimeout(()=>b.textContent=o,2000);
+function copyWaDraft(text,btn) {
+  navigator.clipboard.writeText(text).then(function(){
+    var orig=btn.textContent; btn.textContent='Copied!'; btn.style.background='var(--green)'; btn.style.color='var(--black)';
+    setTimeout(function(){ btn.textContent=orig; btn.style.background=''; btn.style.color=''; },1800);
   });
 }
 
-function openWhatsApp() {
-  const phone = document.getElementById('c-phone')?.value?.replace(/\D/g,'')||'';
-  const text  = encodeURIComponent(document.getElementById('wa-draft').textContent);
-  window.open(phone?`https://wa.me/27${phone.replace(/^0/,'')}?text=${text}`:`https://wa.me/?text=${text}`,'_blank');
+function openWhatsApp(phone,msg) {
+  var p=phone.replace(/\D/g,'');
+  if(p.startsWith('0')) p='27'+p.slice(1);
+  window.open('https://wa.me/'+p+'?text='+encodeURIComponent(msg),'_blank');
+}
+
+function showConfirmation(data,total) {
+  var ref=data.ref||'—', draft=data.waDraft||'';
+  document.getElementById('conf-ref').textContent=ref;
+  document.getElementById('conf-ref-inline').textContent=ref;
+  document.getElementById('conf-amount').textContent='R '+parseFloat(total).toFixed(2);
+  document.getElementById('wa-draft').textContent=draft;
+  var cs=document.getElementById('confirm-screen');
+  cs.style.display='block';
+  cs.scrollIntoView({behavior:'smooth'});
+  var btns=cs.querySelectorAll('.action-btn');
+  if(btns[0]) btns[0].onclick=function(){ copyWaDraft(draft,btns[0]); };
+  if(btns[1]&&data.customerPhone) btns[1].onclick=function(){ openWhatsApp(data.customerPhone,draft); };
 }
 </script>
 </body>
