@@ -3,7 +3,7 @@
 **Repo:** artifactscoffeeroastery-hue/artifactswebsite  
 **Live site:** https://artifactscoffee.co.za  
 **Stack:** Static HTML/CSS/JS · Netlify · Supabase · PayFast  
-**Last updated:** 2026-06-23
+**Last updated:** 2026-06-30
 
 ---
 
@@ -57,18 +57,21 @@
 
 ---
 
-## Product State (as of 2026-06-19)
+## Product State (as of 2026-06-30)
 
-All 3 coffees are **Sold Out**. Old full-height product sections removed.  
-Replaced with compact 3-column origin card grid (`.origins-grid` / `.oc`).
+Drop 004 Kenya is **Live**. GT/MX/NI remain Sold Out as compact origin cards.
 
 | Code | Origin | Coffee | Status |
 |------|--------|--------|--------|
+| KE · 004 | Kenya · Nyeri · Kiandu WS | Kiandu AB | **Live** — 200g R260 / 1kg Bundle R1040 |
 | GT · 001 | Guatemala · Huehuetenango | Blue Ayarza | Sold Out |
 | MX · 002 | Mexico · Chiapas | Ki Saya (Organic) | Sold Out |
 | NI · 003 | Nicaragua · Nueva Segovia | Rajuanse Estates | Sold Out |
 
-Coming soon banner added above the origin cards.
+Kenya tasting notes (from And Sons cupping sheet): Peach · Tropical Fruit · Orange Soda · Toffee  
+Varietals: SL28, SL34 · Altitude: 1600–1700masl · Mutheka FCS  
+Kenya visual: CSS gradient placeholder (`#1a0a0b → #3d1012 → #C8373E`) — no licensed image yet.  
+Live bar replaces coming-soon bar above origin cards.
 
 ---
 
@@ -175,8 +178,21 @@ Coming soon banner added above the origin cards.
 - **Env vars required:** `GOOGLE_PLACES_SERVER_KEY` (no HTTP restrictions, Places API only) + `GOOGLE_PLACE_ID` (ChIJ... from GBP)
 - **Pending:** Update `PLACE_ID_HERE` placeholder in trust bar link once Place ID is confirmed
 
+### Session 9 (Kenya Drop 004 Live + Admin Order System)
+- Drop 004 Kenya Kiandu AB flipped live — product section added with `ke-theme`, `--ke:#C8373E`
+- Kenya tasting notes corrected to And Sons cupping sheet: Peach, Tropical Fruit, Orange Soda, Toffee
+- Kenya visual: CSS gradient placeholder (no licensed image yet)
+- `admin-order.html` created — hidden admin page (`noindex,nofollow`), key-gated, all 4 coffees available regardless of sold-out status
+- `netlify/functions/createManualOrder.js` created — EFT/PayFast split, Supabase insert (`placed_by:'admin'`), EFT status `awaiting_payment`, returns banking details + WhatsApp draft
+- `ADMIN_ORDER_KEY` env var added to Netlify (secret) — required for `createManualOrder.js`
+- Dev artifact cleanup: `.gitignore` updated, lock files documented as recurring issue
+
 ## Known / Watch Items
 
 - `GOOGLE_PLACES_KEY` must be set in Netlify dashboard (UI → Site settings → Env vars)
+- `ADMIN_ORDER_KEY` must be set in Netlify as a secret — `admin-order.html` gate checks this server-side
 - Hero origin cards in the hero section still link to `#mx`, `#ni`, `#gt` — these IDs now live on the `.oc` cards, so anchor scroll still works
 - Discovery Pack removed from site; `btn-dp` / `dp-p` JS refs are harmless (no-ops if element missing)
+- Kenya product image: using CSS gradient placeholder — replace with licensed photo when available
+- Git lock files (`.git/index.lock`, `.git/HEAD.lock`) are a recurring issue in this repo — always `Remove-Item` before git operations if they appear
+- Waitlist email to subscribers not yet sent (Drop 004 is live)
