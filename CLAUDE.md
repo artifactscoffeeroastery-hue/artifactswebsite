@@ -38,6 +38,8 @@
 - `BOBGO_API_KEY`
 - `GOOGLE_PLACES_SERVER_KEY` — no HTTP restrictions, restricted to Places API only (server-side key)
 - `GOOGLE_PLACE_ID` — ChIJ... Place ID from Google Business Profile
+- `ADMIN_ORDER_KEY` — secret gate code for `admin-order.html` / `createManualOrder.js`
+- `DATABASE_URL` — **must be the Supabase transaction pooler URL**, NOT the direct connection. Direct host `db.<ref>.supabase.co:5432` no longer resolves from Netlify (IPv4-only env → ENOTFOUND). Correct form: `postgresql://postgres.hwfwnzsjcblleykegiay:[pw]@aws-0-eu-central-2.pooler.supabase.com:6543/postgres`. Username must be `postgres.<ref>` (bare `postgres` fails auth). **Env var changes require a redeploy** — Netlify snapshots them at deploy time.
 
 ---
 
@@ -197,8 +199,15 @@ Live bar replaces coming-soon bar above origin cards.
 - Banking details: FNB · Artifacts Coffee Roastary · Acc `62929285692` · Branch `250655`
 - `docState` object holds all order data (customer, items, totals, fulfilment, refs, dates) — persists through quote→invoice→payment flow
 
+### Session 11 (EFT Flow Fixed)
+- EFT button now works end-to-end — manual order `EFT-20260630-N6J3P` confirmed persisted to `orders` (id 4, status `awaiting_payment`)
+- Root cause was a bad `DATABASE_URL`: it held the direct connection (`db.<ref>.supabase.co:5432`, ENOTFOUND from Netlify) then the pooler host with a bare `postgres` username (auth failed). Fixed to pooler host + `postgres.<ref>` username. See env-vars note above.
+- Debug error passthrough in `createManualOrder.js` reverted: `DB error: ${e.message}` → `'Failed to save order'`
+- `orders` table schema in project `hwfwnzsjcblleykegiay` verified — all 14 columns the INSERT targets exist
+
 ## Known / Watch Items
 
+- **DB project mismatch:** the public site (`js/main.js`, `payfast-notify.js`, `.env.local`, CSP) uses Supabase project `xpxbldyrigqjkdmrfhvh`, but `createManualOrder.js` (via `DATABASE_URL`) writes to `hwfwnzsjcblleykegiay`. Customer PayFast orders and admin/manual orders land in **different databases** — reconcile to one project.
 - `GOOGLE_PLACES_KEY` must be set in Netlify dashboard (UI → Site settings → Env vars)
 - `ADMIN_ORDER_KEY` must be set in Netlify as a secret — `admin-order.html` gate checks this server-side
 - Hero origin cards in the hero section still link to `#mx`, `#ni`, `#gt` — these IDs now live on the `.oc` cards, so anchor scroll still works

@@ -7,11 +7,13 @@
  *  2. Verify MD5 signature
  *  3. Validate with PayFast server (server-to-server)
  *  4. On COMPLETE payment → award Brew Circle points via Supabase
+ *  5. Collect-from-us orders → email the roaster via Resend
  *
  * Required env vars (set in Netlify dashboard → Environment variables):
  *   PAYFAST_PASSPHRASE      – your PayFast account passphrase (leave blank if not set)
  *   SUPABASE_URL            – https://xpxbldyrigqjkdmrfhvh.supabase.co
  *   SUPABASE_SERVICE_KEY    – service-role key (NOT the anon key)
+ *   RESEND_API_KEY          – for collection-order notification emails
  */
 
 const crypto = require('crypto');
@@ -135,7 +137,7 @@ async function recordOrderAndAwardPoints({ email, amountRand, paymentId, itemDes
     }),
   });
 
-  // 4. Update customer points balance (incremental)
+  // 5. Update customer points balance (incremental)
   await fetch(
     `${supabaseUrl}/rest/v1/rpc/increment_customer_points`,
     {
@@ -146,6 +148,31 @@ async function recordOrderAndAwardPoints({ email, amountRand, paymentId, itemDes
   );
 
   console.log(`Awarded ${points} pts to ${email} for order ${paymentId}`);
+}
+
+/** Email the roaster when a customer pays online to collect in person */
+async function notifyCollection({ email, phone, itemDesc, amountRand, paymentId, shipMethod }) {
+  const key = process.env.RESEND_API_KEY;
+  if (!key) { console.warn('RESEND_API_KEY not set — skipping collection email'); return; }
+  await fetch('https://api.resend.com/emails', {
+    method:  'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${key}` },
+    body: JSON.stringify({
+      from:    'Artifacts Coffee <onboarding@resend.dev>',
+      to:      ['artifacts.coffee.roastery@gmail.com'],
+      subject: `Collection order (paid) — ${email}`,
+      html: `
+        <h2>New collection order — paid online</h2>
+        <p><strong>Order:</strong> ${paymentId}</p>
+        <p><strong>Items:</strong> ${itemDesc || '—'}</p>
+        <p><strong>Total paid:</strong> R${amountRand.toFixed(2)}</p>
+        <p><strong>Method:</strong> ${shipMethod}</p>
+        <p><strong>Customer email:</strong> ${email}</p>
+        <p><strong>Phone:</strong> ${phone || 'not provided'}</p>
+        <p>Contact the customer to arrange a pickup time.</p>`
+    })
+  });
+  console.log(`Collection email sent for order ${paymentId}`);
 }
 
 // ── Handler ──────────────────────────────────────────────────────────────────
@@ -166,9 +193,9 @@ exports.handler = async (event) => {
     }
 
     // ── 2. Signature verification ───────────────────────────────────────────
-    const passphrase     = process.env.PAYFAST_PASSPHRASE || '';
-    const expectedSig    = buildSignature(params, passphrase);
-    const receivedSig    = (params.signature || '').toLowerCase();
+    const passphrase  = process.env.PAYFAST_PASSPHRASE || '';
+    const expectedSig = buildSignature(params, passphrase);
+    const receivedSig = (params.signature || '').toLowerCase();
 
     if (expectedSig !== receivedSig) {
       console.error('Signature mismatch', { expected: expectedSig, received: receivedSig });
@@ -185,17 +212,36 @@ exports.handler = async (event) => {
     // ── 4. Process completed payments ───────────────────────────────────────
     if (params.payment_status === 'COMPLETE') {
       const amountRand = parseFloat(params.amount_gross || '0');
+      const paymentId  = params.m_payment_id || params.pf_payment_id || `PF-${Date.now()}`;
+      const shipMethod = params.custom_str2 || '';
 
       await recordOrderAndAwardPoints({
         email:          params.email_address || '',
         amountRand,
-        paymentId:      params.m_payment_id || params.pf_payment_id || `PF-${Date.now()}`,
+        paymentId,
         itemDesc:       params.item_description || '',
         discountCode:   params.custom_str1 || '',
-        shippingMethod: params.custom_str2 || '',
+        shippingMethod: shipMethod,
       });
+
+      // Collect-from-us orders: alert the roaster by email so they can arrange pickup
+      if (/collect from/i.test(shipMethod)) {
+        await notifyCollection({
+          email:     params.email_address || '',
+          phone:     params.custom_str5 || '',
+          itemDesc:  params.item_description || '',
+          amountRand,
+          paymentId,
+          shipMethod,
+        }).catch(e => console.error('Collection notify error:', e.message));
+      }
     } else {
       console.log(`Payment status: ${params.payment_status} — no action taken`);
     }
 
-    return { statusCode: 200, body: 'OK' };
+    return { statusCode: 200, body: 'OK' };
+  } catch (err) {
+    console.error('payfast-notify error:', err);
+    return { statusCode: 500, body: 'Server error' };
+  }
+};

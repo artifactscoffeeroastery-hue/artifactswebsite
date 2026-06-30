@@ -5,7 +5,8 @@
  *
  * Required env vars:
  *   ADMIN_ORDER_KEY – secret gate code
- *   DATABASE_URL    – postgresql://postgres:[password]@db.[ref].supabase.co:5432/postgres
+ *   DATABASE_URL    – Supabase transaction pooler URL:
+ *                     postgresql://postgres.<ref>:[password]@aws-0-<region>.pooler.supabase.com:6543/postgres
  */
 
 const { Client } = require('pg');
@@ -125,7 +126,7 @@ exports.handler = async (event) => {
     };
   } catch (e) {
     console.error('DB insert error:', e.message);
-    return { statusCode: 500, headers: CORS, body: JSON.stringify({ error: `DB error: ${e.message}` }) };
+    return { statusCode: 500, headers: CORS, body: JSON.stringify({ error: 'Failed to save order' }) };
   } finally {
     await client.end();
   }

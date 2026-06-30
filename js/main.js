@@ -2,8 +2,11 @@
 let cart = JSON.parse(localStorage.getItem('coffee_cart')) || [];
 const productQtys = { gt:1, mx:1, ni:1, dp:1 };
 let currentUser = null, activeDiscount = null, activeShippingQuote = null;
-let deliverMode = 'deliver'; // 'deliver' | 'collect'
+let deliverMode = 'deliver'; // 'deliver' | 'collect' (PUDO) | 'pickup' (collect from us)
 let lastQuotes = null; // cache last fetched shipping quotes
+// ── COLLECT-FROM-US CONFIG ──  ⚠️ set these two values
+const COLLECT_WHATSAPP = '27XXXXXXXXX'; // your WhatsApp number, intl format, digits only (e.g. 27821234567)
+const COLLECT_POINT    = 'Mossel Bay';  // collection location shown to the customer
 const discountCodes = {
   FOUNDER20:   { type:'fixed',   value:20,  label:'R20 off — Founder'        },
   DISCOVERY15: { type:'percent', value:15,  label:'15% off order subtotal'    },
@@ -274,6 +277,7 @@ function calcTotal() {
   const total = Math.max(0, sub-disc+ship);
   const el = document.getElementById('total-price');
   if (el) el.textContent = disc>0&&activeDiscount ? `Total: R ${total.toFixed(2)} (incl. ${activeDiscount.code} -R${disc.toFixed(2)})` : `Total: R ${total.toFixed(2)}`;
+  if (deliverMode==='pickup') updatePickupWhatsApp();
   updatePF(total);
 }
 function getDiscount(sub) {
@@ -333,7 +337,7 @@ function addr() {
 function validatePay() {
   if (!cart.length) { alert('Your cart is empty.'); return false; }
   const a=addr();
-  const req = deliverMode==='collect' ? ['phone'] : ['phone','line1','suburb','city','province','postalCode'];
+  const req = deliverMode==='deliver' ? ['phone','line1','suburb','city','province','postalCode'] : ['phone'];
   const miss=req.filter(k=>!a[k]);
   if (miss.length) { setStatus('shipping-validation-status','Please complete: '+miss.join(', ').replace('line1','street address')+'.','error'); alert('Please complete your delivery details.'); return false; }
   setStatus('shipping-validation-status','Details good. Proceeding to PayFast...','info');
@@ -375,16 +379,42 @@ function renderShipOpts(quotes,province) {
 // ── COLLECT / DELIVER MODE ──
 function setDeliverMode(mode) {
   deliverMode = mode;
-  const addrWrap  = document.getElementById('ship-address-wrap');
+  const addrWrap   = document.getElementById('ship-address-wrap');
   const tabDeliver = document.getElementById('tab-deliver');
   const tabCollect = document.getElementById('tab-collect');
+  const tabPickup  = document.getElementById('tab-pickup');
   const pudoInfo   = document.getElementById('pudo-info');
-  if (addrWrap)   addrWrap.style.display  = mode==='deliver' ? '' : 'none';
-  if (pudoInfo)   pudoInfo.style.display  = mode==='collect' ? '' : 'none';
+  const pickupInfo = document.getElementById('pickup-info');
+  const shipSel    = document.getElementById('tcg-shipping');
+  const shipWrap   = shipSel ? shipSel.closest('.shipping-box') : null;
+  if (addrWrap)   addrWrap.style.display   = mode==='deliver' ? '' : 'none';
+  if (pudoInfo)   pudoInfo.style.display   = mode==='collect' ? '' : 'none';
+  if (pickupInfo) pickupInfo.style.display = mode==='pickup'  ? '' : 'none';
   if (tabDeliver) tabDeliver.classList.toggle('ship-tab-active', mode==='deliver');
   if (tabCollect) tabCollect.classList.toggle('ship-tab-active', mode==='collect');
+  if (tabPickup)  tabPickup.classList.toggle('ship-tab-active',  mode==='pickup');
+  const ptLabel = document.getElementById('pickup-point'); if (ptLabel) ptLabel.textContent = COLLECT_POINT;
+  if (mode==='pickup') {
+    // Free collection from us — no courier, no shipping charge, phone only
+    if (shipSel) shipSel.innerHTML = `<option value="0" data-rate="0" data-code="pickup">Collect from ${COLLECT_POINT} - R0.00</option>`;
+    if (shipWrap) shipWrap.style.display = 'none';
+    updatePickupWhatsApp();
+    calcTotal();
+    return;
+  }
+  if (shipWrap) shipWrap.style.display = '';
   const fb=[{code:'pudo',label:'TCG PUDO Locker',amount:60},{code:'door-gauteng',label:'Gauteng Door-to-Door',amount:100},{code:'door-national',label:'Rest of SA Door-to-Door',amount:150}];
   renderShipOpts(lastQuotes||fb, addr().province);
+}
+// Build the WhatsApp deep-link with the customer's current order
+function updatePickupWhatsApp() {
+  const btn = document.getElementById('pickup-wa-btn');
+  if (!btn) return;
+  const items = cart.map(i=>`${i.qty}x ${i.name} (${i.size||'1kg'})`).join(', ') || 'my order';
+  const sub   = cart.reduce((s,i)=>s+i.price*i.qty,0);
+  const name  = (currentUser&&currentUser.name) || (document.getElementById('guest-name')||{}).value || '';
+  const text  = `Hi Artifacts Coffee! I'd like to collect from ${COLLECT_POINT}.\nName: ${name}\nOrder: ${items}\nTotal: R${sub.toFixed(2)}`;
+  btn.href = `https://wa.me/${COLLECT_WHATSAPP}?text=${encodeURIComponent(text)}`;
 }
 
 // ── UI ──

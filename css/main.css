@@ -391,9 +391,13 @@
   .ship-row-2{display:grid;gap:8px;grid-template-columns:1fr 1fr;}
   /* Collect / Deliver tabs */
   .ship-tabs{display:grid;grid-template-columns:1fr 1fr;gap:2px;margin-bottom:4px;background:var(--border);}
+  .ship-tabs-3{grid-template-columns:repeat(3,1fr);}
   .ship-tab{background:var(--black);border:none;color:var(--muted);font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;letter-spacing:0.16em;text-transform:uppercase;padding:10px;cursor:pointer;transition:background 0.2s,color 0.2s;}
+  .ship-tabs-3 .ship-tab{padding:10px 4px;font-size:11px;letter-spacing:0.06em;}
   .ship-tab:hover{color:var(--white);}
   .ship-tab-active{background:var(--off);color:var(--cyan)!important;}
+  .wa-btn{display:block;text-align:center;margin-top:12px;background:#25D366;color:#0a0a0a;font-family:'Barlow Condensed',sans-serif;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;font-size:13px;padding:11px;text-decoration:none;border-radius:4px;transition:filter 0.2s;}
+  .wa-btn:hover{filter:brightness(1.08);}
   /* Founder cart banner — flush edges, text aligned with drawer content */
   #founder-cart-banner{margin:0 -40px;padding:10px 40px 12px;}
 
