@@ -107,8 +107,6 @@ exports.handler = async (event) => {
       shipping_method:  shipping?.method || null,
       shipping_amount:  shipAmt,
       shipping_address: shipping?.address || null,
-      admin_notes:      notes || null,
-      placed_by:        'admin',
     }),
   });
 
