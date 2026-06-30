@@ -3,425 +3,586 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Artifacts — Order Builder</title>
+<meta name="robots" content="noindex,nofollow">
+<title>Admin · Manual Order · Artifacts Coffee</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@300;400;500&family=Barlow+Condensed:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
 <style>
-  :root {
-    --cyan:#0FA8DF; --yellow:#E1FF01; --black:#020c1a; --off:#101010;
-    --mid:#161616; --border:#1e2329; --muted:#6b7280; --white:#f5f5f5;
-    --green:#22c55e; --red:#ef4444;
-  }
-  *{box-sizing:border-box;margin:0;padding:0;}
-  body{background:var(--black);color:var(--white);font-family:'DM Mono',ui-monospace,monospace;font-size:14px;padding:16px;max-width:540px;margin:0 auto;}
-  h1{font-family:Georgia,serif;font-size:26px;letter-spacing:0.02em;margin-bottom:4px;color:var(--white);}
-  .sub{color:var(--muted);font-size:11px;margin-bottom:24px;}
-  section{background:var(--off);border:1px solid var(--border);border-radius:8px;padding:16px;margin-bottom:14px;}
-  section h2{font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);margin-bottom:12px;}
+:root{--black:#020c1a;--off:#0e0e0e;--mid:#161616;--border:#1e1e1e;--white:#f2f2f2;--muted:#666;--cyan:#0FA8DF;--yellow:#E1FF01;--ke:#C8373E;--green:#22c55e;--red:#ef4444;}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{background:var(--black);color:var(--white);font-family:'DM Mono',monospace;font-size:13px;line-height:1.6;}
+body{min-height:100vh;overflow-x:hidden;}
 
-  /* Products */
-  .product{border-bottom:1px solid var(--border);padding-bottom:12px;margin-bottom:12px;}
-  .product:last-child{border-bottom:none;margin-bottom:0;padding-bottom:0;}
-  .p-name{font-size:13px;font-weight:bold;color:var(--white);margin-bottom:8px;}
-  .p-name span{font-size:10px;color:var(--muted);margin-left:6px;font-weight:normal;}
-  .size-row{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;}
-  .sz{padding:5px 10px;border:1px solid var(--border);background:var(--mid);color:var(--muted);cursor:pointer;font-size:12px;border-radius:4px;font-family:inherit;}
-  .sz.active{border-color:var(--cyan);color:var(--cyan);background:#0fa8df12;}
-  .sz.active.y{border-color:var(--yellow);color:var(--yellow);background:#e1ff0112;}
-  .qty-row{display:flex;align-items:center;gap:10px;}
-  .qty-btn{width:28px;height:28px;border:1px solid var(--border);background:var(--mid);color:var(--white);cursor:pointer;border-radius:4px;font-size:16px;display:flex;align-items:center;justify-content:center;}
-  .qty-num{min-width:24px;text-align:center;font-size:15px;}
-  .p-subtotal{margin-left:auto;font-size:13px;color:var(--cyan);}
+/* GATE */
+#gate{position:fixed;inset:0;background:var(--black);z-index:9999;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:20px;}
+#gate h1{font-family:'Bebas Neue',sans-serif;font-size:32px;letter-spacing:0.06em;}
+#gate p{color:var(--muted);font-size:12px;}
+#gate-input{background:#0f0f0f;border:1px solid var(--border);color:var(--white);padding:12px 16px;font-family:'DM Mono',monospace;font-size:14px;letter-spacing:0.1em;width:260px;text-align:center;outline:none;}
+#gate-input:focus{border-color:var(--cyan);}
+#gate-btn{background:var(--cyan);color:var(--black);border:none;padding:12px 32px;font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:0.08em;cursor:pointer;width:260px;}
+#gate-btn:hover{opacity:0.85;}
+#gate-err{color:var(--red);font-size:12px;display:none;}
 
-  /* Fields */
-  .field{margin-bottom:10px;}
-  .field label{display:block;font-size:11px;color:var(--muted);margin-bottom:4px;letter-spacing:0.06em;text-transform:uppercase;}
-  .field input,.field select,.field textarea{width:100%;background:var(--mid);border:1px solid var(--border);color:var(--white);padding:10px 12px;font-family:inherit;font-size:13px;border-radius:4px;outline:none;}
-  .field input:focus,.field select:focus{border-color:var(--cyan);}
-  .field textarea{resize:vertical;min-height:60px;}
+/* LAYOUT */
+#app{display:none;}
+.admin-header{background:var(--off);border-bottom:2px solid var(--ke);padding:14px 28px;display:flex;align-items:center;justify-content:space-between;}
+.admin-logo{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:0.06em;}
+.admin-badge{background:var(--ke);color:#fff;font-size:10px;font-weight:700;letter-spacing:0.15em;padding:3px 8px;font-family:'Barlow Condensed',sans-serif;margin-left:12px;}
+.admin-main{display:grid;grid-template-columns:1fr 340px;min-height:calc(100vh - 53px);}
 
-  /* Toggles */
-  .toggle-row{display:flex;gap:8px;margin-bottom:10px;}
-  .toggle{flex:1;padding:10px;border:1px solid var(--border);background:var(--mid);color:var(--muted);cursor:pointer;border-radius:4px;text-align:center;font-size:12px;font-family:inherit;transition:all 0.15s;}
-  .toggle.active{border-color:var(--cyan);color:var(--cyan);background:#0fa8df12;}
-  .toggle.active.cash{border-color:var(--green);color:var(--green);background:#22c55e12;}
-  .toggle.active.eft{border-color:var(--yellow);color:var(--yellow);background:#e1ff0112;}
+/* LEFT */
+.admin-left{padding:28px;border-right:1px solid var(--border);overflow-y:auto;}
+.section-title{font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;letter-spacing:0.22em;text-transform:uppercase;color:var(--muted);margin-bottom:16px;padding-bottom:8px;border-bottom:1px solid var(--border);}
+.section-gap{margin-bottom:28px;}
 
-  /* Summary */
-  .summary-line{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border);font-size:13px;}
-  .summary-line:last-child{border-bottom:none;}
-  .summary-total{display:flex;justify-content:space-between;padding:10px 0 0;font-size:18px;font-weight:bold;color:var(--white);}
+/* PRODUCTS */
+.product-row{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--border);}
+.product-row:last-child{border-bottom:none;}
+.prod-accent{width:3px;height:40px;flex-shrink:0;border-radius:2px;}
+.prod-info{flex:1;min-width:0;}
+.prod-code{font-size:10px;letter-spacing:0.15em;color:var(--muted);}
+.prod-name{font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:700;}
+.prod-origin{font-size:11px;color:var(--muted);}
+.prod-size-sel{background:var(--off);border:1px solid var(--border);color:var(--white);padding:6px 8px;font-family:'DM Mono',monospace;font-size:11px;cursor:pointer;outline:none;min-width:140px;}
+.prod-size-sel:focus{border-color:var(--cyan);}
+.qty-ctrl{display:flex;align-items:center;border:1px solid var(--border);}
+.qty-btn{background:none;border:none;color:var(--white);width:28px;height:28px;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;}
+.qty-btn:hover{background:var(--mid);}
+.qty-val{width:32px;text-align:center;font-size:13px;}
+.prod-line-price{min-width:56px;text-align:right;font-family:'Barlow Condensed',sans-serif;font-size:15px;}
+.tag-live{display:inline-block;background:var(--ke);color:#fff;font-size:9px;font-family:'Barlow Condensed',sans-serif;font-weight:700;letter-spacing:0.15em;padding:2px 6px;margin-left:6px;vertical-align:middle;}
+.tag-sold{display:inline-block;background:#222;color:var(--muted);font-size:9px;font-family:'Barlow Condensed',sans-serif;font-weight:700;letter-spacing:0.15em;padding:2px 6px;margin-left:6px;vertical-align:middle;}
 
-  /* Buttons */
-  .btn{width:100%;padding:14px;border:none;cursor:pointer;font-family:inherit;font-size:15px;font-weight:bold;border-radius:4px;margin-top:8px;letter-spacing:0.06em;}
-  .btn-payfast{background:var(--cyan);color:var(--black);}
-  .btn-eft{background:var(--yellow);color:var(--black);}
-  .btn-cash{background:var(--green);color:var(--black);}
-  .btn-wa{background:#25D366;color:#fff;}
-  .btn:disabled{opacity:0.4;cursor:not-allowed;}
+/* FIELDS */
+.field-group{margin-bottom:14px;}
+.field-label{font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;letter-spacing:0.22em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:6px;}
+.field-input{width:100%;background:var(--off);border:1px solid var(--border);color:var(--white);padding:10px 12px;font-family:'DM Mono',monospace;font-size:13px;outline:none;}
+.field-input:focus{border-color:var(--cyan);}
+.field-input::placeholder{color:var(--muted);}
+textarea.field-input{resize:vertical;min-height:72px;}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.field-select{width:100%;background:var(--off);border:1px solid var(--border);color:var(--white);padding:10px 12px;font-family:'DM Mono',monospace;font-size:13px;outline:none;cursor:pointer;appearance:none;}
+.field-select:focus{border-color:var(--cyan);}
+.hint{font-size:11px;color:var(--muted);margin-top:4px;}
 
-  /* Output */
-  #output{display:none;}
-  .invoice{background:var(--off);border:1px solid var(--border);border-radius:8px;padding:20px;margin-top:14px;}
-  .inv-header{border-bottom:2px solid var(--border);padding-bottom:12px;margin-bottom:14px;}
-  .inv-logo{font-size:20px;font-family:Georgia,serif;letter-spacing:0.05em;margin-bottom:2px;}
-  .inv-title{font-size:11px;color:var(--muted);letter-spacing:0.1em;text-transform:uppercase;}
-  .inv-ref{font-size:11px;color:var(--cyan);margin-top:8px;}
-  .inv-section{margin-bottom:14px;}
-  .inv-section-title{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:6px;}
-  .inv-line{display:flex;justify-content:space-between;font-size:13px;padding:3px 0;}
-  .inv-total{display:flex;justify-content:space-between;font-size:17px;font-weight:bold;border-top:1px solid var(--border);padding-top:10px;margin-top:6px;}
-  .bank-box{background:var(--mid);border:1px solid var(--border);border-radius:6px;padding:14px;margin-top:10px;}
-  .bank-row{display:flex;justify-content:space-between;padding:4px 0;font-size:13px;}
-  .bank-label{color:var(--muted);}
-  .bank-ref{color:var(--yellow);font-weight:bold;}
-  .note{font-size:11px;color:var(--muted);margin-top:10px;line-height:1.5;}
-  .status-badge{display:inline-block;padding:3px 10px;border-radius:12px;font-size:11px;font-weight:bold;letter-spacing:0.08em;}
-  .badge-cash{background:#22c55e22;color:var(--green);border:1px solid var(--green);}
-  .badge-payfast{background:#0fa8df22;color:var(--cyan);border:1px solid var(--cyan);}
-  .badge-eft{background:#e1ff0122;color:var(--yellow);border:1px solid var(--yellow);}
+/* TABS */
+.tab-row{display:flex;margin-bottom:16px;border:1px solid var(--border);}
+.tab-btn{flex:1;background:none;border:none;border-right:1px solid var(--border);color:var(--muted);padding:9px;font-family:'DM Mono',monospace;font-size:12px;cursor:pointer;letter-spacing:0.06em;}
+.tab-btn:last-child{border-right:none;}
+.tab-btn.active{background:var(--mid);color:var(--white);}
 
-  @media print {
-    body{background:white;color:black;max-width:100%;}
-    .no-print{display:none!important;}
-    .invoice{background:white;border:1px solid #ccc;color:black;}
-    .inv-logo,.inv-total{color:black;}
-    .bank-box{background:#f5f5f5;border:1px solid #ccc;}
-    .bank-ref{color:#333;}
-    .note{color:#555;}
-  }
+/* RATES */
+.rate-option{display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid var(--border);margin-bottom:6px;cursor:pointer;}
+.rate-option.selected{border-color:var(--cyan);}
+.rate-option input[type=radio]{accent-color:var(--cyan);}
+.rate-label-text{flex:1;}
+.rate-price{font-family:'Barlow Condensed',sans-serif;font-size:15px;}
+#rate-status{font-size:11px;color:var(--muted);margin-top:6px;}
+
+/* DISCOUNT */
+.discount-row{display:flex;}
+.discount-input{flex:1;background:var(--off);border:1px solid var(--border);border-right:none;color:var(--white);padding:10px 12px;font-family:'DM Mono',monospace;font-size:13px;text-transform:uppercase;letter-spacing:0.08em;outline:none;}
+.discount-input:focus{border-color:var(--cyan);}
+.discount-btn{background:var(--mid);border:1px solid var(--border);color:var(--white);padding:10px 16px;font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;letter-spacing:0.12em;cursor:pointer;white-space:nowrap;}
+.discount-btn:hover{background:var(--cyan);color:var(--black);}
+#discount-status{font-size:11px;margin-top:6px;}
+
+/* RIGHT PANEL */
+.admin-right{padding:24px;background:var(--off);display:flex;flex-direction:column;position:sticky;top:0;height:calc(100vh - 53px);overflow-y:auto;}
+.summary-items{flex:1;margin-bottom:16px;}
+.sum-empty{color:var(--muted);font-size:12px;padding:12px 0;}
+.sum-line{display:flex;justify-content:space-between;align-items:baseline;padding:6px 0;border-bottom:1px solid var(--border);gap:8px;}
+.sum-line:last-child{border-bottom:none;}
+.sum-name{flex:1;min-width:0;font-size:12px;}
+.sum-price{font-family:'Barlow Condensed',sans-serif;font-size:14px;flex-shrink:0;}
+.totals-block{border-top:1px solid var(--border);padding-top:14px;}
+.total-row{display:flex;justify-content:space-between;padding:4px 0;font-size:12px;color:var(--muted);}
+.total-row.final{color:var(--white);font-family:'Bebas Neue',sans-serif;font-size:26px;padding-top:10px;}
+.total-row.final span:last-child{color:var(--cyan);}
+
+/* PAY BUTTONS */
+.pay-section{margin-top:16px;display:flex;flex-direction:column;gap:8px;}
+.pay-btn{width:100%;padding:14px;border:none;cursor:pointer;font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:0.08em;transition:opacity 0.18s;}
+.pay-btn:hover{opacity:0.82;}
+.btn-payfast{background:var(--cyan);color:var(--black);}
+.btn-eft{background:transparent;border:1px solid var(--ke)!important;color:var(--ke);}
+#pay-validation{font-size:11px;color:var(--red);display:none;text-align:center;}
+.pay-note-text{font-size:10px;color:var(--muted);text-align:center;}
+
+/* CONFIRMATION */
+#confirm-screen{display:none;padding:28px;max-width:640px;}
+.confirm-ref{font-family:'Bebas Neue',sans-serif;font-size:48px;letter-spacing:0.04em;color:var(--ke);line-height:1;}
+.banking-card{background:var(--off);border:1px solid var(--border);border-left:3px solid var(--ke);padding:20px;margin:20px 0;}
+.banking-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);gap:16px;}
+.banking-row:last-child{border-bottom:none;}
+.banking-label{color:var(--muted);font-size:11px;}
+.banking-value{font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:600;text-align:right;}
+.banking-value.ref{color:var(--ke);font-size:18px;}
+.wa-draft{background:var(--mid);border:1px solid var(--border);padding:14px;font-size:12px;line-height:1.9;white-space:pre-wrap;color:#ccc;margin:16px 0;}
+.action-row{display:flex;gap:10px;flex-wrap:wrap;}
+.action-btn{padding:10px 20px;border:1px solid var(--border);background:none;color:var(--white);font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;letter-spacing:0.1em;cursor:pointer;}
+.action-btn:hover{background:var(--mid);}
+.action-btn.primary{background:var(--ke);border-color:var(--ke);color:#fff;}
+
+@media(max-width:768px){
+  .admin-main{grid-template-columns:1fr;}
+  .admin-right{position:static;height:auto;}
+  .field-row{grid-template-columns:1fr;}
+  .product-row{flex-wrap:wrap;}
+}
 </style>
 </head>
 <body>
 
-<h1>Artifacts Coffee</h1>
-<p class="sub">Admin Order Builder — not linked from the site</p>
-
-<!-- PRODUCTS -->
-<section>
-  <h2>Products</h2>
-  <div id="products-list"></div>
-</section>
-
-<!-- CUSTOMER -->
-<section>
-  <h2>Customer</h2>
-  <div class="field"><label>Name</label><input id="c-name" type="text" placeholder="Full name" autocomplete="off"></div>
-  <div class="field"><label>Email</label><input id="c-email" type="email" placeholder="email@example.com"></div>
-  <div class="field"><label>Phone</label><input id="c-phone" type="tel" placeholder="0XX XXX XXXX"></div>
-  <div class="field"><label>Notes (optional)</label><textarea id="c-notes" placeholder="Special requests, address for delivery, etc."></textarea></div>
-</section>
-
-<!-- FULFILLMENT -->
-<section>
-  <h2>Fulfillment</h2>
-  <div class="toggle-row">
-    <button class="toggle active" onclick="setFulfillment('collection',this)">Collection</button>
-    <button class="toggle" onclick="setFulfillment('delivery',this)">Delivery</button>
-  </div>
-  <div id="delivery-fields" style="display:none;">
-    <div class="field"><label>Shipping amount (R)</label><input id="ship-amount" type="number" value="100" min="0" oninput="updateSummary()"></div>
-    <div class="field"><label>Delivery address</label><textarea id="ship-address" placeholder="Street, suburb, city, postal code"></textarea></div>
-  </div>
-</section>
-
-<!-- DISCOUNT -->
-<section>
-  <h2>Discount (optional)</h2>
-  <div class="field">
-    <label>Discount amount (R) — leave 0 for none</label>
-    <input id="discount" type="number" value="0" min="0" oninput="updateSummary()">
-  </div>
-</section>
-
-<!-- PAYMENT -->
-<section>
-  <h2>Payment Method</h2>
-  <div class="toggle-row">
-    <button class="toggle active" onclick="setPayment('payfast',this)">PayFast</button>
-    <button class="toggle eft" onclick="setPayment('eft',this)">EFT</button>
-    <button class="toggle cash" onclick="setPayment('cash',this)">Cash</button>
-  </div>
-  <p id="payment-hint" style="font-size:11px;color:var(--muted);margin-top:6px;">Redirects to PayFast. Hand device to customer or process in-person.</p>
-</section>
-
-<!-- ORDER SUMMARY -->
-<section>
-  <h2>Order Summary</h2>
-  <div id="summary-lines"></div>
-  <div class="summary-total"><span>Total</span><span id="summary-total">R 0.00</span></div>
-</section>
-
-<!-- ACTION -->
-<div class="no-print">
-  <button class="btn btn-payfast" id="action-btn" onclick="generateOrder()">Process PayFast Payment</button>
+<!-- ACCESS GATE -->
+<div id="gate">
+  <h1>Artifacts Admin</h1>
+  <p>Enter your admin code to continue</p>
+  <input id="gate-input" type="password" placeholder="Admin code" autocomplete="off">
+  <button id="gate-btn" onclick="checkGate()">Enter</button>
+  <p id="gate-err">Incorrect — re-enter your admin code.</p>
 </div>
 
-<!-- OUTPUT -->
-<div id="output">
-  <!-- PayFast hidden form -->
-  <form id="payfast-form" action="https://www.payfast.co.za/eng/process" method="post" style="display:none;">
+<!-- APP -->
+<div id="app">
+<header class="admin-header">
+  <div>
+    <span class="admin-logo">Artifacts Coffee</span>
+    <span class="admin-badge">Manual Order</span>
+  </div>
+  <a href="/" style="font-size:11px;color:var(--muted);text-decoration:none;">← Back to site</a>
+</header>
+
+<!-- MAIN GRID -->
+<div class="admin-main" id="admin-main">
+
+<!-- LEFT -->
+<div class="admin-left">
+
+  <!-- PRODUCTS -->
+  <div class="section-gap">
+    <p class="section-title">Products</p>
+    <div id="product-list"></div>
+  </div>
+
+  <!-- CUSTOMER -->
+  <div class="section-gap">
+    <p class="section-title">Customer Details</p>
+    <div class="field-group">
+      <label class="field-label">Full Name *</label>
+      <input class="field-input" id="c-name" type="text" placeholder="Customer full name" autocomplete="off" oninput="updateSummary()">
+    </div>
+    <div class="field-row">
+      <div class="field-group">
+        <label class="field-label">Email *</label>
+        <input class="field-input" id="c-email" type="email" placeholder="customer@email.com" oninput="updateSummary()">
+      </div>
+      <div class="field-group">
+        <label class="field-label">Phone (WhatsApp)</label>
+        <input class="field-input" id="c-phone" type="tel" placeholder="0XX XXX XXXX">
+      </div>
+    </div>
+  </div>
+
+  <!-- DELIVERY -->
+  <div class="section-gap">
+    <p class="section-title">Delivery</p>
+    <div class="tab-row">
+      <button class="tab-btn active" id="tab-deliver" onclick="switchDelivery('deliver')">Door-to-Door</button>
+      <button class="tab-btn" id="tab-collect" onclick="switchDelivery('collect')">PUDO Collect</button>
+    </div>
+
+    <div id="address-wrap">
+      <div class="field-row">
+        <div class="field-group">
+          <label class="field-label">Province *</label>
+          <select class="field-select" id="d-province" onchange="onProvinceChange()">
+            <option value="" disabled selected>Select province</option>
+            <option>Eastern Cape</option><option>Free State</option><option>Gauteng</option>
+            <option>KwaZulu-Natal</option><option>Limpopo</option><option>Mpumalanga</option>
+            <option>Northern Cape</option><option>North West</option><option>Western Cape</option>
+          </select>
+        </div>
+        <div class="field-group">
+          <label class="field-label">Postal Code *</label>
+          <input class="field-input" id="d-postal" type="text" placeholder="XXXX" maxlength="4" oninput="onPostalInput()">
+        </div>
+      </div>
+      <div class="field-group">
+        <label class="field-label">Street Address</label>
+        <input class="field-input" id="d-address" type="text" placeholder="Street address">
+      </div>
+      <div class="field-row">
+        <div class="field-group">
+          <label class="field-label">Suburb</label>
+          <input class="field-input" id="d-suburb" type="text" placeholder="Suburb">
+        </div>
+        <div class="field-group">
+          <label class="field-label">City</label>
+          <input class="field-input" id="d-city" type="text" placeholder="City">
+        </div>
+      </div>
+    </div>
+
+    <div id="pudo-wrap" style="display:none;">
+      <div class="rate-option selected">
+        <input type="radio" name="rate" checked>
+        <div class="rate-label-text"><strong>TCG PUDO Locker</strong><br><span style="font-size:11px;color:var(--muted);">Customer collects from nearest locker · nationwide</span></div>
+        <span class="rate-price">R60</span>
+      </div>
+    </div>
+
+    <div id="rate-wrap" style="display:none;margin-top:12px;">
+      <p class="field-label" style="margin-bottom:8px;">Live Rates</p>
+      <div id="rate-list"></div>
+    </div>
+    <div id="rate-status"></div>
+
+    <div class="field-group" style="margin-top:14px;">
+      <label class="field-label">Override Shipping Amount (R) — optional</label>
+      <input class="field-input" id="d-ship-override" type="number" placeholder="Leave blank to use live rate" min="0" step="1" oninput="updateSummary()">
+      <p class="hint">Enter 0 for free shipping, or any amount to bypass the live quote.</p>
+    </div>
+  </div>
+
+  <!-- DISCOUNT -->
+  <div class="section-gap">
+    <p class="section-title">Discount</p>
+    <div class="discount-row">
+      <input class="discount-input" id="disc-code" type="text" placeholder="DISCOUNT CODE">
+      <button class="discount-btn" onclick="applyDiscount()">Apply</button>
+    </div>
+    <div id="discount-status"></div>
+    <div class="field-group" style="margin-top:12px;">
+      <label class="field-label">Manual Discount (R) — overrides code</label>
+      <input class="field-input" id="disc-amount" type="number" placeholder="0" min="0" step="1" oninput="updateSummary()">
+    </div>
+  </div>
+
+  <!-- NOTES -->
+  <div class="section-gap">
+    <p class="section-title">Internal Notes</p>
+    <div class="field-group">
+      <label class="field-label">Admin Notes (not visible to customer)</label>
+      <textarea class="field-input" id="admin-notes" placeholder="e.g. Ordered on behalf of mother · Cash paid in person · Deliver to office reception"></textarea>
+    </div>
+  </div>
+
+</div><!-- /admin-left -->
+
+<!-- RIGHT PANEL -->
+<div class="admin-right">
+  <p class="section-title">Order Summary</p>
+
+  <div class="summary-items" id="summary-items">
+    <p class="sum-empty">No items added yet.</p>
+  </div>
+
+  <div class="totals-block">
+    <div class="total-row"><span>Subtotal</span><span id="sum-sub">R 0.00</span></div>
+    <div class="total-row"><span>Shipping</span><span id="sum-ship">—</span></div>
+    <div class="total-row" id="sum-disc-row" style="display:none;color:var(--green);"><span>Discount</span><span id="sum-disc">— R0.00</span></div>
+    <div class="total-row final"><span>Total</span><span id="sum-total">R 0.00</span></div>
+  </div>
+
+  <div class="pay-section">
+    <p id="pay-validation"></p>
+    <button class="pay-btn btn-payfast" onclick="payViaPayFast()">Pay via PayFast</button>
+    <button class="pay-btn btn-eft" onclick="payViaEFT()">Send EFT Request</button>
+    <p class="pay-note-text">PayFast → customer pays online.<br>EFT → you share banking details manually.</p>
+  </div>
+
+  <!-- Hidden PayFast form -->
+  <form action="https://www.payfast.co.za/eng/process" method="post" id="pf-form" target="_blank" style="display:none;">
     <input type="hidden" name="merchant_id" value="34420469">
     <input type="hidden" name="merchant_key" value="q6qjvvpwgddvi">
     <input type="hidden" name="return_url" value="https://artifactscoffee.co.za/success">
     <input type="hidden" name="cancel_url" value="https://artifactscoffee.co.za/cancel">
     <input type="hidden" name="notify_url" value="https://artifactscoffee.co.za/.netlify/functions/payfast-notify">
-    <input type="hidden" name="name_first" id="pf_name">
-    <input type="hidden" name="email_address" id="pf_email">
-    <input type="hidden" name="m_payment_id" id="pf_payment_id">
-    <input type="hidden" name="amount" id="pf_amount">
+    <input type="hidden" name="name_first" id="pf-name">
+    <input type="hidden" name="email_address" id="pf-email">
+    <input type="hidden" name="m_payment_id" id="pf-pid">
+    <input type="hidden" name="amount" id="pf-amount">
     <input type="hidden" name="item_name" value="Artifacts Coffee Order">
-    <input type="hidden" name="item_description" id="pf_item_desc">
+    <input type="hidden" name="item_description" id="pf-desc">
+    <input type="hidden" name="custom_str1" id="pf-disc">
+    <input type="hidden" name="custom_str2" id="pf-ship-method">
+    <input type="hidden" name="custom_str3" id="pf-ship-amt">
+    <input type="hidden" name="custom_str4" id="pf-ship-addr">
+    <input type="hidden" name="custom_str5" id="pf-phone">
   </form>
+</div><!-- /admin-right -->
 
-  <!-- Invoice / Receipt -->
-  <div class="invoice" id="invoice-box"></div>
+</div><!-- /admin-main -->
 
-  <div class="no-print" style="display:flex;gap:8px;margin-top:10px;" id="post-action-btns"></div>
+<!-- CONFIRMATION SCREEN -->
+<div id="confirm-screen">
+  <p style="font-size:11px;letter-spacing:0.2em;color:var(--muted);text-transform:uppercase;margin-bottom:8px;">Order Created · Awaiting EFT Payment</p>
+  <div class="confirm-ref" id="conf-ref">—</div>
+  <p style="color:var(--muted);margin:10px 0 4px;font-size:12px;">Share these banking details with the customer:</p>
+
+  <div class="banking-card">
+    <div class="banking-row"><span class="banking-label">Bank</span><span class="banking-value">First National Bank (FNB)</span></div>
+    <div class="banking-row"><span class="banking-label">Account Name</span><span class="banking-value">Artifacts Coffee Roastary</span></div>
+    <div class="banking-row"><span class="banking-label">Account Number</span><span class="banking-value">62929285692</span></div>
+    <div class="banking-row"><span class="banking-label">Branch Code</span><span class="banking-value">250655</span></div>
+    <div class="banking-row"><span class="banking-label">Account Type</span><span class="banking-value">Business Current</span></div>
+    <div class="banking-row"><span class="banking-label">Payment Reference</span><span class="banking-value ref" id="conf-ref-inline">—</span></div>
+    <div class="banking-row"><span class="banking-label">Amount Due</span><span class="banking-value ref" id="conf-amount">R0.00</span></div>
+  </div>
+
+  <p style="font-size:11px;color:var(--muted);margin-bottom:8px;">WhatsApp / message draft:</p>
+  <div class="wa-draft" id="wa-draft"></div>
+
+  <div class="action-row">
+    <button class="action-btn" onclick="copyWaDraft()">Copy Message</button>
+    <button class="action-btn" onclick="openWhatsApp()">Open WhatsApp</button>
+    <button class="action-btn primary" onclick="location.reload()">New Order</button>
+  </div>
+
+  <div style="margin-top:24px;padding-top:20px;border-top:1px solid var(--border);">
+    <p style="font-size:11px;color:var(--muted);">This order is saved in Supabase with status <strong style="color:var(--white);">awaiting_payment</strong>. Once EFT reflects, update the status to <strong style="color:var(--green);">complete</strong> in your Supabase dashboard.</p>
+  </div>
 </div>
 
+</div><!-- /app -->
+
 <script>
+// ── PRODUCTS CATALOG ──────────────────────────────────────────────────────────
 const PRODUCTS = [
-  { id:'gt', name:'Guatemala Blue Ayarza', color:'cyan',
-    sizes:[{label:'1kg',price:600},{label:'200g',price:150},{label:'80g',price:75}] },
-  { id:'mx', name:'Mexico Ki Saya Organic', color:'yellow',
-    sizes:[{label:'1kg',price:592},{label:'200g',price:148},{label:'80g',price:75}] },
-  { id:'ni', name:'Nicaragua Rajuanse', color:'white',
-    sizes:[{label:'1kg',price:560},{label:'200g',price:140},{label:'80g',price:75}] },
-  { id:'dp', name:'Discovery Pack', color:'cyan',
-    sizes:[{label:'3×80g',price:170}] },
+  { id:'ke', code:'KE · 004', name:'Kenya Kiandu AB',       origin:'Kenya · Nyeri',            color:'#C8373E', live:true,
+    sizes:[{l:'200g',p:260},{l:'1kg Bundle',p:1040}] },
+  { id:'gt', code:'GT · 001', name:'Guatemala Blue Ayarza', origin:'Guatemala · Huehuetenango', color:'#0FA8DF', live:false,
+    sizes:[{l:'80g',p:75},{l:'200g',p:150},{l:'1kg',p:600}] },
+  { id:'mx', code:'MX · 002', name:'Mexico Ki Saya',        origin:'Mexico · Chiapas',          color:'#E1FF01', live:false,
+    sizes:[{l:'80g',p:75},{l:'200g',p:148},{l:'1kg',p:592}] },
+  { id:'ni', code:'NI · 003', name:'Nicaragua Rajuanse',    origin:'Nicaragua · Nueva Segovia', color:'#F2F2F2', live:false,
+    sizes:[{l:'80g',p:75},{l:'200g',p:140},{l:'1kg',p:560}] },
 ];
 
-const BANK = {
-  bank: 'FNB',
-  holder: 'Artifacts Coffee Roastery',
-  account: '62929285692',
-  branch: '250655',
-  type: 'Cheque / Current'
-};
+// Known discount codes (kept in sync with main.js)
+const DISC_CODES = { 'FOUNDER20': 20 };
 
-let state = {
-  fulfillment: 'collection',
-  payment: 'payfast',
-  qtys: {},
-  selectedSizes: {},
-};
+// ── STATE ─────────────────────────────────────────────────────────────────────
+let adminKey = '';
+let qtys   = {}, sizes = {}, prices = {};
+let deliveryMode = 'deliver';
+let selectedRate = null;          // { label, price }
+let appliedDisc  = { code:'', amount:0 };
+let lastData     = null;
 
-// Init
-PRODUCTS.forEach(p => {
-  state.qtys[p.id] = 0;
-  state.selectedSizes[p.id] = p.sizes[0];
-});
-
-function buildProductUI() {
-  const el = document.getElementById('products-list');
-  el.innerHTML = PRODUCTS.map(p => `
-    <div class="product">
-      <div class="p-name">${p.name} <span>${p.sizes.map(s=>s.label+' R'+s.price).join(' · ')}</span></div>
-      <div class="size-row" id="sizes-${p.id}">
-        ${p.sizes.map((s,i) => `<button class="sz${i===0?' active'+(p.color==='yellow'?' y':''):''}" onclick="selectSize('${p.id}',${i},this)">${s.label} — R${s.price}</button>`).join('')}
-      </div>
-      <div class="qty-row">
-        <button class="qty-btn" onclick="changeQty('${p.id}',-1)">−</button>
-        <span class="qty-num" id="qty-${p.id}">0</span>
-        <button class="qty-btn" onclick="changeQty('${p.id}',1)">+</button>
-        <span class="p-subtotal" id="sub-${p.id}"></span>
-      </div>
-    </div>
-  `).join('');
-}
-
-function selectSize(id, idx, btn) {
-  const p = PRODUCTS.find(x=>x.id===id);
-  state.selectedSizes[id] = p.sizes[idx];
-  document.querySelectorAll(`#sizes-${id} .sz`).forEach(b=>b.className='sz');
-  btn.className = 'sz active' + (p.color==='yellow'?' y':'');
+// ── GATE ──────────────────────────────────────────────────────────────────────
+document.getElementById('gate-input').addEventListener('keydown', e => { if(e.key==='Enter') checkGate(); });
+function checkGate() {
+  const v = document.getElementById('gate-input').value.trim();
+  if (!v) return;
+  adminKey = v;
+  document.getElementById('gate').style.display = 'none';
+  document.getElementById('app').style.display  = 'block';
+  initProducts();
   updateSummary();
 }
 
+// ── INIT PRODUCTS ─────────────────────────────────────────────────────────────
+function initProducts() {
+  const el = document.getElementById('product-list');
+  el.innerHTML = PRODUCTS.map(p => {
+    qtys[p.id] = 0; sizes[p.id] = p.sizes[0].l; prices[p.id] = p.sizes[0].p;
+    const tag = p.live ? '<span class="tag-live">LIVE</span>' : '<span class="tag-sold">SOLD OUT</span>';
+    const opts = p.sizes.map(s=>'<option value="'+s.l+'" data-price="'+s.p+'">'+s.l+' — R'+s.p+'</option>').join('');
+    return '<div class="product-row">'
+      +'<div class="prod-accent" style="background:'+p.color+'"></div>'
+      +'<div class="prod-info">'
+        +'<div class="prod-code">'+p.code+'</div>'
+        +'<div class="prod-name">'+p.name+tag+'</div>'
+        +'<div class="prod-origin">'+p.origin+'</div>'
+      +'</div>'
+      +'<select class="prod-size-sel" id="sel-'+p.id+'" onchange="onSizeChange(\''+p.id+'\',this)">'+opts+'</select>'
+       +'<div class="qty-ctrl">'
+        +'<button class="qty-btn" onclick="changeQty(\''+p.id+'\',-1)">−</button>'
+        +'<span class="qty-val" id="qty-'+p.id+'">0</span>'
+        +'<button class="qty-btn" onclick="changeQty(\''+p.id+'\',1)">+</button>'
+      +'</div>'
+      +'<div class="prod-line-price" id="lp-'+p.id+'">—</div>'
+    +'</div>';
+  }).join('');
+}
+
+function onSizeChange(id, sel) {
+  var opt = sel.options[sel.selectedIndex];
+  sizes[id] = opt.value; prices[id] = parseFloat(opt.dataset.price);
+  updateLinePrice(id); updateSummary();
+}
 function changeQty(id, d) {
-  state.qtys[id] = Math.max(0, (state.qtys[id]||0) + d);
-  document.getElementById('qty-'+id).textContent = state.qtys[id];
-  const sub = document.getElementById('sub-'+id);
-  const total = state.qtys[id] * state.selectedSizes[id].price;
-  sub.textContent = total > 0 ? 'R '+total.toFixed(2) : '';
+  qtys[id] = Math.max(0, (qtys[id]||0) + d);
+  document.getElementById('qty-'+id).textContent = qtys[id];
+  updateLinePrice(id); updateSummary();
+}
+function updateLinePrice(id) {
+  var el = document.getElementById('lp-'+id);
+  el.textContent = qtys[id] > 0 ? 'R'+(prices[id]*qtys[id]).toFixed(0) : '—';
+}
+
+function switchDelivery(mode) {
+  deliveryMode = mode;
+  document.getElementById('tab-deliver').classList.toggle('active', mode==='deliver');
+  document.getElementById('tab-collect').classList.toggle('active', mode==='collect');
+  document.getElementById('address-wrap').style.display = mode==='deliver' ? '' : 'none';
+  document.getElementById('pudo-wrap').style.display    = mode==='collect' ? '' : 'none';
+  if (mode==='collect') { selectedRate={label:'TCG PUDO Collect',price:60}; document.getElementById('rate-wrap').style.display='none'; document.getElementById('rate-status').textContent=''; }
+  else { selectedRate=null; }
   updateSummary();
 }
 
-function setFulfillment(val, btn) {
-  state.fulfillment = val;
-  document.querySelectorAll('.toggle-row')[0].querySelectorAll('.toggle').forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active');
-  document.getElementById('delivery-fields').style.display = val==='delivery' ? 'block' : 'none';
+var fetchTimer;
+function onProvinceChange(){ clearTimeout(fetchTimer); fetchTimer=setTimeout(fetchRates,500); }
+function onPostalInput(){ if(document.getElementById('d-postal').value.length===4){ clearTimeout(fetchTimer); fetchTimer=setTimeout(fetchRates,500); } }
+
+async function fetchRates() {
+  var province=document.getElementById('d-province').value, postal=document.getElementById('d-postal').value;
+  if(!province||postal.length<4) return;
+  var statusEl=document.getElementById('rate-status');
+  statusEl.textContent='Loading rates…'; selectedRate=null; updateSummary();
+  var address={ suburb:document.getElementById('d-suburb').value||'', city:document.getElementById('d-city').value||'', province:province, postalCode:postal, country:'ZA' };
+  var items=PRODUCTS.filter(function(p){ return qtys[p.id]>0; }).map(function(p){ return {name:p.name,size:sizes[p.id],qty:qtys[p.id]}; });
+  try {
+    var res=await fetch('/.netlify/functions/getShipping',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({destination:address,cartItems:items,totalWeightKg:getKg(),subtotal:getSub()})});
+    var data=await res.json(); var quotes=data.quotes||[];
+    renderRates(quotes.length?quotes:null);
+    statusEl.textContent=quotes.length?'':'No live rates — using fallback.';
+  } catch(e) { renderRates(null); statusEl.textContent='Rate fetch failed — using fallback.'; }
+}
+
+function renderRates(quotes) {
+  var fallback=[{service:'Gauteng Door-to-Door',price:100,etaDays:'1–2'},{service:'Rest of SA Door-to-Door',price:150,etaDays:'2–5'}];
+  var list=quotes||fallback;
+  document.getElementById('rate-wrap').style.display='';
+  document.getElementById('rate-list').innerHTML=list.map(function(q,i){
+    return '<div class="rate-option'+(i===0?' selected':'')+'" onclick="selectRate(this,\''+q.service+'\','+q.price+')">'
+      +'<input type="radio" name="rate" '+(i===0?'checked':'')+'>'
+      +'<div class="rate-label-text"><strong>'+q.service+'</strong><br><span style="font-size:11px;color:var(--muted);">'+(q.etaDays||'2–5')+' business days</span></div>'
+      +'<span class="rate-price">R'+q.price+'</span></div>';
+  }).join('');
+  selectedRate={label:list[0].service,price:list[0].price}; updateSummary();
+}
+
+function selectRate(el,label,price) {
+  document.querySelectorAll('.rate-option').forEach(function(r){ r.classList.remove('selected'); r.querySelector('input').checked=false; });
+  el.classList.add('selected'); el.querySelector('input').checked=true;
+  selectedRate={label:label,price:price}; updateSummary();
+}
+
+function applyDiscount() {
+  var code=document.getElementById('disc-code').value.trim().toUpperCase(), el=document.getElementById('discount-status');
+  if(!code){ el.textContent=''; return; }
+  if(DISC_CODES[code]!==undefined){ appliedDisc={code:code,amount:DISC_CODES[code]}; el.style.color='#22c55e'; el.textContent='✓ '+code+' — R'+DISC_CODES[code]+' off'; document.getElementById('disc-amount').value=''; }
+  else { appliedDisc={code:'',amount:0}; el.style.color='#ef4444'; el.textContent='✗ Code not recognised'; }
   updateSummary();
 }
 
-function setPayment(val, btn) {
-  state.payment = val;
-  const hints = {
-    payfast: 'Redirects to PayFast. Hand device to customer or process in-person.',
-    eft: 'Generates an invoice with your banking details. Send via WhatsApp or print.',
-    cash: 'Mark as cash paid. Generates a receipt to show or screenshot.'
-  };
-  const labels = { payfast:'Process PayFast Payment', eft:'Generate EFT Invoice', cash:'Mark as Cash Paid ✓' };
-  const classes = { payfast:'btn btn-payfast', eft:'btn btn-eft', cash:'btn btn-cash' };
-  document.querySelectorAll('.toggle-row')[2].querySelectorAll('.toggle').forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active');
-  document.getElementById('payment-hint').textContent = hints[val];
-  const ab = document.getElementById('action-btn');
-  ab.textContent = labels[val];
-  ab.className = classes[val];
-  updateSummary();
-}
-
-function getCartItems() {
-  return PRODUCTS.filter(p => state.qtys[p.id] > 0).map(p => ({
-    name: p.name,
-    size: state.selectedSizes[p.id].label,
-    price: state.selectedSizes[p.id].price,
-    qty: state.qtys[p.id],
-    total: state.selectedSizes[p.id].price * state.qtys[p.id]
-  }));
-}
-
-function calcTotals() {
-  const items = getCartItems();
-  const sub = items.reduce((s,i)=>s+i.total, 0);
-  const ship = state.fulfillment === 'delivery' ? parseFloat(document.getElementById('ship-amount').value||0) : 0;
-  const disc = parseFloat(document.getElementById('discount').value||0);
-  const total = Math.max(0, sub + ship - disc);
-  return { sub, ship, disc, total, items };
-}
+function getSub()  { return PRODUCTS.reduce(function(s,p){ return s+(qtys[p.id]||0)*prices[p.id]; },0); }
+function getKg()   { return Math.max(0.1,PRODUCTS.reduce(function(s,p){ var sz=(sizes[p.id]||'').toLowerCase(),kg=sz.match(/([0-9.]+)\s*kg/),g=sz.match(/([0-9]+)\s*g/); if(kg)return s+parseFloat(kg[1])*(qtys[p.id]||0); if(g)return s+parseFloat(g[1])/1000*(qtys[p.id]||0); return s+(qtys[p.id]||0)*0.25; },0)); }
+function getShip() { var ov=parseFloat(document.getElementById('d-ship-override').value); return !isNaN(ov)?ov:(deliveryMode==='collect'?60:(selectedRate?selectedRate.price:0)); }
+function getDisc() { var m=parseFloat(document.getElementById('disc-amount').value)||0; return Math.max(m,appliedDisc.amount); }
 
 function updateSummary() {
-  const { sub, ship, disc, total, items } = calcTotals();
-  const lines = document.getElementById('summary-lines');
-  let html = items.map(i=>`<div class="summary-line"><span>${i.qty}× ${i.name} (${i.size})</span><span>R ${i.total.toFixed(2)}</span></div>`).join('');
-  if (ship > 0) html += `<div class="summary-line"><span>Delivery</span><span>R ${ship.toFixed(2)}</span></div>`;
-  if (disc > 0) html += `<div class="summary-line"><span>Discount</span><span style="color:var(--green)">−R ${disc.toFixed(2)}</span></div>`;
-  if (!items.length) html = '<div style="color:var(--muted);font-size:12px;padding:4px 0;">No items added yet.</div>';
-  lines.innerHTML = html;
-  document.getElementById('summary-total').textContent = 'R ' + total.toFixed(2);
+  var items=PRODUCTS.filter(function(p){ return (qtys[p.id]||0)>0; });
+  var sumEl=document.getElementById('summary-items');
+  if(!items.length){ sumEl.innerHTML='<p class="sum-empty">No items added yet.</p>'; }
+  else { sumEl.innerHTML=items.map(function(p){ return '<div class="sum-line"><span class="sum-name">'+p.name+'<br><span style="color:var(--muted);font-size:11px;">'+sizes[p.id]+'</span></span><span style="color:var(--muted);font-size:11px;align-self:center;">\xd7'+qtys[p.id]+'</span><span class="sum-price">R'+(prices[p.id]*qtys[p.id]).toFixed(0)+'</span></div>'; }).join(''); }
+  var sub=getSub(),ship=getShip(),disc=getDisc(),total=Math.max(0,sub+ship-disc);
+  document.getElementById('sum-sub').textContent='R '+sub.toFixed(2);
+  document.getElementById('sum-ship').textContent=ship>0?'R '+ship.toFixed(2):'—';
+  document.getElementById('sum-total').textContent='R '+total.toFixed(2);
+  var dr=document.getElementById('sum-disc-row');
+  if(disc>0){ dr.style.display='flex'; document.getElementById('sum-disc').textContent='− R'+disc.toFixed(2); } else dr.style.display='none';
+  if(deliveryMode==='deliver'&&items.length&&!selectedRate){ var prov=document.getElementById('d-province').value,post=document.getElementById('d-postal').value; if(prov&&post.length===4)fetchRates(); }
 }
 
-function genRef() {
-  const d = new Date();
-  const ymd = d.getFullYear().toString().slice(2) + String(d.getMonth()+1).padStart(2,'0') + String(d.getDate()).padStart(2,'0');
-  const rnd = Math.random().toString(36).slice(2,6).toUpperCase();
-  return 'AC-'+ymd+'-'+rnd;
+function validate() {
+  var items=PRODUCTS.filter(function(p){ return (qtys[p.id]||0)>0; });
+  var name=document.getElementById('c-name').value.trim(), email=document.getElementById('c-email').value.trim();
+  var hasShip=deliveryMode==='collect'||!!selectedRate||document.getElementById('d-ship-override').value!=='';
+  var valEl=document.getElementById('pay-validation'), msg='';
+  if(!items.length) msg='Add at least one product.';
+  else if(!name||!email) msg='Customer name and email required.';
+  else if(!hasShip) msg='Select a shipping rate or enter an override.';
+  valEl.textContent=msg; valEl.style.display=msg?'block':'none'; return !msg;
 }
 
-function generateOrder() {
-  const { sub, ship, disc, total, items } = calcTotals();
-  if (!items.length) { alert('Add at least one product.'); return; }
-  const name = document.getElementById('c-name').value.trim() || 'Customer';
-  const email = document.getElementById('c-email').value.trim();
-  const phone = document.getElementById('c-phone').value.trim();
-  const notes = document.getElementById('c-notes').value.trim();
-  const ref = genRef();
-  const now = new Date().toLocaleDateString('en-ZA',{day:'2-digit',month:'long',year:'numeric'});
-  const itemDesc = items.map(i=>`${i.qty}× ${i.name} (${i.size})`).join(', ');
-  const fulfillLabel = state.fulfillment === 'collection' ? 'Collection (no charge)' : (document.getElementById('ship-address').value.trim() || 'Delivery');
-
-  document.getElementById('output').style.display = 'block';
-
-  if (state.payment === 'payfast') {
-    document.getElementById('pf_name').value = name;
-    document.getElementById('pf_email').value = email || 'noemail@artifactscoffee.co.za';
-    document.getElementById('pf_payment_id').value = ref;
-    document.getElementById('pf_amount').value = total.toFixed(2);
-    document.getElementById('pf_item_desc').value = itemDesc.slice(0,255);
-    document.getElementById('invoice-box').innerHTML = `
-      <div class="inv-header">
-        <div class="inv-logo">Artifacts Coffee</div>
-        <div class="inv-title">PayFast Payment</div>
-        <div class="inv-ref">Ref: ${ref}</div>
-      </div>
-      <div class="inv-section">
-        <div class="inv-section-title">Customer</div>
-        <div class="inv-line"><span>${name}</span>${email ? `<span style="color:var(--muted)">${email}</span>` : ''}</div>
-        ${phone ? `<div class="inv-line"><span style="color:var(--muted)">${phone}</span></div>` : ''}
-      </div>
-      <div class="inv-section">
-        <div class="inv-section-title">Items</div>
-        ${items.map(i=>`<div class="inv-line"><span>${i.qty}× ${i.name} (${i.size})</span><span>R ${i.total.toFixed(2)}</span></div>`).join('')}
-        ${ship>0?`<div class="inv-line"><span>Delivery</span><span>R ${ship.toFixed(2)}</span></div>`:''}
-        ${disc>0?`<div class="inv-line"><span>Discount</span><span style="color:var(--green)">−R ${disc.toFixed(2)}</span></div>`:''}
-      </div>
-      <div class="inv-total"><span>Total</span><span>R ${total.toFixed(2)}</span></div>
-      <div style="margin-top:14px;"><span class="status-badge badge-payfast">PAYFAST</span></div>`;
-    document.getElementById('post-action-btns').innerHTML = `
-      <button class="btn btn-payfast" style="margin-top:0" onclick="document.getElementById('payfast-form').submit()">▶ Submit to PayFast Now</button>`;
-  }
-
-  else if (state.payment === 'eft') {
-    document.getElementById('invoice-box').innerHTML = `
-      <div class="inv-header">
-        <div class="inv-logo">Artifacts Coffee</div>
-        <div class="inv-title">Tax Invoice / EFT Request</div>
-        <div class="inv-ref">Ref: ${ref} &nbsp;·&nbsp; ${now}</div>
-      </div>
-      <div class="inv-section">
-        <div class="inv-section-title">Billed To</div>
-        <div class="inv-line"><span>${name}</span></div>
-        ${email?`<div class="inv-line"><span style="color:var(--muted)">${email}</span></div>`:''}
-        ${phone?`<div class="inv-line"><span style="color:var(--muted)">${phone}</span></div>`:''}
-      </div>
-      <div class="inv-section">
-        <div class="inv-section-title">Order Details</div>
-        ${items.map(i=>`<div class="inv-line"><span>${i.qty}× ${i.name} (${i.size})</span><span>R ${i.total.toFixed(2)}</span></div>`).join('')}
-        <div class="inv-line"><span style="color:var(--muted)">Fulfillment</span><span style="color:var(--muted)">${fulfillLabel}</span></div>
-        ${ship>0?`<div class="inv-line"><span>Delivery</span><span>R ${ship.toFixed(2)}</span></div>`:''}
-        ${disc>0?`<div class="inv-line"><span>Discount</span><span style="color:var(--green)">−R ${disc.toFixed(2)}</span></div>`:''}
-      </div>
-      <div class="inv-total"><span>Total Due</span><span>R ${total.toFixed(2)}</span></div>
-      <div class="bank-box">
-        <div class="inv-section-title" style="margin-bottom:8px;">Payment Instructions</div>
-        <div class="bank-row"><span class="bank-label">Bank</span><span>${BANK.bank}</span></div>
-        <div class="bank-row"><span class="bank-label">Account Holder</span><span>${BANK.holder}</span></div>
-        <div class="bank-row"><span class="bank-label">Account Number</span><span>${BANK.account}</span></div>
-        <div class="bank-row"><span class="bank-label">Branch Code</span><span>${BANK.branch}</span></div>
-        <div class="bank-row"><span class="bank-label">Account Type</span><span>${BANK.type}</span></div>
-        <div class="bank-row"><span class="bank-label">Reference</span><span class="bank-ref">${ref}</span></div>
-      </div>
-      ${notes?`<div class="note">Note: ${notes}</div>`:''}
-      <div class="note" style="margin-top:8px;">Please use <strong>${ref}</strong> as your payment reference. EFT within 24 hours to secure your order. Once payment reflects your order will be roasted and dispatched.</div>
-      <div style="margin-top:12px;"><span class="status-badge badge-eft">AWAITING EFT</span></div>`;
-
-    const wa = `Hi ${name},%0A%0AHere are the banking details for your Artifacts Coffee order:%0A%0A*${items.map(i=>`${i.qty}× ${i.name} (${i.size})`).join('%0A')}*%0ATotal: *R ${total.toFixed(2)}*%0A%0A*Bank:* FNB%0A*Account:* ${BANK.account}%0A*Branch:* ${BANK.branch}%0A*Ref:* ${ref}%0A%0APlease use ${ref} as your reference. Order roasts once payment reflects 🙏`;
-    document.getElementById('post-action-btns').innerHTML = `
-      <button class="btn btn-wa" style="margin-top:0;flex:1" onclick="window.open('https://wa.me/${phone?phone.replace(/\D/g,'').replace(/^0/,'27'):''}?text=${wa}','_blank')">Send via WhatsApp</button>
-      <button class="btn" style="margin-top:0;flex:0 0 auto;width:auto;padding:14px 18px;background:var(--mid);border:1px solid var(--border)" onclick="window.print()">🖨 Print</button>`;
-  }
-
-  else if (state.payment === 'cash') {
-    document.getElementById('invoice-box').innerHTML = `
-      <div class="inv-header">
-        <div class="inv-logo">Artifacts Coffee</div>
-        <div class="inv-title">Cash Receipt</div>
-        <div class="inv-ref">Ref: ${ref} &nbsp;·&nbsp; ${now}</div>
-      </div>
-      <div class="inv-section">
-        <div class="inv-section-title">Customer</div>
-        <div class="inv-line"><span>${name}</span></div>
-        ${phone?`<div class="inv-line"><span style="color:var(--muted)">${phone}</span></div>`:''}
-      </div>
-      <div class="inv-section">
-        <div class="inv-section-title">Items</div>
-        ${items.map(i=>`<div class="inv-line"><span>${i.qty}× ${i.name} (${i.size})</span><span>R ${i.total.toFixed(2)}</span></div>`).join('')}
-        <div class="inv-line"><span style="color:var(--muted)">Fulfillment</span><span style="color:var(--muted)">${fulfillLabel}</span></div>
-        ${disc>0?`<div class="inv-line"><span>Discount</span><span style="color:var(--green)">−R ${disc.toFixed(2)}</span></div>`:''}
-      </div>
-      <div class="inv-total"><span>Cash Received</span><span style="color:var(--green)">R ${total.toFixed(2)}</span></div>
-      ${notes?`<div class="note" style="margin-top:10px;">Note: ${notes}</div>`:''}
-      <div style="margin-top:12px;"><span class="status-badge badge-cash">CASH PAID ✓</span></div>`;
-    document.getElementById('post-action-btns').innerHTML = `
-      <button class="btn" style="margin-top:0;background:var(--mid);border:1px solid var(--border)" onclick="window.print()">🖨 Print Receipt</button>`;
-  }
-
-  document.getElementById('output').scrollIntoView({behavior:'smooth'});
+function payViaPayFast() {
+  if(!validate()) return;
+  var name=document.getElementById('c-name').value.trim(), email=document.getElementById('c-email').value.trim(), phone=document.getElementById('c-phone').value.trim();
+  var sub=getSub(),ship=getShip(),disc=getDisc(),total=Math.max(0,sub+ship-disc);
+  var desc=PRODUCTS.filter(function(p){ return qtys[p.id]>0; }).map(function(p){ return qtys[p.id]+'x '+p.name+' ('+sizes[p.id]+')'; }).join(', ');
+  var addr=[document.getElementById('d-address').value,document.getElementById('d-suburb').value,document.getElementById('d-city').value,document.getElementById('d-province').value].filter(Boolean).join(', ');
+  var ship_label=selectedRate?selectedRate.label:(deliveryMode==='collect'?'PUDO Collect':'Manual');
+  if(!confirm('Submit PayFast for '+name+' ('+email+')?\n\nTotal: R'+total.toFixed(2)+'\n'+desc)) return;
+  document.getElementById('pf-name').value=name.split(' ')[0];
+  document.getElementById('pf-email').value=email;
+  document.getElementById('pf-pid').value='ADMIN-'+Date.now();
+  document.getElementById('pf-amount').value=total.toFixed(2);
+  document.getElementById('pf-desc').value='[ADMIN] '+desc;
+  document.getElementById('pf-disc').value=appliedDisc.code||'';
+  document.getElementById('pf-ship-method').value=ship_label;
+  document.getElementById('pf-ship-amt').value=ship.toFixed(2);
+  document.getElementById('pf-ship-addr').value=addr;
+  document.getElementById('pf-phone').value=phone;
+  document.getElementById('pf-form').submit();
 }
 
-buildProductUI();
-updateSummary();
+async function payViaEFT() {
+  if(!validate()) return;
+  var name=document.getElementById('c-name').value.trim(), email=document.getElementById('c-email').value.trim(), phone=document.getElementById('c-phone').value.trim();
+  var sub=getSub(),ship=getShip(),disc=getDisc(),total=Math.max(0,sub+ship-disc);
+  var addr=[document.getElementById('d-address').value,document.getElementById('d-suburb').value,document.getElementById('d-city').value,document.getElementById('d-province').value].filter(Boolean).join(', ');
+  var ship_label=selectedRate?selectedRate.label:(deliveryMode==='collect'?'PUDO Collect':'Manual');
+  var notes=document.getElementById('admin-notes').value.trim();
+  var btn=document.getElementById('btn-eft');
+  btn.textContent='Creating order…'; btn.style.opacity='0.5'; btn.style.pointerEvents='none';
+  try {
+    var res=await fetch('/.netlify/functions/createManualOrder',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({adminKey:adminKey,customer:{name:name,email:email,phone:phone},items:PRODUCTS.filter(function(p){return qtys[p.id]>0;}).map(function(p){return{name:p.name,size:sizes[p.id],price:prices[p.id],qty:qtys[p.id]};}),shipping:{method:ship_label,amount:ship,address:addr},discountCode:appliedDisc.code||null,discountAmt:disc,notes:notes,paymentMethod:'eft'})});
+    var data=await res.json();
+    if(!res.ok||!data.success){ if(res.status===401){alert('Admin code rejected. Reload and re-enter.');return;} throw new Error(data.error||'Server error'); }
+    showConfirmation(data,total);
+  } catch(e){ alert('Error: '+e.message); }
+  finally { btn.textContent='Send EFT Request'; btn.style.opacity=''; btn.style.pointerEvents=''; }
+}
+
+function showConfirmation(data,total) {
+  lastData=data;
+  document.getElementById('admin-main').style.display='none';
+  document.getElementById('confirm-screen').style.display='block';
+  document.getElementById('conf-ref').textContent=data.ref;
+  document.getElementById('conf-ref-inline').textContent=data.ref;
+  document.getElementById('conf-amount').textContent='R '+total.toFixed(2);
+  var cust=data.customer||{}, fname=(cust.name||'').split(' ')[0]||'there', items=data.itemDesc||'';
+  document.getElementById('wa-draft').textContent=[
+    'Hi '+fname+' 👋','',
+    'Your Artifacts Coffee order has been created. Here’s what you need to pay:','',
+    '*Order Ref:* '+data.ref,'*Items:* '+items,'*Amount Due: R'+total.toFixed(2)+'*','',
+    '━━━━━━━━━━━━━━━━━━━',
+    '*Banking Details (FNB EFT):*',
+    'Account Name: Artifacts Coffee Roastary',
+    'Account Number: 62929285692',
+    'Branch Code: 250655',
+    'Reference: *'+data.ref+'*',
+    '━━━━━━━━━━━━━━━━━━━','',
+    'Please use your order reference as the payment reference.',
+    'We roast and ship as soon as payment reflects! 🔥','',
+    '— Artifacts Coffee','hello@artifactscoffee.co.za'
+  ].join('\n');
+}
+
+function copyWaDraft() {
+  var text=document.getElementById('wa-draft').textContent;
+  navigator.clipboard.writeText(text).then(function(){ var b=event.target,o=b.textContent; b.textContent='Copied ✓'; setTimeout(function(){b.textContent=o;},2000); });
+}
+function openWhatsApp() {
+  var phone=(document.getElementById('c-phone').value||'').replace(/\D/g,'');
+  var text=encodeURIComponent(document.getElementById('wa-draft').textContent);
+  window.open(phone?'https://wa.me/27'+phone.replace(/^0/,'')+('?text='+text):'https://wa.me/?text='+text,'_blank');
+}
 </script>
 </body>
 </html>

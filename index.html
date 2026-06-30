@@ -355,6 +355,64 @@
           }
         }
       ]
+    },
+    {
+      "@type": "Product",
+      "@id": "https://artifactscoffee.co.za/#ke",
+      "name": "Kenya Kiandu AB — Single Origin Coffee",
+      "description": "Specialty-grade washed single origin from Nyeri, Kenya. Score 88. Tasting notes of blackcurrant, bright citrus and florals. Roasted fresh weekly in Johannesburg.",
+      "brand": { "@type": "Brand", "name": "Artifacts Coffee Roastery" },
+      "url": "https://artifactscoffee.co.za/#ke",
+      "image": "https://artifactscoffee.co.za/images/kenya-landscape.jpg",
+      "category": "Coffee Beans",
+      "additionalProperty": [
+        { "@type": "PropertyValue", "name": "Origin", "value": "Nyeri, Kenya" },
+        { "@type": "PropertyValue", "name": "Process", "value": "Washed" },
+        { "@type": "PropertyValue", "name": "Score", "value": "88" },
+        { "@type": "PropertyValue", "name": "Tasting Notes", "value": "Blackcurrant, Bright Citrus, Floral" }
+      ],
+      "offers": [
+        {
+          "@type": "Offer",
+          "name": "Kenya Kiandu AB 200g",
+          "price": "260.00",
+          "priceCurrency": "ZAR",
+          "availability": "https://schema.org/InStock",
+          "url": "https://artifactscoffee.co.za/#ke",
+          "seller": { "@id": "https://artifactscoffee.co.za/#org" },
+          "hasMerchantReturnPolicy": { "@id": "https://artifactscoffee.co.za/#returnpolicy" },
+          "shippingDetails": {
+            "@type": "OfferShippingDetails",
+            "shippingRate": { "@type": "MonetaryAmount", "value": "85.00", "currency": "ZAR" },
+            "shippingDestination": { "@type": "DefinedRegion", "addressCountry": "ZA" },
+            "deliveryTime": {
+              "@type": "ShippingDeliveryTime",
+              "handlingTime": { "@type": "QuantitativeValue", "minValue": 1, "maxValue": 2, "unitCode": "DAY" },
+              "transitTime": { "@type": "QuantitativeValue", "minValue": 2, "maxValue": 5, "unitCode": "DAY" }
+            }
+          }
+        },
+        {
+          "@type": "Offer",
+          "name": "Kenya Kiandu AB 1kg Bundle (5×200g)",
+          "price": "1040.00",
+          "priceCurrency": "ZAR",
+          "availability": "https://schema.org/InStock",
+          "url": "https://artifactscoffee.co.za/#ke",
+          "seller": { "@id": "https://artifactscoffee.co.za/#org" },
+          "hasMerchantReturnPolicy": { "@id": "https://artifactscoffee.co.za/#returnpolicy" },
+          "shippingDetails": {
+            "@type": "OfferShippingDetails",
+            "shippingRate": { "@type": "MonetaryAmount", "value": "85.00", "currency": "ZAR" },
+            "shippingDestination": { "@type": "DefinedRegion", "addressCountry": "ZA" },
+            "deliveryTime": {
+              "@type": "ShippingDeliveryTime",
+              "handlingTime": { "@type": "QuantitativeValue", "minValue": 1, "maxValue": 2, "unitCode": "DAY" },
+              "transitTime": { "@type": "QuantitativeValue", "minValue": 2, "maxValue": 5, "unitCode": "DAY" }
+            }
+          }
+        }
+      ]
     }
   ]
 }
@@ -368,11 +426,11 @@
     <li class="nav-dropdown" id="navCoffeeDropdown">
       <button type="button" class="nav-dropdown-trigger" aria-expanded="false" aria-haspopup="true" id="navCoffeeBtn">Coffee <span class="nav-dropdown-caret" aria-hidden="true">&#9662;</span></button>
       <ul class="nav-dropdown-menu" role="menu" aria-label="Coffee">
+        <li role="none"><a href="#ke" role="menuitem" style="color:var(--ke);">Kenya · Drop 004 ⚡</a></li>
         <li role="none"><a href="#gt" role="menuitem">Guatemala</a></li>
         <li role="none"><a href="#mx" role="menuitem">Mexico</a></li>
         <li role="none"><a href="#ni" role="menuitem">Nicaragua</a></li>
         <li role="none"><a href="#office" role="menuitem">Office</a></li>
-        <li role="none"><a href="#discovery-pack" role="menuitem">Discovery Pack</a></li>
       </ul>
     </li>
     <li><a href="cup.html">Origin Cup</a></li>
@@ -392,8 +450,8 @@
 <div class="mob-overlay" id="mobOverlay">
   <button type="button" class="mob-close" onclick="closeMob()" aria-label="Close menu">&#10005;</button>
   <div class="mob-links">
+    <a class="mob-link" href="#ke" style="color:var(--ke);" onclick="navigateMob(event,'#ke')">Kenya · Drop 004 ⚡</a>
     <a class="mob-link" href="#office" onclick="navigateMob(event,'#office')">Office Coffee</a>
-    <a class="mob-sublink" href="#discovery-pack" onclick="navigateMob(event,'#discovery-pack')">Discovery Pack</a>
     <a class="mob-link mob-after-coffee" href="cup.html" onclick="closeMob()">Origin Cup</a>
     <a class="mob-link" href="#story" onclick="navigateMob(event,'#story')">Our Story</a>
     <a class="mob-link" href="rewards.html" style="color:var(--yellow)" onclick="closeMob()">Brew Circle</a>
@@ -412,23 +470,19 @@
     <p class="hero-desc">Every bag is the final artefact of a deliberate process &#8212; sourced with intent, roasted with precision, and delivered fresh weekly. One origin. Every reason to try it.</p>
 
     <div class="hero-waitlist reveal d2">
-      <p class="waitlist-label">Drop 004 is coming. Be the first to know when it lands.</p>
-      <form class="waitlist-form" onsubmit="joinWaitlist(event)">
-        <input type="email" id="waitlist-email" placeholder="your@email.com" autocomplete="email" required>
-        <button type="submit" class="waitlist-btn">Notify Me</button>
-      </form>
-      <p class="waitlist-status" id="waitlist-status"></p>
+      <p class="waitlist-label">Drop 004 is here. Kenya &middot; Kiandu AB &middot; Score 88.</p>
+      <a href="#ke" class="waitlist-btn" style="display:inline-block;text-decoration:none;text-align:center;background:var(--ke);color:#fff;">Shop Now &rarr;</a>
     </div>
   </div>
 </section>
 
-<div class="ticker" aria-hidden="true"><div class="ticker-inner"><div class="titem">Drop 004 <span class="tdot"></span></div><div class="titem">Kenya &middot; Kiandu AB <span class="tdot"></span></div><div class="titem">Coming Soon <span class="tdot"></span></div><div class="titem">Direct Trade <span class="tdot"></span></div><div class="titem">Fresh Roasted Weekly <span class="tdot"></span></div><div class="titem">Specialty Grade <span class="tdot"></span></div><div class="titem">Score 88 <span class="tdot"></span></div><div class="titem">enTheos <span class="tdot"></span></div><div class="titem">Drop 004 <span class="tdot"></span></div><div class="titem">Kenya &middot; Kiandu AB <span class="tdot"></span></div><div class="titem">Coming Soon <span class="tdot"></span></div><div class="titem">Direct Trade <span class="tdot"></span></div><div class="titem">Fresh Roasted Weekly <span class="tdot"></span></div><div class="titem">Specialty Grade <span class="tdot"></span></div><div class="titem">Score 88 <span class="tdot"></span></div><div class="titem">enTheos <span class="tdot"></span></div></div></div>
+<div class="ticker" aria-hidden="true"><div class="ticker-inner"><div class="titem">Drop 004 <span class="tdot"></span></div><div class="titem">Kenya &middot; Kiandu AB <span class="tdot"></span></div><div class="titem">Now Available <span class="tdot"></span></div><div class="titem">Direct Trade <span class="tdot"></span></div><div class="titem">Fresh Roasted Weekly <span class="tdot"></span></div><div class="titem">Specialty Grade <span class="tdot"></span></div><div class="titem">Score 88 <span class="tdot"></span></div><div class="titem">enTheos <span class="tdot"></span></div><div class="titem">Drop 004 <span class="tdot"></span></div><div class="titem">Kenya &middot; Kiandu AB <span class="tdot"></span></div><div class="titem">Now Available <span class="tdot"></span></div><div class="titem">Direct Trade <span class="tdot"></span></div><div class="titem">Fresh Roasted Weekly <span class="tdot"></span></div><div class="titem">Specialty Grade <span class="tdot"></span></div><div class="titem">Score 88 <span class="tdot"></span></div><div class="titem">enTheos <span class="tdot"></span></div></div></div>
 
 <!-- founder banner removed - FOUNDER20 is a checkout-only surprise -->
-<!-- COMING SOON BANNER -->
-<div class="coming-soon-bar">
-  <span class="coming-soon-kicker">&#9889; Drop 004</span>
-  <span class="coming-soon-text">Kenya &middot; Kiandu AB &middot; Coming Soon</span>
+<!-- LIVE DROP BANNER -->
+<div class="coming-soon-bar" style="background:rgba(200,55,62,0.12);border-color:rgba(200,55,62,0.3);">
+  <span class="coming-soon-kicker" style="color:var(--ke);">&#9889; Drop 004 · Live Now</span>
+  <span class="coming-soon-text">Kenya &middot; Kiandu AB &middot; Score 88 &middot; <a href="#ke" style="color:var(--ke);text-decoration:underline;">Order Now</a></span>
 </div>
 
 <!-- ENTHEOS MINI -->
@@ -438,6 +492,45 @@
   <span class="entheos-mini-text">&ldquo;God within&rdquo; &mdash; excellence as an act of worship, in every roast.</span>
 </div>
 
+<!-- KENYA DROP 004 — LIVE -->
+<section class="product-section ke-theme" id="ke">
+  <div class="p-visual">
+    <div class="p-close" style="background-image:url('images/kenya-landscape.jpg');"></div>
+    <div class="p-accent"></div>
+    <span class="p-code">KE &middot; 004</span>
+  </div>
+  <div class="p-info">
+    <p class="p-num" style="color:var(--ke);">Drop 004 &middot; Now Live</p>
+    <p class="p-country">Kenya &middot; Nyeri &middot; Kiandu Washing Station</p>
+    <h2 class="p-name">Kiandu<br>AB</h2>
+    <p class="p-sub">Washed &middot; Single Origin Specialty &middot; Score 88</p>
+    <div class="pills">
+      <span class="pill pill-ke">&#127827; Blackcurrant</span>
+      <span class="pill pill-ke">&#127819; Bright Citrus</span>
+      <span class="pill pill-ke">&#127800; Floral</span>
+    </div>
+    <div class="divider"></div>
+    <span class="sz-label">Select Size</span>
+    <div id="sz-ke" class="sz-toggle" data-selected-size="200g">
+      <button class="sz-btn sel-k" onclick="selectPF(this,'ke','260');document.getElementById('ke-note').textContent='200g &middot; whole bean'">200g &mdash; R260</button>
+      <button class="sz-btn" onclick="selectPF(this,'ke','1040');document.getElementById('ke-note').textContent='5 bags &middot; buy 5 pay for 4'">1kg Bundle &mdash; R1&nbsp;040</button>
+    </div>
+    <div class="price-row">
+      <span class="p-curr">R</span>
+      <span class="p-amount" id="ke-p">260</span>
+      <span class="p-note" id="ke-note">200g &middot; whole bean</span>
+    </div>
+    <div class="pf-selector-wrap">
+      <button id="btn-ke" class="order-btn btn-ke" onclick="prepAddToCart('Kenya Kiandu AB','ke')">Add to Cart</button>
+    </div>
+    <div class="trust-row" style="margin-top:14px;">
+      <span style="font-size:11px;color:var(--muted);">&#9889; Roasted fresh after your order</span>
+      <span style="font-size:11px;color:var(--muted);">&#128230; Ships nationwide</span>
+    </div>
+  </div>
+</section>
+
+<!-- PAST ORIGINS -->
 <!-- ORIGIN CARDS -->
 <section class="origins-section">
   <div class="origins-grid">
@@ -654,8 +747,8 @@
 <footer>
   <img src="images/logo.png" alt="Artifacts Coffee" loading="lazy">
   <ul class="foot-links">
-    <li><a href="#gt">Guatemala</a></li><li><a href="#mx">Mexico</a></li><li><a href="#ni">Nicaragua</a></li>
-    <li><a href="cup.html">Origin Cup</a></li><li><a href="#office">Office</a></li><li><a href="#story">Our Story</a></li>
+    <li><a href="#ke" style="color:var(--ke);">Kenya</a></li><li><a href="#gt">Guatemala</a></li><li><a href="#mx">Mexico</a></li><li><a href="#ni">Nicaragua</a></li>
+    <li><a href="#office">Office</a></li><li><a href="#story">Our Story</a></li>
     <li><a href="rewards.html" style="color:var(--yellow)">Brew Circle</a></li>
   </ul>
   <div class="foot-copy">
@@ -706,63 +799,4 @@
     </div>
     <!-- PUDO INFO (collect mode only) -->
     <div id="pudo-info" class="shipping-box" style="display:none;margin-top:10px;">
-      <p style="font-size:12px;color:var(--muted);line-height:1.7;">Drop your order at any <strong style="color:var(--white);">TCG PUDO Locker</strong> near you. You'll receive a booking reference by email after payment. R60 flat rate nationwide.</p>
-    </div>
-    <!-- CONTACT + ADDRESS (phone always visible; full address hidden in collect mode) -->
-    <div class="shipping-box" style="margin-top:10px;">
-      <span class="sz-label" style="display:block;margin-bottom:6px;">Your Details</span>
-      <input id="ship-phone" type="tel" autocomplete="tel" placeholder="Phone number" class="ship-field" style="margin-bottom:8px;" />
-      <div id="ship-address-wrap">
-        <select id="ship-province" autocomplete="address-level1" class="ship-field" aria-label="Province" required style="margin-bottom:8px;">
-          <option value="" disabled selected hidden>Select province</option>
-          <option>Eastern Cape</option><option>Free State</option><option>Gauteng</option>
-          <option>KwaZulu-Natal</option><option>Limpopo</option><option>Mpumalanga</option>
-          <option>Northern Cape</option><option>North West</option><option>Western Cape</option>
-        </select>
-        <input id="ship-address-line1" type="text" autocomplete="address-line1" placeholder="Street address" style="width:100%;margin-bottom:8px;background:#0f0f0f;border:1px solid var(--border);color:var(--white);padding:10px 12px;font-size:13px;" />
-        <input id="ship-suburb" type="text" autocomplete="address-level3" placeholder="Suburb" style="width:100%;margin-bottom:8px;background:#0f0f0f;border:1px solid var(--border);color:var(--white);padding:10px 12px;font-size:13px;" />
-        <div class="ship-row-2">
-          <input id="ship-city" type="text" autocomplete="address-level2" placeholder="City" style="background:#0f0f0f;border:1px solid var(--border);color:var(--white);padding:10px 12px;font-size:13px;" />
-          <input id="ship-postal-code" type="text" autocomplete="postal-code" placeholder="Postal code" style="background:#0f0f0f;border:1px solid var(--border);color:var(--white);padding:10px 12px;font-size:13px;" />
-        </div>
-      </div>
-      <div id="shipping-validation-status" style="font-size:11px;color:var(--muted);margin-top:8px;">Rates load automatically when province &amp; postal code are set.</div>
-    </div>
-    <div class="shipping-box" style="margin-top:10px;">
-      <span class="sz-label" style="display:block;margin-bottom:6px;">Discount Code</span>
-      <div style="display:flex;gap:8px;">
-        <input id="discount-code-input" type="text" autocomplete="off" placeholder="Enter discount code" style="flex:1;background:#0f0f0f;border:1px solid rgba(255,255,255,0.25);color:var(--white);padding:12px 14px;font-size:14px;text-transform:uppercase;letter-spacing:0.08em;border-radius:4px 0 0 4px;" />
-        <button type="button" onclick="applyDiscountCode()" style="width:auto;padding:12px 18px;margin:0;font-size:14px;font-family:'DM Mono',monospace;letter-spacing:0.08em;background:var(--cyan);color:black;border:none;border-radius:0 4px 4px 0;flex-shrink:0;cursor:pointer;">Apply</button>
-      </div>
-      <div id="discount-status" style="font-size:11px;color:var(--muted);margin-top:8px;">Have a promo link? Your code can auto-apply here.</div>
-    </div>
-  </div>
-  <!-- STICKY CART FOOTER -->
-  <div class="cart-footer">
-    <div id="total-price" style="font-family:'Bebas Neue',sans-serif;font-size:30px;margin-bottom:10px;">Total: R 0.00</div>
-    <form action="https://www.payfast.co.za/eng/process" method="post" id="payfast-form">
-      <input type="hidden" name="merchant_id" value="34420469">
-      <input type="hidden" name="merchant_key" value="q6qjvvpwgddvi">
-      <input type="hidden" name="return_url" value="https://artifactscoffee.co.za/success">
-      <input type="hidden" name="cancel_url" value="https://artifactscoffee.co.za/cancel">
-      <input type="hidden" name="notify_url" value="https://artifactscoffee.co.za/.netlify/functions/payfast-notify">
-      <input type="hidden" name="name_first" id="pf_name">
-      <input type="hidden" name="email_address" id="pf_email">
-      <input type="hidden" name="m_payment_id" id="pf_payment_id">
-      <input type="hidden" name="amount" id="pf_amount">
-      <input type="hidden" name="item_name" id="pf_item_name" value="Artifacts Coffee Order">
-      <input type="hidden" name="item_description" id="pf_item_desc">
-      <input type="hidden" name="custom_str1" id="pf_discount_code">
-      <input type="hidden" name="custom_str2" id="pf_shipping_method">
-      <input type="hidden" name="custom_str3" id="pf_shipping_amount">
-      <input type="hidden" name="custom_str4" id="pf_shipping_address">
-      <input type="hidden" name="custom_str5" id="pf_shipping_phone">
-      <p style="font-size:10px;color:var(--muted);margin-bottom:10px;text-align:center;">By clicking pay, you&#8217;ll be redirected to PayFast to complete your purchase.</p>
-      <button type="submit" class="pay-btn">Pay Securely</button>
-    </form>
-  </div>
-</div>
-
-<script src="js/main.js" defer></script>
-</body>
-</html>
+      <p style="fon
