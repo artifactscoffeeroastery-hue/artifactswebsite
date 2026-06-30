@@ -1,25 +1,14 @@
 /**
  * createManualOrder.js
  * Admin-only endpoint — creates an order placed on behalf of a customer.
- *
- * POST body (JSON):
- *   adminKey      – must match ADMIN_ORDER_KEY env var
- *   customer      – { name, email, phone }
- *   items         – [{ name, size, price, qty }]
- *   shipping      – { method, amount, address? }
- *   discountCode  – string | null
- *   discountAmt   – number (rand) | 0
- *   notes         – string | null
- *   paymentMethod – 'eft' | 'payfast'
- *
- * Returns (EFT):   { success, ref, total, banking }
- * Returns (PayFast): { success, ref } — PayFast form submitted client-side
+ * Uses direct PostgreSQL connection (pg) to bypass PostgREST schema cache.
  *
  * Required env vars:
- *   ADMIN_ORDER_KEY      – secret code checked on every request
- *   SUPABASE_URL         – project REST URL
- *   SUPABASE_SERVICE_KEY – service-role key
+ *   ADMIN_ORDER_KEY – secret gate code
+ *   DATABASE_URL    – postgresql://postgres:[password]@db.[ref].supabase.co:5432/postgres
  */
+
+const { Client } = require('pg');
 
 const CORS = {
   'Access-Control-Allow-Origin': '*',
@@ -59,90 +48,85 @@ exports.handler = async (event) => {
 
   const { adminKey, customer, items, shipping, discountCode, discountAmt = 0, notes, paymentMethod = 'eft' } = body;
 
-  // ── Auth check ──────────────────────────────────────────────────────────────
+  // ── Auth ─────────────────────────────────────────────────────────────────────
   const expectedKey = process.env.ADMIN_ORDER_KEY;
   if (!expectedKey || adminKey !== expectedKey) {
     return { statusCode: 401, headers: CORS, body: JSON.stringify({ error: 'Unauthorized' }) };
   }
 
-  // ── Validate required fields ─────────────────────────────────────────────────
   if (!customer?.email || !customer?.name || !items?.length) {
     return { statusCode: 400, headers: CORS, body: JSON.stringify({ error: 'Missing required fields' }) };
   }
 
   // ── Totals ───────────────────────────────────────────────────────────────────
-  const subtotal   = items.reduce((s, i) => s + i.price * i.qty, 0);
-  const shipAmt    = shipping?.amount ?? 0;
-  const total      = Math.max(0, subtotal + shipAmt - discountAmt);
-  const itemDesc   = items.map(i => `${i.qty}x ${i.name} (${i.size})`).join(', ');
-  const ref        = makeRef();
+  const subtotal = items.reduce((s, i) => s + i.price * i.qty, 0);
+  const shipAmt  = shipping?.amount ?? 0;
+  const total    = Math.max(0, subtotal + shipAmt - discountAmt);
+  const itemDesc = items.map(i => `${i.qty}x ${i.name} (${i.size})`).join(', ');
+  const ref      = makeRef();
 
-  // ── Insert into Supabase ─────────────────────────────────────────────────────
-  const supabaseUrl = (process.env.SUPABASE_URL || '').replace(/\/$/, '');
-  const serviceKey  = process.env.SUPABASE_SERVICE_KEY;
-
-  if (!supabaseUrl || !serviceKey) {
-    console.error('Supabase env vars missing — URL:', !!supabaseUrl, 'KEY:', !!serviceKey);
-    return { statusCode: 500, headers: CORS, body: JSON.stringify({ error: 'Server config error: missing env vars' }) };
+  // ── Direct PostgreSQL insert ──────────────────────────────────────────────────
+  const dbUrl = process.env.DATABASE_URL;
+  if (!dbUrl) {
+    console.error('DATABASE_URL env var missing');
+    return { statusCode: 500, headers: CORS, body: JSON.stringify({ error: 'Server config error' }) };
   }
 
-  const insertRes = await fetch(`${supabaseUrl}/rest/v1/rpc/create_manual_order`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      apikey:         serviceKey,
-      Authorization:  `Bearer ${serviceKey}`,
-    },
-    body: JSON.stringify({
-      p_payment_id:       ref,
-      p_payment_method:   paymentMethod,
-      p_status:           paymentMethod === 'eft' ? 'awaiting_payment' : 'pending',
-      p_customer_name:    customer.name,
-      p_email:            customer.email,
-      p_phone:            customer.phone || null,
-      p_amount_rand:      total,
-      p_item_description: itemDesc,
-      p_discount_code:    discountCode || null,
-      p_shipping_method:  shipping?.method || null,
-      p_shipping_amount:  shipAmt,
-      p_shipping_address: shipping?.address || null,
-      p_admin_notes:      notes || null,
-      p_placed_by:        'admin',
-    }),
-  });
+  const client = new Client({ connectionString: dbUrl, ssl: { rejectUnauthorized: false } });
 
-  if (!insertRes.ok) {
-    const err = await insertRes.text();
-    console.error('Supabase RPC error:', insertRes.status, err);
-    return { statusCode: 500, headers: CORS, body: JSON.stringify({ error: `RPC ${insertRes.status}: ${err}` }) };
+  try {
+    await client.connect();
+    await client.query(
+      `INSERT INTO orders
+         (payment_id, payment_method, status, customer_name, email, phone,
+          amount_rand, item_description, discount_code,
+          shipping_method, shipping_amount, shipping_address,
+          admin_notes, placed_by)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)`,
+      [
+        ref,
+        paymentMethod,
+        paymentMethod === 'eft' ? 'awaiting_payment' : 'pending',
+        customer.name,
+        customer.email,
+        customer.phone || null,
+        total,
+        itemDesc,
+        discountCode || null,
+        shipping?.method || null,
+        shipAmt,
+        shipping?.address || null,
+        notes || null,
+        'admin',
+      ]
+    );
+
+    // Record discount use
+    if (discountCode) {
+      await client.query(
+        `INSERT INTO discount_uses (code, payment_id, email) VALUES ($1,$2,$3) ON CONFLICT DO NOTHING`,
+        [discountCode, ref, customer.email]
+      ).catch(e => console.warn('discount_uses insert failed:', e.message));
+    }
+
+    console.log(`Manual order created: ${ref} — R${total.toFixed(2)} for ${customer.email}`);
+
+    return {
+      statusCode: 200,
+      headers: CORS,
+      body: JSON.stringify({
+        success: true,
+        ref,
+        total,
+        itemDesc,
+        customer,
+        banking: paymentMethod === 'eft' ? { ...BANKING, reference: ref } : null,
+      }),
+    };
+  } catch (e) {
+    console.error('DB insert error:', e.message);
+    return { statusCode: 500, headers: CORS, body: JSON.stringify({ error: `DB error: ${e.message}` }) };
+  } finally {
+    await client.end();
   }
-
-  // ── Record discount use ──────────────────────────────────────────────────────
-  if (discountCode) {
-    await fetch(`${supabaseUrl}/rest/v1/discount_uses`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        apikey:         serviceKey,
-        Authorization:  `Bearer ${serviceKey}`,
-        Prefer:         'resolution=ignore-duplicates,return=minimal',
-      },
-      body: JSON.stringify({ code: discountCode, payment_id: ref, email: customer.email }),
-    }).catch(e => console.warn('discount_uses insert failed:', e.message));
-  }
-
-  console.log(`Manual order created: ${ref} — R${total.toFixed(2)} for ${customer.email} via ${paymentMethod}`);
-
-  return {
-    statusCode: 200,
-    headers: CORS,
-    body: JSON.stringify({
-      success: true,
-      ref,
-      total,
-      itemDesc,
-      customer,
-      banking: paymentMethod === 'eft' ? { ...BANKING, reference: ref } : null,
-    }),
-  };
 };
