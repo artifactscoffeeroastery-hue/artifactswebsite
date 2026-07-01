@@ -672,12 +672,13 @@ function payViaPayFast() {
   var sub=getSub(),ship=getShip(),disc=getDisc(),total=Math.max(0,sub+ship-disc);
   var desc=PRODUCTS.filter(function(p){ return qtys[p.id]>0; }).map(function(p){ return qtys[p.id]+'x '+p.name+' ('+sizes[p.id]+')'; }).join(', ');
   var addr=getFulfilAddress();
-  if(!confirm('Submit PayFast for '+name+' ('+email+')?\n\nTotal: R'+total.toFixed(2)+'\n'+desc)) return;
+  var orderNo=(docState&&docState.orderNo)||nextOrderNo();
+  if(!confirm('Submit PayFast for '+name+' ('+email+')?\n\nOrder '+orderNo+'\nTotal: R'+total.toFixed(2)+'\n'+desc)) return;
   document.getElementById('pf-name').value=name.split(' ')[0];
   document.getElementById('pf-email').value=email;
   document.getElementById('pf-pid').value='ADMIN-'+Date.now();
   document.getElementById('pf-amount').value=total.toFixed(2);
-  document.getElementById('pf-desc').value='[ADMIN] '+desc;
+  document.getElementById('pf-desc').value='[ADMIN '+orderNo+'] '+desc;
   document.getElementById('pf-disc').value=appliedDisc.code||'';
   document.getElementById('pf-ship-method').value=getFulfilLabel();
   document.getElementById('pf-ship-amt').value=ship.toFixed(2);
@@ -691,13 +692,15 @@ async function payViaEFT() {
   var name=document.getElementById('c-name').value.trim(), email=document.getElementById('c-email').value.trim(), phone=document.getElementById('c-phone').value.trim();
   var sub=getSub(),ship=getShip(),disc=getDisc(),total=Math.max(0,sub+ship-disc);
   var addr=getFulfilAddress(), notes=document.getElementById('admin-notes').value.trim();
+  var orderNo=(docState&&docState.orderNo)||nextOrderNo();
+  var notesFull='Order '+orderNo+(notes?' — '+notes:'');
   var btn=document.getElementById('btn-eft');
   btn.textContent='Creating order…'; btn.style.opacity='0.5'; btn.style.pointerEvents='none';
   try {
-    var res=await fetch('/.netlify/functions/createManualOrder',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({adminKey:adminKey,customer:{name:name,email:email,phone:phone},items:PRODUCTS.filter(function(p){return qtys[p.id]>0;}).map(function(p){return{name:p.name,size:sizes[p.id],price:prices[p.id],qty:qtys[p.id]};}),shipping:{method:getFulfilLabel(),amount:ship,address:addr},discountCode:appliedDisc.code||null,discountAmt:disc,notes:notes,paymentMethod:'eft'})});
+    var res=await fetch('/.netlify/functions/createManualOrder',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({adminKey:adminKey,customer:{name:name,email:email,phone:phone},items:PRODUCTS.filter(function(p){return qtys[p.id]>0;}).map(function(p){return{name:p.name,size:sizes[p.id],price:prices[p.id],qty:qtys[p.id]};}),shipping:{method:getFulfilLabel(),amount:ship,address:addr},discountCode:appliedDisc.code||null,discountAmt:disc,notes:notesFull,paymentMethod:'eft'})});
     var data=await res.json();
     if(!res.ok||!data.success){ if(res.status===401){alert('Admin code rejected.');return;} throw new Error(data.error||'Server error'); }
-    showConfirmation(data,total);
+    showConfirmation(data,total,orderNo);
   } catch(e){ alert('Error: '+e.message); }
   finally { btn.textContent='Send EFT Request'; btn.style.opacity=''; btn.style.pointerEvents=''; }
 }
@@ -723,17 +726,23 @@ async function logToSheet(kind) {
   var customerId=await customerUUID(docState.customer.email);
   var A=function(id){ var el=document.getElementById(id); return el?el.value.trim():''; };
   var addr={ line1:A('d-address'), suburb:A('d-suburb'), city:A('d-city'), province:A('d-province'), postal:A('d-postal'), personal:A('d-personal-address') };
-  var payload={ token:SHEET_LOG_TOKEN, customerId:customerId, type:kind, ref:ref, timestamp:new Date().toISOString(),
+  var payload={ token:SHEET_LOG_TOKEN, customerId:customerId, orderNo:docState.orderNo||'', type:kind, ref:ref, timestamp:new Date().toISOString(),
     name:docState.customer.name, email:docState.customer.email, phone:docState.customer.phone,
     items:items, subtotal:docState.sub, shipping:docState.ship, discount:docState.disc, total:docState.total,
     fulfilment:docState.fulfilLabel, address:docState.fulfilAddress||'', notes:docState.notes||'', addressData:JSON.stringify(addr) };
   try { fetch(SHEET_LOG_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(payload)}); }
   catch(e){ console.warn('Sheet log failed:',e); }
 }
+// Human-readable order number — sequential per admin device, timestamp fallback
+function nextOrderNo() {
+  try { var n=parseInt(localStorage.getItem('ac_order_seq')||'1000',10)+1; localStorage.setItem('ac_order_seq',String(n)); return 'AC-'+n; }
+  catch(e){ return 'AC-'+Date.now().toString(36).slice(-6).toUpperCase(); }
+}
 function generateQuote() {
   if(!validate()) return;
   docState={
     type:'quote',
+    orderNo:nextOrderNo(),
     customer:{name:document.getElementById('c-name').value.trim(),email:document.getElementById('c-email').value.trim(),phone:document.getElementById('c-phone').value.trim()},
     items:PRODUCTS.filter(function(p){return qtys[p.id]>0;}).map(function(p){return{name:p.name,size:sizes[p.id],price:prices[p.id],qty:qtys[p.id]};}),
     sub:getSub(),ship:getShip(),disc:getDisc(),
@@ -762,7 +771,7 @@ function showQuoteScreen(type) {
   refEl.style.color=type==='invoice'?'var(--yellow)':'var(--cyan)';
   // Build inline preview
   var previewHtml='<p class="doc-preview-title">'+ref+'</p>';
-  previewHtml+='<p style="font-size:11px;color:var(--muted);margin-bottom:12px;">'+docState.date+' · '+docState.customer.name+' · '+docState.customer.email+'</p>';
+  previewHtml+='<p style="font-size:11px;color:var(--muted);margin-bottom:12px;">Order '+(docState.orderNo||'—')+' · '+docState.date+' · '+docState.customer.name+' · '+docState.customer.email+'</p>';
   previewHtml+=docState.items.map(function(it){ return '<div class="doc-preview-line"><span>'+it.qty+'× '+it.name+' ('+it.size+')</span><span>R '+(it.price*it.qty).toFixed(2)+'</span></div>'; }).join('');
   previewHtml+='<div style="margin-top:12px;border-top:1px solid var(--border);padding-top:8px;">';
   previewHtml+='<div class="doc-preview-line"><span style="color:var(--muted);">Subtotal</span><span>R '+docState.sub.toFixed(2)+'</span></div>';
@@ -844,7 +853,7 @@ function buildDocHTML(type) {
   var itemRows=d.items.map(function(it){return '<tr><td>'+it.name+'<br><small style="color:#666;">'+it.size+'</small></td><td style="text-align:center;">'+it.qty+'</td><td style="text-align:right;">R '+it.price.toFixed(2)+'</td><td style="text-align:right;">R '+(it.price*it.qty).toFixed(2)+'</td></tr>';}).join('');
   var bankSection=isInv?'<div style="margin-top:28px;padding:16px;background:#f9f9f9;border-left:3px solid '+accentColor+';"><p style="font-size:11px;font-weight:700;letter-spacing:0.15em;text-transform:uppercase;margin-bottom:10px;">Banking Details</p><p style="font-size:13px;line-height:1.8;">First National Bank<br>Account Name: Artifacts Coffee<br>Account Number: 62929285692<br>Branch Code: 250655<br>Reference: <strong>'+ref+'</strong></p></div>':'';
   var statusLabel=isInv?'INVOICE':'QUOTE — AWAITING ACCEPTANCE';
-  return '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Artifacts Coffee · '+statusLabel+'</title><link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@300;400&family=Barlow+Condensed:wght@400;600;700&display=swap" rel="stylesheet"><style>*{box-sizing:border-box;margin:0;padding:0;}body{font-family:\'DM Mono\',monospace;font-size:13px;line-height:1.6;color:#111;background:#fff;padding:48px;}@media print{body{padding:20px;}.no-print{display:none!important;}}</style></head><body><div style="max-width:640px;margin:0 auto;"><div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:32px;"><div><p style="font-family:\'Bebas Neue\',sans-serif;font-size:28px;letter-spacing:0.06em;">ARTIFACTS COFFEE</p><p style="font-size:11px;color:#666;">hello@artifactscoffee.co.za</p></div><div style="text-align:right;"><span style="display:inline-block;background:'+accentColor+';color:'+(isInv?'#111':'#111')+';font-family:\'Barlow Condensed\',sans-serif;font-size:11px;font-weight:700;letter-spacing:0.2em;padding:4px 12px;margin-bottom:8px;">'+statusLabel+'</span><p style="font-family:\'Barlow Condensed\',sans-serif;font-size:13px;font-weight:700;">'+ref+'</p><p style="font-size:12px;color:#666;">'+d.date+'</p></div></div><div style="margin-bottom:24px;padding:14px;background:#f9f9f9;"><p style="font-size:10px;font-weight:700;letter-spacing:0.15em;text-transform:uppercase;color:#999;margin-bottom:6px;">To</p><p style="font-size:13px;">'+d.customer.name+'</p><p style="font-size:12px;color:#666;">'+d.customer.email+(d.customer.phone?' · '+d.customer.phone:'')+'</p></div><table style="width:100%;border-collapse:collapse;margin-bottom:20px;"><thead><tr style="border-bottom:2px solid #111;"><th style="text-align:left;padding:8px 0;font-family:\'Barlow Condensed\',sans-serif;font-size:10px;font-weight:700;letter-spacing:0.15em;text-transform:uppercase;color:#999;">Product</th><th style="text-align:center;padding:8px 0;font-family:\'Barlow Condensed\',sans-serif;font-size:10px;font-weight:700;letter-spacing:0.15em;text-transform:uppercase;color:#999;">Qty</th><th style="text-align:right;padding:8px 0;font-family:\'Barlow Condensed\',sans-serif;font-size:10px;font-weight:700;letter-spacing:0.15em;text-transform:uppercase;color:#999;">Unit</th><th style="text-align:right;padding:8px 0;font-family:\'Barlow Condensed\',sans-serif;font-size:10px;font-weight:700;letter-spacing:0.15em;text-transform:uppercase;color:#999;">Total</th></tr></thead><tbody>'+itemRows+'</tbody></table><div style="text-align:right;border-top:1px solid #eee;padding-top:14px;"><p style="font-size:12px;color:#666;padding:3px 0;">Subtotal: R '+d.sub.toFixed(2)+'</p>'+(d.ship>0?'<p style="font-size:12px;color:#666;padding:3px 0;">Shipping ('+d.fulfilLabel+'): R '+d.ship.toFixed(2)+'</p>':'')+(d.disc>0?'<p style="font-size:12px;color:#666;padding:3px 0;">Discount: − R'+d.disc.toFixed(2)+'</p>':'')+'<p style="font-family:\'Bebas Neue\',sans-serif;font-size:24px;margin-top:8px;">TOTAL: R '+d.total.toFixed(2)+'</p></div><div style="margin-top:16px;padding:10px 14px;background:#f9f9f9;font-size:12px;"><strong>Fulfilment:</strong> '+d.fulfilLabel+(d.fulfilAddress?' · '+d.fulfilAddress:'')+'</div>'+bankSection+(d.notes?'<div style="margin-top:16px;padding:10px 14px;background:#f9f9f9;font-size:12px;"><strong>Notes:</strong> '+d.notes+'</div>':'')+'<div style="margin-top:40px;padding-top:20px;border-top:1px solid #eee;font-size:11px;color:#999;text-align:center;"><p>Artifacts Coffee · hello@artifactscoffee.co.za · artifactscoffee.co.za</p>'+(isInv?'':'<p style="margin-top:4px;">This quote is valid for 7 days from the date above.</p>')+'</div><div class="no-print" style="margin-top:24px;text-align:center;"><button onclick="window.print()" style="background:#111;color:#fff;border:none;padding:10px 24px;font-family:\'Barlow Condensed\',sans-serif;font-size:14px;font-weight:700;letter-spacing:0.12em;cursor:pointer;">PRINT / SAVE PDF</button></div></div></body></html>';
+  return '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Artifacts Coffee · '+statusLabel+'</title><link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@300;400&family=Barlow+Condensed:wght@400;600;700&display=swap" rel="stylesheet"><style>*{box-sizing:border-box;margin:0;padding:0;}body{font-family:\'DM Mono\',monospace;font-size:13px;line-height:1.6;color:#111;background:#fff;padding:48px;}@media print{body{padding:20px;}.no-print{display:none!important;}}</style></head><body><div style="max-width:640px;margin:0 auto;"><div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:32px;"><div><p style="font-family:\'Bebas Neue\',sans-serif;font-size:28px;letter-spacing:0.06em;">ARTIFACTS COFFEE</p><p style="font-size:11px;color:#666;">hello@artifactscoffee.co.za</p></div><div style="text-align:right;"><span style="display:inline-block;background:'+accentColor+';color:'+(isInv?'#111':'#111')+';font-family:\'Barlow Condensed\',sans-serif;font-size:11px;font-weight:700;letter-spacing:0.2em;padding:4px 12px;margin-bottom:8px;">'+statusLabel+'</span><p style="font-family:\'Barlow Condensed\',sans-serif;font-size:13px;font-weight:700;">'+ref+'</p><p style="font-size:11px;color:#666;">Order '+(d.orderNo||'')+'</p><p style="font-size:12px;color:#666;">'+d.date+'</p></div></div><div style="margin-bottom:24px;padding:14px;background:#f9f9f9;"><p style="font-size:10px;font-weight:700;letter-spacing:0.15em;text-transform:uppercase;color:#999;margin-bottom:6px;">To</p><p style="font-size:13px;">'+d.customer.name+'</p><p style="font-size:12px;color:#666;">'+d.customer.email+(d.customer.phone?' · '+d.customer.phone:'')+'</p></div><table style="width:100%;border-collapse:collapse;margin-bottom:20px;"><thead><tr style="border-bottom:2px solid #111;"><th style="text-align:left;padding:8px 0;font-family:\'Barlow Condensed\',sans-serif;font-size:10px;font-weight:700;letter-spacing:0.15em;text-transform:uppercase;color:#999;">Product</th><th style="text-align:center;padding:8px 0;font-family:\'Barlow Condensed\',sans-serif;font-size:10px;font-weight:700;letter-spacing:0.15em;text-transform:uppercase;color:#999;">Qty</th><th style="text-align:right;padding:8px 0;font-family:\'Barlow Condensed\',sans-serif;font-size:10px;font-weight:700;letter-spacing:0.15em;text-transform:uppercase;color:#999;">Unit</th><th style="text-align:right;padding:8px 0;font-family:\'Barlow Condensed\',sans-serif;font-size:10px;font-weight:700;letter-spacing:0.15em;text-transform:uppercase;color:#999;">Total</th></tr></thead><tbody>'+itemRows+'</tbody></table><div style="text-align:right;border-top:1px solid #eee;padding-top:14px;"><p style="font-size:12px;color:#666;padding:3px 0;">Subtotal: R '+d.sub.toFixed(2)+'</p>'+(d.ship>0?'<p style="font-size:12px;color:#666;padding:3px 0;">Shipping ('+d.fulfilLabel+'): R '+d.ship.toFixed(2)+'</p>':'')+(d.disc>0?'<p style="font-size:12px;color:#666;padding:3px 0;">Discount: − R'+d.disc.toFixed(2)+'</p>':'')+'<p style="font-family:\'Bebas Neue\',sans-serif;font-size:24px;margin-top:8px;">TOTAL: R '+d.total.toFixed(2)+'</p></div><div style="margin-top:16px;padding:10px 14px;background:#f9f9f9;font-size:12px;"><strong>Fulfilment:</strong> '+d.fulfilLabel+(d.fulfilAddress?' · '+d.fulfilAddress:'')+'</div>'+bankSection+(d.notes?'<div style="margin-top:16px;padding:10px 14px;background:#f9f9f9;font-size:12px;"><strong>Notes:</strong> '+d.notes+'</div>':'')+'<div style="margin-top:40px;padding-top:20px;border-top:1px solid #eee;font-size:11px;color:#999;text-align:center;"><p>Artifacts Coffee · hello@artifactscoffee.co.za · artifactscoffee.co.za</p>'+(isInv?'':'<p style="margin-top:4px;">This quote is valid for 7 days from the date above.</p>')+'</div><div class="no-print" style="margin-top:24px;text-align:center;"><button onclick="window.print()" style="background:#111;color:#fff;border:none;padding:10px 24px;font-family:\'Barlow Condensed\',sans-serif;font-size:14px;font-weight:700;letter-spacing:0.12em;cursor:pointer;">PRINT / SAVE PDF</button></div></div></body></html>';
 }
 
 function copyWaDraft(text,btn) {
@@ -860,9 +869,9 @@ function openWhatsApp(phone,msg) {
   window.open('https://wa.me/'+p+'?text='+encodeURIComponent(msg),'_blank');
 }
 
-function showConfirmation(data,total) {
+function showConfirmation(data,total,orderNo) {
   var ref=data.ref||'—', draft=data.waDraft||'';
-  document.getElementById('conf-ref').textContent=ref;
+  document.getElementById('conf-ref').textContent=(orderNo?orderNo+' · ':'')+ref;
   document.getElementById('conf-ref-inline').textContent=ref;
   document.getElementById('conf-amount').textContent='R '+parseFloat(total).toFixed(2);
   document.getElementById('wa-draft').textContent=draft;

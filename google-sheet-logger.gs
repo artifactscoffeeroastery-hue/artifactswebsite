@@ -24,12 +24,13 @@ function doPost(e) {
   if (sheet.getLastRow() === 0) {
     sheet.appendRow([
       'Timestamp','Type','Reference','Name','Email','Phone',
-      'Items','Subtotal','Shipping','Discount','Total','Fulfilment','Address','Notes','Customer ID','Address Data'
+      'Items','Subtotal','Shipping','Discount','Total','Fulfilment','Address','Notes','Customer ID','Address Data','Order No'
     ]);
     sheet.setFrozenRows(1);
   } else {
     if (sheet.getRange(1, 15).getValue() !== 'Customer ID')   sheet.getRange(1, 15).setValue('Customer ID');
     if (sheet.getRange(1, 16).getValue() !== 'Address Data')  sheet.getRange(1, 16).setValue('Address Data');
+    if (sheet.getRange(1, 17).getValue() !== 'Order No')      sheet.getRange(1, 17).setValue('Order No');
   }
 
   sheet.appendRow([
@@ -48,12 +49,13 @@ function doPost(e) {
     d.address || '',
     d.notes || '',
     d.customerId || '',
-    d.addressData || ''
+    d.addressData || '',
+    d.orderNo || ''
   ]);
 
   // Colour-code the new row by type: quotes = blue tint, invoices = amber tint
   var lr = sheet.getLastRow();
-  sheet.getRange(lr, 1, 1, 16).setBackground(d.type === 'invoice' ? '#fff3cd' : '#d1ecf1');
+  sheet.getRange(lr, 1, 1, 17).setBackground(d.type === 'invoice' ? '#fff3cd' : '#d1ecf1');
 
   return ContentService.createTextOutput('ok');
 }

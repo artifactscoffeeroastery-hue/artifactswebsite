@@ -40,6 +40,9 @@
 - `GOOGLE_PLACE_ID` — ChIJ... Place ID from Google Business Profile
 - `ADMIN_ORDER_KEY` — secret gate code for `admin-order.html` / `createManualOrder.js`
 - `DATABASE_URL` — **must be the Supabase transaction pooler URL**, NOT the direct connection. Direct host `db.<ref>.supabase.co:5432` no longer resolves from Netlify (IPv4-only env → ENOTFOUND). Correct form: `postgresql://postgres.hwfwnzsjcblleykegiay:[pw]@aws-0-eu-central-2.pooler.supabase.com:6543/postgres`. Username must be `postgres.<ref>` (bare `postgres` fails auth). **Env var changes require a redeploy** — Netlify snapshots them at deploy time.
+- `RESEND_API_KEY` — transactional email (office leads, collection alerts, customer receipts)
+- `MAIL_FROM` — customer receipt sender; defaults to `onboarding@resend.dev` (sandbox → owner only). Set to `Artifacts Coffee <hello@artifactscoffee.co.za>` once the domain is verified in Resend.
+- `TCG_API_KEY` — The Courier Guy / Shiplogic (live rates via `/rates`; same portal key is booking-capable via `POST /shipments` for the pending auto-book feature). `FASTWAY_API_KEY` optional second courier.
 
 ---
 
@@ -204,6 +207,17 @@ Live bar replaces coming-soon bar above origin cards.
 - Root cause was a bad `DATABASE_URL`: it held the direct connection (`db.<ref>.supabase.co:5432`, ENOTFOUND from Netlify) then the pooler host with a bare `postgres` username (auth failed). Fixed to pooler host + `postgres.<ref>` username. See env-vars note above.
 - Debug error passthrough in `createManualOrder.js` reverted: `DB error: ${e.message}` → `'Failed to save order'`
 - `orders` table schema in project `hwfwnzsjcblleykegiay` verified — all 14 columns the INSERT targets exist
+
+### Session 12 (Collect code, receipts, live-rate fix, Sheet CRM, order numbers)
+- **Collect-from-us reworked into a discount code.** Public "Collect from us" cart tab removed; instead `discountCodes.FAMILY` (`type:'collect'`) unlocks free collection (full coffee price, R0 shipping) — hides delivery tabs, forces pickup mode, shows a WhatsApp button (`js/main.js`). `COLLECT_WHATSAPP='27613832478'`. `getDiscount` returns 0 for `type:'collect'`. Rename the code by editing the `FAMILY` key.
+- **Customer receipt/tax-invoice email** — `payfast-notify.js` `sendCustomerInvoice()` emails the customer on every COMPLETE payment (Resend). Auto-labels "Tax Invoice" if `BIZ.vat` is set, else "Receipt". Sends from `MAIL_FROM` env (defaults to `onboarding@resend.dev` — sandbox only delivers to the account owner until a domain is verified in Resend; set `MAIL_FROM='Artifacts Coffee <hello@artifactscoffee.co.za>'` after verifying).
+- **payfast-notify.js was truncated/broken** (missing catch + closing braces → syntax error, webhook not running). Rebuilt clean; also emails the roaster for collect-from-us orders (`notifyCollection`).
+- **Admin live-rate bug fixed** — admin read `q.service`/`q.price` but `getShipping` returns `label`/`amount` → "undefined / R NaN". Now reads `label`/`amount` (tolerates both). Confirmed `getShipping` returns `source:'live'` (TCG key working).
+- **PEP Stores (Mossel Bay) fulfilment option removed** from `admin-order.html` (option, section, and dead `pep` refs).
+- **Google Sheet CRM logging** — `admin-order.html` `logToSheet()` posts every quote & invoice to a Google Apps Script Web App (`SHEET_LOG_URL`, secret `SHEET_LOG_TOKEN='aC7logKq9mZ2xR4t'`) → appends a row to the "Orders" tab. Script file: `google-sheet-logger.gs` (doPost token-guarded; doGet JSONP returns deduped client list). Columns include **Customer ID** (deterministic SHA-256 UUID from email), **Address Data** (JSON), **Order No**. Rows colour-coded: quotes blue `#d1ecf1`, invoices amber `#fff3cd`. CSP `script-src`+`connect-src` allow `script.google.com`/`script.googleusercontent.com`.
+- **Client autofill** — admin loads the Sheet client list via JSONP on gate unlock; typing a name/email suggests past clients and fills name/email/phone + structured address (re-fetches courier rates).
+- **Order numbers** — sequential `AC-####` (localStorage counter, timestamp fallback) assigned at quote generation, carried to its invoice; forced onto direct EFT (stored in `admin_notes`) and PayFast (`[ADMIN AC-####]` in description) orders; shown on preview, printed doc, confirmation, and Sheet.
+- **NEXT / pending:** (1) auto-book Courier Guy shipments on any paid order with a shipping charge — TCG portal key is booking-capable (`POST /shipments`); build `bookShipment()`, trigger from webhook (normal) + post-payment (admin), idempotent, needs structured address carried through checkout. (2) These changes not yet all committed at time of writing. (3) Resend domain verification still pending for customer emails to actually deliver.
 
 ## Known / Watch Items
 
