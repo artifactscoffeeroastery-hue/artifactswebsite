@@ -192,18 +192,20 @@ textarea.field-input{resize:vertical;min-height:72px;}
     <p class="section-title">Customer Details</p>
     <div class="field-group">
       <label class="field-label">Full Name *</label>
-      <input class="field-input" id="c-name" type="text" placeholder="Customer full name" autocomplete="off" oninput="updateSummary()">
+      <input class="field-input" id="c-name" type="text" placeholder="Customer full name" autocomplete="off" list="client-names" oninput="updateSummary()" onchange="autofillFromName()">
     </div>
     <div class="field-row">
       <div class="field-group">
         <label class="field-label">Email *</label>
-        <input class="field-input" id="c-email" type="email" placeholder="customer@email.com" oninput="updateSummary()">
+        <input class="field-input" id="c-email" type="email" placeholder="customer@email.com" autocomplete="off" list="client-emails" oninput="updateSummary()" onchange="autofillFromEmail()">
       </div>
       <div class="field-group">
         <label class="field-label">Phone (WhatsApp)</label>
         <input class="field-input" id="c-phone" type="tel" placeholder="0XX XXX XXXX">
       </div>
     </div>
+    <datalist id="client-names"></datalist>
+    <datalist id="client-emails"></datalist>
   </div>
 
   <!-- FULFILLMENT -->
@@ -468,6 +470,56 @@ function checkGate() {
   document.getElementById('app').style.display  = 'block';
   initProducts();
   updateSummary();
+  loadClients();
+}
+
+// ── CLIENT AUTOFILL (reads deduped client list from the Google Sheet via JSONP) ──
+var CLIENTS = [];
+function loadClients() {
+  if(!SHEET_LOG_URL) return;
+  var cb='__clientsCb'+Date.now();
+  var s=document.createElement('script');
+  window[cb]=function(res){
+    CLIENTS=(res&&res.clients)||[];
+    buildClientDatalists();
+    try{ delete window[cb]; }catch(e){ window[cb]=undefined; }
+    if(s.parentNode) s.parentNode.removeChild(s);
+  };
+  s.src=SHEET_LOG_URL+'?callback='+cb+'&token='+encodeURIComponent(SHEET_LOG_TOKEN);
+  s.onerror=function(){ try{ delete window[cb]; }catch(e){} if(s.parentNode) s.parentNode.removeChild(s); };
+  document.body.appendChild(s);
+}
+function escHtml(v){ return String(v||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;'); }
+function buildClientDatalists() {
+  var eDL=document.getElementById('client-emails'), nDL=document.getElementById('client-names');
+  if(eDL) eDL.innerHTML=CLIENTS.map(function(c){ return '<option value="'+escHtml(c.email)+'">'+escHtml(c.name)+'</option>'; }).join('');
+  if(nDL) nDL.innerHTML=CLIENTS.map(function(c){ return '<option value="'+escHtml(c.name)+'"></option>'; }).join('');
+}
+function findClient(field,val) {
+  val=(val||'').trim().toLowerCase(); if(!val) return null;
+  for(var i=0;i<CLIENTS.length;i++){ if((CLIENTS[i][field]||'').toString().trim().toLowerCase()===val) return CLIENTS[i]; }
+  return null;
+}
+function fillAddress(a) {
+  if(!a) return;
+  var set=function(id,v){ var el=document.getElementById(id); if(el&&v) el.value=v; };
+  set('d-address',a.line1); set('d-suburb',a.suburb); set('d-city',a.city);
+  set('d-province',a.province); set('d-postal',a.postal); set('d-personal-address',a.personal);
+  if(fulfilMode==='courier' && a.province && (''+(a.postal||'')).length>=4){ try{ fetchRates(); }catch(e){} }
+}
+function autofillFromEmail() {
+  var c=findClient('email',document.getElementById('c-email').value); if(!c) return;
+  if(c.name)  document.getElementById('c-name').value=c.name;
+  if(c.phone) document.getElementById('c-phone').value=c.phone;
+  fillAddress(c.addr);
+  updateSummary();
+}
+function autofillFromName() {
+  var c=findClient('name',document.getElementById('c-name').value); if(!c) return;
+  if(c.email) document.getElementById('c-email').value=c.email;
+  if(c.phone) document.getElementById('c-phone').value=c.phone;
+  fillAddress(c.addr);
+  updateSummary();
 }
 
 // ── INIT PRODUCTS ─────────────────────────────────────────────────────────────
@@ -654,14 +706,27 @@ async function payViaEFT() {
 // Apps Script Web App URL (ends in /exec) + shared secret token (must match the .gs script)
 var SHEET_LOG_URL   = 'https://script.google.com/macros/s/AKfycbxn7qMGoMsen_CXycUn-kc6knfNXioErIW2YkTchIkJfPPo6BN756tQ0-m-iptGszvE/exec';
 var SHEET_LOG_TOKEN = 'aC7logKq9mZ2xR4t';
-function logToSheet(kind) {
+// Stable customer UUID from email — same email always yields the same id (no storage/lookup needed)
+async function customerUUID(email){
+  var e=(email||'').trim().toLowerCase();
+  if(!e||!(window.crypto&&crypto.subtle)) return '';
+  var buf=await crypto.subtle.digest('SHA-256', new TextEncoder().encode(e));
+  var b=new Uint8Array(buf).slice(0,16);
+  b[6]=(b[6]&0x0f)|0x50; b[8]=(b[8]&0x3f)|0x80; // version + variant bits
+  var h=Array.prototype.map.call(b,function(x){return ('0'+x.toString(16)).slice(-2);}).join('');
+  return h.slice(0,8)+'-'+h.slice(8,12)+'-'+h.slice(12,16)+'-'+h.slice(16,20)+'-'+h.slice(20);
+}
+async function logToSheet(kind) {
   if(!SHEET_LOG_URL||!docState) return;
   var ref=kind==='invoice'?(docState.invoiceRef||docState.ref):docState.ref;
   var items=docState.items.map(function(it){return it.qty+'x '+it.name+' ('+it.size+')';}).join('; ');
-  var payload={ token:SHEET_LOG_TOKEN, type:kind, ref:ref, timestamp:new Date().toISOString(),
+  var customerId=await customerUUID(docState.customer.email);
+  var A=function(id){ var el=document.getElementById(id); return el?el.value.trim():''; };
+  var addr={ line1:A('d-address'), suburb:A('d-suburb'), city:A('d-city'), province:A('d-province'), postal:A('d-postal'), personal:A('d-personal-address') };
+  var payload={ token:SHEET_LOG_TOKEN, customerId:customerId, type:kind, ref:ref, timestamp:new Date().toISOString(),
     name:docState.customer.name, email:docState.customer.email, phone:docState.customer.phone,
     items:items, subtotal:docState.sub, shipping:docState.ship, discount:docState.disc, total:docState.total,
-    fulfilment:docState.fulfilLabel, address:docState.fulfilAddress||'', notes:docState.notes||'' };
+    fulfilment:docState.fulfilLabel, address:docState.fulfilAddress||'', notes:docState.notes||'', addressData:JSON.stringify(addr) };
   try { fetch(SHEET_LOG_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(payload)}); }
   catch(e){ console.warn('Sheet log failed:',e); }
 }
