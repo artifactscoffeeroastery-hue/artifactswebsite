@@ -3,16 +3,16 @@ const FASTWAY_API  = 'https://api.shiplogic.com/rates';
 const TCG_KEY      = process.env.TCG_API_KEY;
 const FASTWAY_KEY  = process.env.FASTWAY_API_KEY;
 
-// Artifacts Coffee collection address (Johannesburg)
+// Artifacts Coffee collection address (Roodepoort)
 const COLLECTION = {
   type: 'business',
   company: 'Artifacts Coffee Roastery',
-  street_address: '12 Honey Street',
-  local_area: 'Brixton',
-  city: 'Johannesburg',
+  street_address: '864 Bongo Street',
+  local_area: 'Allens Nek',
+  city: 'Roodepoort',
   zone: 'Gauteng',
   country: 'ZA',
-  code: '2092'
+  code: '1709'
 };
 
 function weightKgToParcel(kg) {
@@ -39,7 +39,8 @@ async function fetchRates(apiUrl, apiKey, delivery, parcel, subtotal, label) {
     return (data.rates || data || []).map(r => ({
       code: `${label.toLowerCase()}-${r.service_level?.code || r.code || 'std'}`,
       label: `${label}: ${r.service_level?.name || r.name || 'Courier'}`,
-      amount: Math.ceil(r.rate_excluding_vat ? r.rate_excluding_vat * 1.15 : r.total || r.amount || 100)
+      amount: Math.ceil(r.rate_excluding_vat ? r.rate_excluding_vat * 1.15 : r.total || r.amount || 100),
+      service_level_code: r.service_level?.code || r.code || ''   // raw code needed to book a shipment
     }));
   } catch (e) {
     console.error(`${label} fetch error:`, e.message);
@@ -88,10 +89,10 @@ exports.handler = async (event) => {
   };
 };
 
+// When live rates are unavailable we do NOT guess door-to-door prices
+// (would risk charging less than TCG bills us). Only the fixed PUDO rate is offered.
 function fallback(dest) {
   return [
-    { code: 'pudo',          label: 'TCG PUDO Locker (Collect)',  amount: 60  },
-    { code: 'door-gauteng',  label: 'Gauteng Door-to-Door',       amount: 100 },
-    { code: 'door-national', label: 'Rest of SA Door-to-Door',    amount: 150 }
+    { code: 'pudo', label: 'TCG PUDO Locker (Collect)', amount: 60 }
   ];
 }

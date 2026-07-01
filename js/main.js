@@ -4,6 +4,7 @@ const productQtys = { gt:1, mx:1, ni:1, dp:1 };
 let currentUser = null, activeDiscount = null, activeShippingQuote = null;
 let deliverMode = 'deliver'; // 'deliver' | 'collect' (PUDO) | 'pickup' (collect from us)
 let lastQuotes = null; // cache last fetched shipping quotes
+let liveRatesOk = false; // true only when live TCG door-to-door rates are loaded (never charge a guessed rate)
 // ── COLLECT-FROM-US CONFIG ──
 const COLLECT_WHATSAPP = '27613832478'; // your WhatsApp number, intl format, digits only
 const discountCodes = {
@@ -355,6 +356,15 @@ function validatePay() {
   const req = deliverMode==='deliver' ? ['phone','line1','suburb','city','province','postalCode'] : ['phone'];
   const miss=req.filter(k=>!a[k]);
   if (miss.length) { setStatus('shipping-validation-status','Please complete: '+miss.join(', ').replace('line1','street address')+'.','error'); alert('Please complete your delivery details.'); return false; }
+  if (deliverMode==='deliver') {
+    const sel=document.getElementById('tcg-shipping'), opt=sel&&sel.options[sel.selectedIndex];
+    const code=opt&&opt.getAttribute('data-code');
+    if (!liveRatesOk || !opt || code==='none' || code==='pudo') {
+      setStatus('shipping-validation-status','Live courier rates aren’t available right now. Please use Collect (PUDO) or try again in a moment.','error');
+      alert('Live delivery rates aren’t available right now. Please use Collect (PUDO) or try again shortly.');
+      return false;
+    }
+  }
   setStatus('shipping-validation-status','Details good. Proceeding to PayFast...','info');
   calcTotal(); return true;
 }
@@ -367,27 +377,32 @@ async function fetchShippingQuotes() {
   const a=addr(), stat='shipping-rate-status';
   if (!a.province||!a.postalCode) { setStatus(stat,'Select province and enter postal code first.','error'); return; }
   setStatus(stat,'Fetching courier rates...','info');
-  const fb=[{code:'pudo',label:'TCG PUDO Locker',amount:60},{code:'door-gauteng',label:'Gauteng Door-to-Door',amount:100},{code:'door-national',label:'Rest of SA Door-to-Door',amount:150}];
+  const pudoOnly=[{code:'pudo',label:'TCG PUDO Locker',amount:60}];
   try {
     const res=await fetch('/.netlify/functions/getShipping',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({destination:a,cartItems:cart.map(i=>({name:i.name,size:i.size,qty:i.qty})),totalWeightKg:getCartKg(),subtotal:cart.reduce((s,i)=>s+i.price*i.qty,0)})});
-    if (res.status===404) { renderShipOpts(fb,a.province); setStatus(stat,'Standard rates shown. Redeploy for live quotes.','error'); return; }
     if (!res.ok) throw new Error();
-    const d=await res.json(); const q=d.quotes&&d.quotes.length?d.quotes:fb;
+    const d=await res.json();
+    const q=d.quotes&&d.quotes.length?d.quotes:pudoOnly;
+    // Only trust live door-to-door rates; never charge a guessed rate
+    liveRatesOk = d.source==='live' && q.some(x=>x.code!=='pudo');
     lastQuotes=q; activeShippingQuote=q[0]; renderShipOpts(q,a.province);
-    setStatus(stat,d.source==='fallback'?'Live rates unavailable — standard rates shown.':'Rates updated.','info');
-  } catch(e) { lastQuotes=fb; renderShipOpts(fb,a.province); setStatus(stat,'Could not reach shipping service — standard rates applied.','error'); }
+    setStatus(stat, liveRatesOk ? 'Rates updated.' : 'Live courier rates are unavailable right now — please use Collect (PUDO) or try again shortly.', liveRatesOk?'info':'error');
+  } catch(e) { liveRatesOk=false; lastQuotes=pudoOnly; renderShipOpts(pudoOnly,a.province); setStatus(stat,'Could not reach the courier service — please use Collect (PUDO) or try again shortly.','error'); }
 }
+function shipOptHtml(q){ const a=Number(q.amount||0); return `<option value="${a}" data-rate="${a}" data-code="${q.code||''}">${q.label||'Courier'} - R${a.toFixed(2)}</option>`; }
 function renderShipOpts(quotes,province) {
   const sel=document.getElementById('tcg-shipping'); if (!sel) return;
-  // In collect mode show only PUDO; in deliver mode show all non-PUDO options
-  const filtered = deliverMode==='collect'
-    ? quotes.filter(q=>q.code==='pudo')
-    : quotes.filter(q=>q.code!=='pudo');
-  const display = filtered.length ? filtered : quotes;
-  sel.innerHTML=display.map(q=>{ const a=Number(q.amount||0); return `<option value="${a}" data-rate="${a}" data-code="${q.code||''}">${q.label||'Courier'} - R${a.toFixed(2)}</option>`; }).join('');
-  if (deliverMode==='deliver') {
-    const pref=(province||'').trim().toLowerCase()==='gauteng'?'door-gauteng':'door-national';
-    const idx=display.findIndex(q=>q.code===pref); if (idx>=0) sel.selectedIndex=idx;
+  if (deliverMode==='collect') {
+    const pudo=quotes.filter(q=>q.code==='pudo');
+    sel.innerHTML=(pudo.length?pudo:quotes).map(shipOptHtml).join('');
+    calcTotal(); return;
+  }
+  // deliver (door-to-door): only show live rates — never a guessed price
+  const courier = quotes.filter(q=>q.code!=='pudo');
+  if (liveRatesOk && courier.length) {
+    sel.innerHTML=courier.map(shipOptHtml).join('');
+  } else {
+    sel.innerHTML='<option value="0" data-rate="0" data-code="none">Live rates unavailable — try again</option>';
   }
   calcTotal();
 }
@@ -417,7 +432,7 @@ function setDeliverMode(mode) {
     return;
   }
   if (shipWrap) shipWrap.style.display = '';
-  const fb=[{code:'pudo',label:'TCG PUDO Locker',amount:60},{code:'door-gauteng',label:'Gauteng Door-to-Door',amount:100},{code:'door-national',label:'Rest of SA Door-to-Door',amount:150}];
+  const fb=[{code:'pudo',label:'TCG PUDO Locker',amount:60}];
   renderShipOpts(lastQuotes||fb, addr().province);
 }
 // Build the WhatsApp deep-link with the customer's current order
