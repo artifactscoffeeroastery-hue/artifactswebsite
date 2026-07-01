@@ -51,6 +51,10 @@ function doPost(e) {
     d.addressData || ''
   ]);
 
+  // Colour-code the new row by type: quotes = blue tint, invoices = amber tint
+  var lr = sheet.getLastRow();
+  sheet.getRange(lr, 1, 1, 16).setBackground(d.type === 'invoice' ? '#fff3cd' : '#d1ecf1');
+
   return ContentService.createTextOutput('ok');
 }
 
