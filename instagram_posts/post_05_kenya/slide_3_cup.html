@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1080">
+<title>Kenya · Slide 3 · The Cup</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:ital,wght@0,400;0,600;0,700;0,900;1,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { width:1080px; height:1080px; overflow:hidden; background:#E1FF01; }
+
+  .card {
+    width:1080px; height:1080px;
+    background:#E1FF01;
+    display:flex; flex-direction:column;
+    justify-content:space-between;
+    padding:80px 96px;
+    position:relative;
+  }
+
+  .top { }
+
+  .drop-line {
+    font-family:'DM Mono',monospace;
+    font-size:11px; letter-spacing:0.2em;
+    color:#020c1a; opacity:0.4;
+    margin-bottom:24px;
+  }
+
+  .section-label {
+    font-family:'Barlow Condensed',sans-serif;
+    font-weight:700; font-size:13px;
+    letter-spacing:0.32em; text-transform:uppercase;
+    color:#020c1a; opacity:0.5;
+    margin-bottom:16px;
+    display:flex; align-items:center; gap:12px;
+  }
+  .section-label::before { content:''; width:18px; height:2px; background:#020c1a; opacity:0.4; }
+
+  .headline {
+    font-family:'Bebas Neue',sans-serif;
+    font-size:96px; line-height:0.85;
+    color:#020c1a; letter-spacing:0.02em;
+  }
+
+  /* Big tasting notes — each as its own statement */
+  .notes {
+    display:flex; flex-direction:column;
+    gap:2px;
+  }
+
+  .note-row {
+    display:flex; align-items:center;
+    gap:28px;
+    padding:18px 0;
+    border-bottom:1px solid rgba(2,12,26,0.1);
+  }
+  .note-row:last-child { border-bottom:none; }
+
+  .note-num {
+    font-family:'DM Mono',monospace;
+    font-size:10px; letter-spacing:0.15em;
+    color:#020c1a; opacity:0.25;
+    min-width:20px;
+  }
+
+  .note-name {
+    font-family:'Bebas Neue',sans-serif;
+    font-size:72px; line-height:0.85;
+    color:#020c1a; flex:1;
+  }
+
+  .note-desc {
+    font-family:'Barlow Condensed',sans-serif;
+    font-weight:600; font-size:14px;
+    letter-spacing:0.18em; text-transform:uppercase;
+    color:#020c1a; opacity:0.35;
+    text-align:right;
+    min-width:180px;
+  }
+
+  /* Bottom — process strip */
+  .process-strip {
+    display:flex; gap:2px;
+  }
+
+  .process-tag {
+    background:rgba(2,12,26,0.08);
+    border:1px solid rgba(2,12,26,0.12);
+    padding:12px 20px;
+    font-family:'Barlow Condensed',sans-serif;
+    font-weight:700; font-size:12px;
+    letter-spacing:0.2em; text-transform:uppercase;
+    color:#020c1a; opacity:0.6;
+    display:flex; align-items:center; gap:8px;
+  }
+  .process-tag::before {
+    content:''; width:6px; height:6px;
+    border-radius:50%;
+    background:#020c1a; opacity:0.4;
+    flex-shrink:0;
+  }
+  .score-tag {
+    background:#020c1a;
+    padding:12px 24px;
+    margin-left:auto;
+    font-family:'Bebas Neue',sans-serif;
+    font-size:24px; letter-spacing:0.1em;
+    color:#E1FF01;
+  }
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="top">
+    <div class="drop-line">Drop 004 · Kiandu AB · Washed</div>
+    <div class="section-label">What's in the cup</div>
+    <div class="headline">The flavour profile.</div>
+  </div>
+
+  <div class="notes">
+    <div class="note-row">
+      <div class="note-num">01</div>
+      <div class="note-name">Peach</div>
+      <div class="note-desc">Stone fruit sweetness</div>
+    </div>
+    <div class="note-row">
+      <div class="note-num">02</div>
+      <div class="note-name">Tropical Fruit</div>
+      <div class="note-desc">Juice-forward body</div>
+    </div>
+    <div class="note-row">
+      <div class="note-num">03</div>
+      <div class="note-name">Orange Soda</div>
+      <div class="note-desc">Bright & effervescent</div>
+    </div>
+    <div class="note-row">
+      <div class="note-num">04</div>
+      <div class="note-name">Toffee</div>
+      <div class="note-desc">Smooth finish</div>
+    </div>
+  </div>
+
+  <div class="process-strip">
+    <div class="process-tag">Fully Washed</div>
+    <div class="process-tag">12–48hr Ferment</div>
+    <div class="process-tag">Sun dried · Raised beds</div>
+    <div class="score-tag">88 pts</div>
+  </div>
+</div>
+</body>
+</html>

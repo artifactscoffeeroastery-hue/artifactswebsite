@@ -25,6 +25,18 @@ const PAYFAST_MERCHANT_ID  = '34420469';
 const PAYFAST_VALIDATE_URL = 'https://www.payfast.co.za/eng/query/validate';
 const POINTS_PER_RAND      = 1; // 1 point per R1 spent
 
+// ── Business / customer-invoice details ──────────────────────────────────────
+// MAIL_FROM: once your domain is verified in Resend, set env MAIL_FROM to
+// "Artifacts Coffee <hello@artifactscoffee.co.za>". Until then the shared
+// resend.dev sender only delivers to your own account email.
+const MAIL_FROM = process.env.MAIL_FROM || 'Artifacts Coffee <onboarding@resend.dev>';
+const BIZ = {
+  name:  'Artifacts Coffee Roastary',
+  email: 'hello@artifactscoffee.co.za',
+  site:  'https://artifactscoffee.co.za',
+  vat:   '', // ← if VAT-registered, add your VAT number to make this a valid tax invoice
+};
+
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
 /** Build PayFast signature string and return its MD5 hash */
@@ -175,6 +187,57 @@ async function notifyCollection({ email, phone, itemDesc, amountRand, paymentId,
   console.log(`Collection email sent for order ${paymentId}`);
 }
 
+/** Email the customer a paid receipt / tax invoice */
+async function sendCustomerInvoice({ email, itemDesc, amountRand, paymentId, shipMethod, discountCode }) {
+  const key = process.env.RESEND_API_KEY;
+  if (!key)   { console.warn('RESEND_API_KEY not set — skipping customer invoice'); return; }
+  if (!email) { console.warn('No customer email — skipping invoice'); return; }
+
+  const date    = new Date().toLocaleDateString('en-ZA', { day: '2-digit', month: 'long', year: 'numeric' });
+  const docType = BIZ.vat ? 'Tax Invoice' : 'Receipt';
+  const vatRow  = BIZ.vat ? `<p style="margin:2px 0;color:#888;font-size:12px;">VAT No: ${BIZ.vat}</p>` : '';
+
+  const html = `
+  <div style="max-width:560px;margin:0 auto;font-family:Arial,Helvetica,sans-serif;color:#111;">
+    <div style="background:#0a0a0a;padding:24px;text-align:center;">
+      <div style="color:#fff;font-size:22px;font-weight:700;letter-spacing:2px;">ARTIFACTS COFFEE</div>
+      <div style="color:#C8373E;font-size:12px;letter-spacing:3px;text-transform:uppercase;margin-top:4px;">${docType}</div>
+    </div>
+    <div style="padding:24px;border:1px solid #eee;border-top:none;">
+      <p style="margin:0 0 4px;font-size:15px;">Thank you for your order.</p>
+      <p style="margin:0 0 16px;color:#666;font-size:13px;">Payment received &mdash; this is your ${docType.toLowerCase()}.</p>
+      <table style="width:100%;font-size:13px;color:#333;margin-bottom:16px;border-collapse:collapse;">
+        <tr><td style="padding:3px 0;color:#888;">Order reference</td><td style="text-align:right;font-weight:700;">${paymentId}</td></tr>
+        <tr><td style="padding:3px 0;color:#888;">Date</td><td style="text-align:right;">${date}</td></tr>
+        <tr><td style="padding:3px 0;color:#888;">Fulfilment</td><td style="text-align:right;">${shipMethod || '—'}</td></tr>
+        ${discountCode ? `<tr><td style="padding:3px 0;color:#888;">Code</td><td style="text-align:right;">${discountCode}</td></tr>` : ''}
+      </table>
+      <table style="width:100%;border-collapse:collapse;font-size:13px;">
+        <tr style="border-bottom:2px solid #111;"><th style="text-align:left;padding:8px 0;">Item</th><th style="text-align:right;padding:8px 0;">Amount</th></tr>
+        <tr style="border-bottom:1px solid #eee;"><td style="padding:10px 0;">${itemDesc || 'Artifacts Coffee order'}</td><td style="text-align:right;padding:10px 0;">R${amountRand.toFixed(2)}</td></tr>
+        <tr><td style="padding:12px 0;font-weight:700;font-size:15px;">Total paid</td><td style="text-align:right;padding:12px 0;font-weight:700;font-size:15px;color:#1a7f37;">R${amountRand.toFixed(2)}</td></tr>
+      </table>
+      <div style="margin-top:8px;display:inline-block;background:#e7f6ec;color:#1a7f37;font-size:12px;font-weight:700;padding:4px 10px;border-radius:3px;">PAID</div>
+      <hr style="border:none;border-top:1px solid #eee;margin:20px 0;">
+      <p style="margin:0;color:#888;font-size:12px;">${BIZ.name}</p>
+      ${vatRow}
+      <p style="margin:2px 0;color:#888;font-size:12px;"><a href="${BIZ.site}" style="color:#C8373E;text-decoration:none;">${BIZ.site.replace('https://', '')}</a> &middot; ${BIZ.email}</p>
+    </div>
+  </div>`;
+
+  await fetch('https://api.resend.com/emails', {
+    method:  'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${key}` },
+    body: JSON.stringify({
+      from:    MAIL_FROM,
+      to:      [email],
+      subject: `Your Artifacts Coffee ${docType.toLowerCase()} — ${paymentId}`,
+      html,
+    })
+  });
+  console.log(`Customer ${docType} sent to ${email} for order ${paymentId}`);
+}
+
 // ── Handler ──────────────────────────────────────────────────────────────────
 exports.handler = async (event) => {
   // PayFast only POSTs to this endpoint
@@ -223,6 +286,16 @@ exports.handler = async (event) => {
         discountCode:   params.custom_str1 || '',
         shippingMethod: shipMethod,
       });
+
+      // Email the customer their paid receipt / tax invoice
+      await sendCustomerInvoice({
+        email:        params.email_address || '',
+        itemDesc:     params.item_description || '',
+        amountRand,
+        paymentId,
+        shipMethod,
+        discountCode: params.custom_str1 || '',
+      }).catch(e => console.error('Customer invoice error:', e.message));
 
       // Collect-from-us orders: alert the roaster by email so they can arrange pickup
       if (/collect from/i.test(shipMethod)) {

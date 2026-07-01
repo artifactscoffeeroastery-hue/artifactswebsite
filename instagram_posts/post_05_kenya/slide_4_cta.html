@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1080">
+<title>Kenya · Slide 4 · CTA</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:ital,wght@0,400;0,600;0,700;0,900;1,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { width:1080px; height:1080px; overflow:hidden; background:#020c1a; }
+
+  .card {
+    width:1080px; height:1080px;
+    position:relative;
+    display:flex; flex-direction:column;
+    justify-content:space-between;
+    padding:80px;
+  }
+
+  /* Photo background */
+  .bg { position:absolute; inset:0; }
+  .bg img {
+    width:100%; height:100%;
+    object-fit:cover; object-position:center 35%;
+    filter:saturate(0.6) brightness(0.4);
+    display:block;
+  }
+  .bg::after {
+    content:'';
+    position:absolute; inset:0;
+    background:linear-gradient(
+      to bottom,
+      rgba(2,12,26,0.5) 0%,
+      rgba(2,12,26,0.3) 25%,
+      rgba(2,12,26,0.7) 60%,
+      rgba(2,12,26,0.95) 100%
+    );
+  }
+
+  /* Yellow top bar */
+  .yellow-top {
+    position:absolute; top:0; left:0;
+    width:100%; height:6px;
+    background:#E1FF01; z-index:2;
+  }
+
+  .brand-mark {
+    position:relative; z-index:1;
+    font-family:'Barlow Condensed',sans-serif;
+    font-weight:700; font-size:12px;
+    letter-spacing:0.28em; text-transform:uppercase;
+    color:#F2F2F2; opacity:0.3;
+  }
+
+  .center {
+    position:relative; z-index:1;
+  }
+
+  .urgency {
+    font-family:'Barlow Condensed',sans-serif;
+    font-weight:700; font-size:13px;
+    letter-spacing:0.32em; text-transform:uppercase;
+    color:#E1FF01; opacity:0.9;
+    margin-bottom:16px;
+    display:flex; align-items:center; gap:12px;
+  }
+  .urgency::before { content:''; width:20px; height:2px; background:#E1FF01; }
+
+  .headline {
+    font-family:'Bebas Neue',sans-serif;
+    font-size:120px; line-height:0.85;
+    color:#F2F2F2; letter-spacing:0.02em;
+    margin-bottom:32px;
+  }
+  .headline em { color:#E1FF01; font-style:normal; }
+
+  .sub {
+    font-family:'Barlow Condensed',sans-serif;
+    font-size:22px; font-weight:600;
+    letter-spacing:0.08em;
+    color:#F2F2F2; opacity:0.5;
+    line-height:1.5;
+    margin-bottom:48px;
+    max-width:600px;
+  }
+
+  /* Action block */
+  .action-row {
+    display:flex; gap:2px;
+    margin-bottom:16px;
+  }
+
+  .action-block {
+    background:rgba(225,255,1,0.08);
+    border:1px solid rgba(225,255,1,0.25);
+    padding:20px 32px;
+    flex:1;
+  }
+  .action-label {
+    font-family:'DM Mono',monospace;
+    font-size:10px; letter-spacing:0.18em;
+    text-transform:uppercase;
+    color:#E1FF01; opacity:0.5;
+    margin-bottom:6px;
+  }
+  .action-value {
+    font-family:'Barlow Condensed',sans-serif;
+    font-weight:700; font-size:20px;
+    letter-spacing:0.08em; text-transform:uppercase;
+    color:#F2F2F2; opacity:0.9;
+  }
+
+  .bottom-row {
+    position:relative; z-index:1;
+    display:flex; justify-content:space-between;
+    align-items:center;
+  }
+  .url {
+    font-family:'DM Mono',monospace;
+    font-size:14px; letter-spacing:0.12em;
+    color:#0FA8DF; opacity:0.6;
+  }
+  .limited {
+    font-family:'Barlow Condensed',sans-serif;
+    font-weight:700; font-size:13px;
+    letter-spacing:0.24em; text-transform:uppercase;
+    color:#E1FF01; opacity:0.5;
+    border:1px solid rgba(225,255,1,0.2);
+    padding:6px 16px;
+  }
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="bg">
+    <img src="../../images/kenya-landscape.jpg" alt="Kenya Nyeri">
+  </div>
+  <div class="yellow-top"></div>
+
+  <div class="brand-mark">Artifacts Coffee · Drop 004</div>
+
+  <div class="center">
+    <div class="urgency">Available now</div>
+    <div class="headline">Be the first<br>to get <em>Kenya.</em></div>
+    <div class="sub">First roast. Limited bags.<br>Single origin from Nyeri County — roasted this week in Johannesburg.</div>
+
+    <div class="action-row">
+      <div class="action-block">
+        <div class="action-label">Order online</div>
+        <div class="action-value">artifactscoffee.co.za</div>
+      </div>
+      <div class="action-block">
+        <div class="action-label">WhatsApp</div>
+        <div class="action-value">+27 61 383 2478</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="bottom-row">
+    <div class="url">artifactscoffee.co.za</div>
+    <div class="limited">Limited first roast</div>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1080">
+<title>Drop 004 · Kenya · Kiandu AB</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:ital,wght@0,400;0,600;0,700;0,900;1,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { width:1080px; height:1080px; overflow:hidden; background:#020c1a; }
+
+  .card {
+    width:1080px; height:1080px;
+    position:relative;
+    display:flex; flex-direction:column;
+    justify-content:space-between;
+    padding:80px;
+  }
+
+  /* Mountain photo background */
+  .bg { position:absolute; inset:0; }
+  .bg img {
+    width:100%; height:100%;
+    object-fit:cover;
+    object-position:center 35%;
+    filter:saturate(0.75) brightness(0.55);
+    display:block;
+  }
+  /* Vignette: heavy at bottom, lighter at top */
+  .bg::after {
+    content:'';
+    position:absolute; inset:0;
+    background:linear-gradient(
+      to bottom,
+      rgba(2,12,26,0.35) 0%,
+      rgba(2,12,26,0.2) 30%,
+      rgba(2,12,26,0.6) 65%,
+      rgba(2,12,26,0.92) 100%
+    );
+  }
+
+  /* Top — drop badge + brand */
+  .top {
+    position:relative; z-index:1;
+    display:flex; justify-content:space-between;
+    align-items:flex-start;
+  }
+
+  .drop-badge {
+    display:flex; flex-direction:column; gap:4px;
+  }
+  .drop-num {
+    font-family:'DM Mono',monospace;
+    font-size:11px; letter-spacing:0.2em;
+    color:#E1FF01; opacity:0.9;
+    text-transform:uppercase;
+  }
+  .drop-label {
+    font-family:'Barlow Condensed',sans-serif;
+    font-weight:700; font-size:11px;
+    letter-spacing:0.28em; text-transform:uppercase;
+    color:#F2F2F2; opacity:0.35;
+  }
+
+  .brand-mark {
+    font-family:'Barlow Condensed',sans-serif;
+    font-weight:700; font-size:12px;
+    letter-spacing:0.28em; text-transform:uppercase;
+    color:#F2F2F2; opacity:0.3;
+    text-align:right;
+  }
+
+  /* Bottom — all the content */
+  .bottom {
+    position:relative; z-index:1;
+  }
+
+  .origin-line {
+    font-family:'Barlow Condensed',sans-serif;
+    font-weight:700; font-size:14px;
+    letter-spacing:0.32em; text-transform:uppercase;
+    color:#E1FF01; opacity:0.85;
+    margin-bottom:12px;
+    display:flex; align-items:center; gap:12px;
+  }
+  .origin-line::before {
+    content:''; width:24px; height:2px;
+    background:#E1FF01; opacity:0.7;
+  }
+
+  .coffee-name {
+    font-family:'Bebas Neue',sans-serif;
+    font-size:128px; line-height:0.85;
+    color:#F2F2F2; letter-spacing:0.02em;
+    margin-bottom:48px;
+  }
+
+  /* Spec pointers */
+  .specs {
+    display:grid;
+    grid-template-columns:1fr 1fr 1fr;
+    gap:2px;
+    margin-bottom:32px;
+  }
+
+  .spec {
+    background:rgba(2,12,26,0.5);
+    backdrop-filter:blur(8px);
+    border:1px solid rgba(242,242,242,0.07);
+    padding:16px 20px;
+    display:flex; flex-direction:column; gap:4px;
+  }
+
+  .spec-label {
+    font-family:'DM Mono',monospace;
+    font-size:10px; letter-spacing:0.18em;
+    text-transform:uppercase;
+    color:#F2F2F2; opacity:0.3;
+  }
+
+  .spec-value {
+    font-family:'Barlow Condensed',sans-serif;
+    font-weight:700; font-size:18px;
+    letter-spacing:0.1em; text-transform:uppercase;
+    color:#F2F2F2; opacity:0.9;
+    line-height:1.2;
+  }
+  .spec-value.score { color:#E1FF01; }
+  .spec-value.process { color:#0FA8DF; }
+
+  /* Taste notes row */
+  .notes-row {
+    display:flex; gap:8px; flex-wrap:wrap;
+    margin-bottom:40px;
+  }
+  .note-tag {
+    font-family:'Barlow Condensed',sans-serif;
+    font-weight:700; font-size:13px;
+    letter-spacing:0.2em; text-transform:uppercase;
+    color:#F2F2F2; opacity:0.5;
+    border:1px solid rgba(242,242,242,0.15);
+    padding:6px 16px;
+  }
+
+  /* Bottom row */
+  .meta-row {
+    display:flex; justify-content:space-between;
+    align-items:center;
+  }
+  .url {
+    font-family:'DM Mono',monospace;
+    font-size:13px; letter-spacing:0.1em;
+    color:#F2F2F2; opacity:0.2;
+  }
+  .avail {
+    font-family:'Barlow Condensed',sans-serif;
+    font-weight:700; font-size:13px;
+    letter-spacing:0.28em; text-transform:uppercase;
+    color:#E1FF01; opacity:0.6;
+    border:1px solid rgba(225,255,1,0.25);
+    padding:6px 18px;
+  }
+</style>
+</head>
+<body>
+<div class="card">
+
+  <!-- Replace kenya-landscape.jpg with your actual photo filename -->
+  <div class="bg">
+    <img src="../../images/kenya-landscape.jpg" alt="Kenya Nyeri">
+  </div>
+
+  <div class="top">
+    <div class="drop-badge">
+      <div class="drop-num">Drop 004</div>
+      <div class="drop-label">Artifacts Coffee</div>
+    </div>
+    <div class="brand-mark">Roasted in<br>Johannesburg</div>
+  </div>
+
+  <div class="bottom">
+    <div class="origin-line">Kenya · Nyeri County</div>
+    <div class="coffee-name">Kiandu<br>AB</div>
+
+    <div class="specs">
+      <div class="spec">
+        <div class="spec-label">Cooperative</div>
+        <div class="spec-value">Mutheka FCS</div>
+      </div>
+      <div class="spec">
+        <div class="spec-label">Varietal</div>
+        <div class="spec-value">SL28 · SL34</div>
+      </div>
+      <div class="spec">
+        <div class="spec-label">Process</div>
+        <div class="spec-value process">Washed</div>
+      </div>
+      <div class="spec">
+        <div class="spec-label">Altitude</div>
+        <div class="spec-value">1600–1700 masl</div>
+      </div>
+      <div class="spec">
+        <div class="spec-label">Score</div>
+        <div class="spec-value score">88 pts</div>
+      </div>
+      <div class="spec">
+        <div class="spec-label">Grade</div>
+        <div class="spec-value">AB · Nyeri County</div>
+      </div>
+    </div>
+
+    <div class="notes-row">
+      <div class="note-tag">Peach</div>
+      <div class="note-tag">Tropical Fruit</div>
+      <div class="note-tag">Orange Soda</div>
+      <div class="note-tag">Toffee</div>
+    </div>
+
+    <div class="meta-row">
+      <div class="url">artifactscoffee.co.za</div>
+      <div class="avail">Coming Soon</div>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

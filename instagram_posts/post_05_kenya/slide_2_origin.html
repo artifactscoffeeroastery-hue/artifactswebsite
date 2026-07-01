@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1080">
+<title>Kenya · Slide 2 · The Place</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:ital,wght@0,400;0,600;0,700;0,900;1,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { width:1080px; height:1080px; overflow:hidden; background:#020c1a; }
+
+  .card {
+    width:1080px; height:1080px;
+    background:#020c1a;
+    display:flex; flex-direction:column;
+    justify-content:space-between;
+    padding:80px 96px;
+    position:relative;
+  }
+
+  /* Subtle grid texture */
+  .card::before {
+    content:'';
+    position:absolute; inset:0;
+    background-image:linear-gradient(rgba(242,242,242,0.02) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(242,242,242,0.02) 1px, transparent 1px);
+    background-size:60px 60px;
+  }
+
+  /* Yellow left accent bar */
+  .accent-bar {
+    position:absolute; top:0; left:0;
+    width:6px; height:100%;
+    background:#E1FF01;
+  }
+
+  .top { position:relative; z-index:1; }
+
+  .drop-line {
+    font-family:'DM Mono',monospace;
+    font-size:11px; letter-spacing:0.2em;
+    color:#E1FF01; opacity:0.7;
+    margin-bottom:24px;
+  }
+
+  .section-label {
+    font-family:'Barlow Condensed',sans-serif;
+    font-weight:700; font-size:13px;
+    letter-spacing:0.32em; text-transform:uppercase;
+    color:#0FA8DF; opacity:0.8;
+    margin-bottom:16px;
+    display:flex; align-items:center; gap:12px;
+  }
+  .section-label::before { content:''; width:18px; height:2px; background:#0FA8DF; }
+
+  .headline {
+    font-family:'Bebas Neue',sans-serif;
+    font-size:104px; line-height:0.85;
+    color:#F2F2F2; letter-spacing:0.02em;
+  }
+  .headline em { color:#E1FF01; font-style:normal; }
+
+  /* Middle — altitude stat + story */
+  .middle {
+    position:relative; z-index:1;
+    display:flex; align-items:flex-start;
+    gap:48px;
+  }
+
+  .altitude-block {
+    flex-shrink:0;
+    background:rgba(225,255,1,0.08);
+    border:1px solid rgba(225,255,1,0.25);
+    padding:32px 36px 28px;
+    display:flex; flex-direction:column;
+    justify-content:space-between;
+    align-self:stretch;
+  }
+  .altitude-num {
+    font-family:'Bebas Neue',sans-serif;
+    font-size:120px; line-height:0.85;
+    color:#E1FF01;
+    white-space:nowrap;
+  }
+  .altitude-label {
+    font-family:'DM Mono',monospace;
+    font-size:10px; letter-spacing:0.2em;
+    color:#E1FF01; opacity:0.45;
+    text-transform:uppercase;
+    margin-top:12px;
+  }
+
+  .story {
+    flex:1; padding-top:12px;
+  }
+  .story p {
+    font-family:'Barlow Condensed',sans-serif;
+    font-size:22px; font-weight:600;
+    letter-spacing:0.06em;
+    color:#F2F2F2; opacity:0.55;
+    line-height:1.55;
+  }
+  .story p em { color:#E1FF01; opacity:1; font-style:normal; }
+
+  /* Bottom — fact row */
+  .facts {
+    position:relative; z-index:1;
+    display:grid;
+    grid-template-columns:1fr 1fr 1fr;
+    gap:2px;
+  }
+
+  .fact {
+    background:rgba(242,242,242,0.04);
+    border:1px solid rgba(242,242,242,0.06);
+    padding:20px 24px;
+  }
+  .fact-label {
+    font-family:'DM Mono',monospace;
+    font-size:10px; letter-spacing:0.18em;
+    text-transform:uppercase;
+    color:#F2F2F2; opacity:0.25;
+    margin-bottom:6px;
+  }
+  .fact-value {
+    font-family:'Barlow Condensed',sans-serif;
+    font-weight:700; font-size:16px;
+    letter-spacing:0.1em; text-transform:uppercase;
+    color:#F2F2F2; opacity:0.8;
+    line-height:1.2;
+  }
+  .fact-value.cyan { color:#0FA8DF; opacity:1; }
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="accent-bar"></div>
+
+  <div class="top">
+    <div class="drop-line">Drop 004 · Kenya · Nyeri County</div>
+    <div class="section-label">Where it comes from</div>
+    <div class="headline">The land<br>behind <em>the cup.</em></div>
+  </div>
+
+  <div class="middle">
+    <div class="altitude-block">
+      <div class="altitude-num">1700</div>
+      <div class="altitude-label">metres above sea level</div>
+    </div>
+    <div class="story">
+      <p>Smallholder farmers of the <em>Mutheka Farmers Cooperative</em> grow these cherries across Nyeri County — Kenya's most celebrated coffee region, sitting in the shadow of Mount Kenya.</p>
+      <br>
+      <p>Delivered to <em>Kiandu Coffee Factory</em>, where only the best cherry makes the cut.</p>
+    </div>
+  </div>
+
+  <div class="facts">
+    <div class="fact">
+      <div class="fact-label">Cooperative</div>
+      <div class="fact-value">Mutheka FCS</div>
+    </div>
+    <div class="fact">
+      <div class="fact-label">Varietal</div>
+      <div class="fact-value cyan">SL28 · SL34</div>
+    </div>
+    <div class="fact">
+      <div class="fact-label">Region</div>
+      <div class="fact-value">Nyeri County</div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

@@ -539,17 +539,21 @@ async function fetchRates() {
   } catch(e) { renderRates(null); statusEl.textContent='Rate fetch failed — using fallback.'; }
 }
 
+// getShipping returns { code, label, amount }; older code used { service, price } — support both
+function rateLabel(q){ return q.label||q.service||'Courier'; }
+function ratePrice(q){ var v=(q.amount!=null?q.amount:q.price); v=Number(v); return isNaN(v)?0:v; }
 function renderRates(quotes) {
-  var fallback=[{service:'Gauteng Door-to-Door',price:100,etaDays:'1–2'},{service:'Rest of SA Door-to-Door',price:150,etaDays:'2–5'}];
+  var fallback=[{label:'Gauteng Door-to-Door',amount:100,etaDays:'1–2'},{label:'Rest of SA Door-to-Door',amount:150,etaDays:'2–5'}];
   var list=quotes||fallback;
   document.getElementById('rate-wrap').style.display='';
   document.getElementById('rate-list').innerHTML=list.map(function(q,i){
-    return '<div class="rate-option'+(i===0?' selected':'')+'" onclick="selectRate(this,\''+q.service+'\','+q.price+')">'
+    var lbl=rateLabel(q), amt=ratePrice(q), safe=String(lbl).replace(/'/g,"\\'");
+    return '<div class="rate-option'+(i===0?' selected':'')+'" onclick="selectRate(this,\''+safe+'\','+amt+')">'
       +'<input type="radio" name="rate" '+(i===0?'checked':'')+'>'
-      +'<div class="rate-label-text"><strong>'+q.service+'</strong><br><span style="font-size:11px;color:var(--muted);">'+(q.etaDays||'2–5')+' business days</span></div>'
-      +'<span class="rate-price">R'+q.price+'</span></div>';
+      +'<div class="rate-label-text"><strong>'+lbl+'</strong><br><span style="font-size:11px;color:var(--muted);">'+(q.etaDays||'2–5')+' business days</span></div>'
+      +'<span class="rate-price">R'+amt.toFixed(2)+'</span></div>';
   }).join('');
-  selectedRate={label:list[0].service,price:list[0].price}; updateSummary();
+  selectedRate={label:rateLabel(list[0]),price:ratePrice(list[0])}; updateSummary();
 }
 
 function selectRate(el,label,price) {
@@ -646,6 +650,21 @@ async function payViaEFT() {
   finally { btn.textContent='Send EFT Request'; btn.style.opacity=''; btn.style.pointerEvents=''; }
 }
 
+// ── CLIENT LIST / QUOTE-INVOICE LOG → GOOGLE SHEET ──
+// Apps Script Web App URL (ends in /exec) + shared secret token (must match the .gs script)
+var SHEET_LOG_URL   = 'https://script.google.com/macros/s/AKfycbxn7qMGoMsen_CXycUn-kc6knfNXioErIW2YkTchIkJfPPo6BN756tQ0-m-iptGszvE/exec';
+var SHEET_LOG_TOKEN = 'aC7logKq9mZ2xR4t';
+function logToSheet(kind) {
+  if(!SHEET_LOG_URL||!docState) return;
+  var ref=kind==='invoice'?(docState.invoiceRef||docState.ref):docState.ref;
+  var items=docState.items.map(function(it){return it.qty+'x '+it.name+' ('+it.size+')';}).join('; ');
+  var payload={ token:SHEET_LOG_TOKEN, type:kind, ref:ref, timestamp:new Date().toISOString(),
+    name:docState.customer.name, email:docState.customer.email, phone:docState.customer.phone,
+    items:items, subtotal:docState.sub, shipping:docState.ship, discount:docState.disc, total:docState.total,
+    fulfilment:docState.fulfilLabel, address:docState.fulfilAddress||'', notes:docState.notes||'' };
+  try { fetch(SHEET_LOG_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(payload)}); }
+  catch(e){ console.warn('Sheet log failed:',e); }
+}
 function generateQuote() {
   if(!validate()) return;
   docState={
@@ -660,6 +679,7 @@ function generateQuote() {
     date:new Date().toLocaleDateString('en-ZA',{day:'2-digit',month:'short',year:'numeric'})
   };
   docState.total=Math.max(0,docState.sub+docState.ship-docState.disc);
+  logToSheet('quote');
   showQuoteScreen('quote');
 }
 
@@ -699,6 +719,7 @@ function convertToInvoice() {
   docState.type='invoice';
   docState.invoiceRef='INV-'+Date.now();
   docState.invoiceDate=new Date().toLocaleDateString('en-ZA',{day:'2-digit',month:'short',year:'numeric'});
+  logToSheet('invoice');
   showQuoteScreen('invoice');
 }
 
