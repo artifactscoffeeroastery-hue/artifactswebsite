@@ -114,24 +114,18 @@ exports.handler = async (event) => {
       return { statusCode: 200, headers: CORS, body: JSON.stringify({ success: true, dryRun: true, endpoint: TCG_SHIPMENTS, payload }) };
     }
 
-    // Fetch with a timeout so a hang returns a clean error instead of a platform 502
+    // Plain fetch — same pattern as getShipping.js (which works). No AbortController.
     const started = Date.now();
-    const ctrl = new AbortController();
-    const timer = setTimeout(() => ctrl.abort(), 7000);
     let res, text;
     try {
       res = await fetch(TCG_SHIPMENTS, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${key}` },
         body: JSON.stringify(payload),
-        signal: ctrl.signal,
       });
       text = await res.text();
     } catch (fe) {
-      const ms = Date.now() - started;
-      return { statusCode: 504, headers: CORS, body: JSON.stringify({ error: 'TCG call did not return', ms, detail: (fe && fe.message) || String(fe) }) };
-    } finally {
-      clearTimeout(timer);
+      return { statusCode: 504, headers: CORS, body: JSON.stringify({ error: 'TCG call error', detail: (fe && fe.message) || String(fe) }) };
     }
     const elapsedMs = Date.now() - started;
 
