@@ -55,8 +55,8 @@ function nextCollectionDate() {
   const d = new Date();
   d.setUTCHours(0, 0, 0, 0);
   const day = d.getUTCDay();
-  if (day === 6) d.setUTCDate(d.getUTCDate() + 2); // Sat → Mon
-  else if (day === 0) d.setUTCDate(d.getUTCDate() + 1); // Sun → Mon
+  if (day === 6) d.setUTCDate(d.getUTCDate() + 2);      // Sat -> Mon
+  else if (day === 0) d.setUTCDate(d.getUTCDate() + 1); // Sun -> Mon
   return d.toISOString();
 }
 
@@ -67,56 +67,66 @@ exports.handler = async (event) => {
   let body;
   try { body = JSON.parse(event.body || '{}'); } catch { return { statusCode: 400, headers: CORS, body: JSON.stringify({ error: 'Invalid JSON' }) }; }
 
-  // Auth (admin-triggered)
-  if (!process.env.ADMIN_ORDER_KEY || body.adminKey !== process.env.ADMIN_ORDER_KEY) {
-    return { statusCode: 401, headers: CORS, body: JSON.stringify({ error: 'Unauthorized' }) };
-  }
-
-  const key = process.env.TCG_API_KEY;
-  if (!key) return { statusCode: 500, headers: CORS, body: JSON.stringify({ error: 'TCG_API_KEY not set' }) };
-
-  const { delivery = {}, contact = {}, weightKg = 1, declaredValue = 100, serviceLevelCode, reference, instructions } = body;
-
-  if (!delivery.street_address || !delivery.code || !serviceLevelCode) {
-    return { statusCode: 400, headers: CORS, body: JSON.stringify({ error: 'Missing delivery address, postal code, or service level' }) };
-  }
-
-  const payload = {
-    collection_address: COLLECTION,
-    collection_contact: COLLECTION_CONTACT,
-    delivery_address: {
-      type: delivery.type || 'residential',
-      company: delivery.company || '',
-      street_address: delivery.street_address,
-      local_area: delivery.local_area || delivery.city || '',
-      city: delivery.city || '',
-      zone: delivery.zone || '',
-      code: String(delivery.code),
-      country: 'ZA',
-    },
-    delivery_contact: {
-      name: contact.name || '',
-      mobile_number: contact.mobile_number || '',
-      email: contact.email || '',
-    },
-    parcels: [parcelForKg(weightKg)],
-    declared_value: Number(declaredValue) || 100,
-    collection_min_date: nextCollectionDate(),
-    service_level_code: serviceLevelCode,
-    customer_reference_name: 'Order no.',
-    customer_reference: reference || '',
-    special_instructions_collection: instructions || '',
-    mute_notifications: false,
-  };
-
   try {
-    const res = await fetch(TCG_SHIPMENTS, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${key}` },
-      body: JSON.stringify(payload),
-    });
-    const text = await res.text();
-    let data; try { data = JSON.parse(text); } catch { data = { raw: text }; }
+    // Auth (admin-triggered)
+    if (!process.env.ADMIN_ORDER_KEY || body.adminKey !== process.env.ADMIN_ORDER_KEY) {
+      return { statusCode: 401, headers: CORS, body: JSON.stringify({ error: 'Unauthorized' }) };
+    }
+
+    const key = process.env.TCG_API_KEY;
+    if (!key) return { statusCode: 500, headers: CORS, body: JSON.stringify({ error: 'TCG_API_KEY not set' }) };
+
+    const { delivery = {}, contact = {}, weightKg = 1, declaredValue = 100, serviceLevelCode, reference, instructions } = body;
+    if (!delivery.street_address || !delivery.code || !serviceLevelCode) {
+      return { statusCode: 400, headers: CORS, body: JSON.stringify({ error: 'Missing delivery address, postal code, or service level' }) };
+    }
+
+    const payload = {
+      collection_address: COLLECTION,
+      collection_contact: COLLECTION_CONTACT,
+      delivery_address: {
+        type: delivery.type || 'residential',
+        company: delivery.company || '',
+        street_address: delivery.street_address,
+        local_area: delivery.local_area || delivery.city || '',
+        city: delivery.city || '',
+        zone: delivery.zone || '',
+        code: String(delivery.code),
+        country: 'ZA',
+      },
+      delivery_contact: {
+        name: contact.name || '',
+        mobile_number: contact.mobile_number || '',
+        email: contact.email || '',
+      },
+      parcels: [parcelForKg(weightKg)],
+      declared_value: Number(declaredValue) || 100,
+      collection_min_date: nextCollectionDate(),
+      service_level_code: serviceLevelCode,
+      customer_reference_name: 'Order no.',
+      customer_reference: reference || '',
+      special_instructions_collection: instructions || '',
+      mute_notifications: false,
+    };
+
+    // Fetch with a timeout so a hang returns a clean error instead of a platform 502
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), 9000);
+    let res, text;
+    try {
+      res = await fetch(TCG_SHIPMENTS, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${key}` },
+        body: JSON.stringify(payload),
+        signal: ctrl.signal,
+      });
+      text = await res.text();
+    } finally {
+      clearTimeout(timer);
+    }
+
+    let data;
+    try { data = JSON.parse(text); } catch { data = { raw: (text || '').slice(0, 600) }; }
 
     if (!res.ok) {
       console.error('TCG booking failed:', res.status, text);
@@ -134,7 +144,8 @@ exports.handler = async (event) => {
       }),
     };
   } catch (e) {
-    console.error('bookShipment error:', e.message);
-    return { statusCode: 500, headers: CORS, body: JSON.stringify({ error: 'Booking request error' }) };
+    const msg = e && e.message ? e.message : String(e);
+    console.error('bookShipment error:', msg);
+    return { statusCode: 500, headers: CORS, body: JSON.stringify({ error: 'Booking request error', detail: msg }) };
   }
 };
