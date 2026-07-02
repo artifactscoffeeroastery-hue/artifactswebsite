@@ -11,6 +11,11 @@
 
 const TCG_SHIPMENTS = 'https://api.portal.thecourierguy.co.za/shipments';
 
+// Prevent a stray background rejection (e.g. from undici/fetch sockets) from
+// crashing the whole function process and producing an uncatchable 502.
+process.on('unhandledRejection', (r) => { console.error('unhandledRejection:', r && r.message ? r.message : r); });
+process.on('uncaughtException',  (e) => { console.error('uncaughtException:',  e && e.message ? e.message : e); });
+
 const CORS = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'Content-Type',
