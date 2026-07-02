@@ -109,9 +109,15 @@ exports.handler = async (event) => {
       mute_notifications: false,
     };
 
+    // Dry run: return the exact payload without calling TCG (diagnostic)
+    if (body.dryRun) {
+      return { statusCode: 200, headers: CORS, body: JSON.stringify({ success: true, dryRun: true, endpoint: TCG_SHIPMENTS, payload }) };
+    }
+
     // Fetch with a timeout so a hang returns a clean error instead of a platform 502
+    const started = Date.now();
     const ctrl = new AbortController();
-    const timer = setTimeout(() => ctrl.abort(), 9000);
+    const timer = setTimeout(() => ctrl.abort(), 7000);
     let res, text;
     try {
       res = await fetch(TCG_SHIPMENTS, {
@@ -121,16 +127,20 @@ exports.handler = async (event) => {
         signal: ctrl.signal,
       });
       text = await res.text();
+    } catch (fe) {
+      const ms = Date.now() - started;
+      return { statusCode: 504, headers: CORS, body: JSON.stringify({ error: 'TCG call did not return', ms, detail: (fe && fe.message) || String(fe) }) };
     } finally {
       clearTimeout(timer);
     }
+    const elapsedMs = Date.now() - started;
 
     let data;
     try { data = JSON.parse(text); } catch { data = { raw: (text || '').slice(0, 600) }; }
 
     if (!res.ok) {
       console.error('TCG booking failed:', res.status, text);
-      return { statusCode: 502, headers: CORS, body: JSON.stringify({ error: 'Booking failed', status: res.status, detail: data }) };
+      return { statusCode: 502, headers: CORS, body: JSON.stringify({ error: 'Booking failed', status: res.status, ms: elapsedMs, detail: data }) };
     }
 
     return {
@@ -138,6 +148,7 @@ exports.handler = async (event) => {
       headers: CORS,
       body: JSON.stringify({
         success: true,
+        ms: elapsedMs,
         shipment_id: data.id || data.shipment_id || null,
         tracking_reference: data.tracking_reference || data.short_tracking_reference || null,
         short_tracking_reference: data.short_tracking_reference || null,
