@@ -1,0 +1,49 @@
+#!/usr/bin/env bash
+# Anti-truncation pre-push guard (installed by install-anti-truncation-hook.sh).
+# Blocks a push if any pushed text file has NUL-byte corruption or fails a
+# syntax check. NUL tails come from edits that shrink a file without truncating.
+set -u
+cd "$(git rev-parse --show-toplevel)" 2>/dev/null || exit 0
+
+FILES="$(git diff --name-only '@{u}...HEAD' 2>/dev/null)"
+[ -z "$FILES" ] && FILES="$(git ls-files)"
+
+SKIP='png|jpg|jpeg|gif|bmp|ico|webp|svgz|pdf|zip|gz|tgz|bz2|xz|rar|7z|xlsx|xls|docx|doc|pptx|ppt|woff|woff2|ttf|eot|otf|mp3|mp4|mov|avi|wav|flac|jar|class|so|dll|dylib|exe|bin|dat|db|sqlite|wasm'
+fail=0
+nul_count() { LC_ALL=C tr -d -c '\000' < "$1" | wc -c | tr -d '[:space:]'; }
+
+while IFS= read -r f; do
+  [ -n "$f" ] && [ -f "$f" ] || continue
+  ext="$(printf '%s' "${f##*.}" | tr 'A-Z' 'a-z')"
+  printf '%s\n' "$ext" | grep -qiE "^($SKIP)$" && continue
+
+  n="$(nul_count "$f")"
+  if [ "${n:-0}" -ne 0 ] 2>/dev/null; then
+    echo "  x NUL corruption: $f ($n null byte(s))"
+    fail=1
+    continue
+  fi
+
+  case "$ext" in
+    js|jsx|mjs|cjs)
+      command -v node >/dev/null 2>&1 && { node --check "$f" 2>/tmp/atg_err || { echo "  x JS syntax: $f"; sed 's/^/       /' /tmp/atg_err 2>/dev/null; fail=1; }; } ;;
+    json)
+      command -v node >/dev/null 2>&1 && { node -e "JSON.parse(require('fs').readFileSync(process.argv[1],'utf8'))" "$f" 2>/dev/null || { echo "  x JSON parse: $f"; fail=1; }; } ;;
+    py)
+      command -v python3 >/dev/null 2>&1 && { python3 -m py_compile "$f" 2>/dev/null || { echo "  x Python syntax: $f"; fail=1; }; } ;;
+    sh|bash)
+      bash -n "$f" 2>/dev/null || { echo "  x Shell syntax: $f"; fail=1; } ;;
+  esac
+done <<LIST
+$FILES
+LIST
+
+if [ "$fail" -ne 0 ]; then
+  echo ""
+  echo "PUSH BLOCKED - file corruption or syntax errors above."
+  echo "Fix a NUL tail:  tr -d '\\000' < FILE > FILE.tmp && mv -f FILE.tmp FILE"
+  echo "Then commit the fix and push again."
+  exit 1
+fi
+echo "Anti-truncation check passed."
+exit 0
