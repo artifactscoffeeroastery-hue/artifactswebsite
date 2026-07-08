@@ -146,7 +146,7 @@ exports.handler = async (event) => {
     try {
       resp = await postJson(JSON.stringify(payload), key);
     } catch (e) {
-      return { statusCode: 504, headers: CORS, body: JSON.stringify({ error: 'TCG request error', detail: (e && e.message) || String(e) }) };
+      return { statusCode: 200, headers: CORS, body: JSON.stringify({ success: false, error: 'TCG request error', detail: (e && e.message) || String(e) }) };
     }
     const elapsedMs = Date.now() - started;
 
@@ -155,7 +155,8 @@ exports.handler = async (event) => {
 
     if (!resp.status || resp.status < 200 || resp.status >= 300) {
       console.error('TCG booking failed:', resp.status, resp.body);
-      return { statusCode: 502, headers: CORS, body: JSON.stringify({ error: 'Booking failed', status: resp.status, ms: elapsedMs, detail: data }) };
+      // Return 200 (not 5xx) so Cloudflare doesn't replace the body with its own error page
+      return { statusCode: 200, headers: CORS, body: JSON.stringify({ success: false, error: 'Booking failed', status: resp.status, ms: elapsedMs, detail: data }) };
     }
 
     return {
@@ -172,6 +173,6 @@ exports.handler = async (event) => {
   } catch (e) {
     const msg = e && e.message ? e.message : String(e);
     console.error('bookShipment error:', msg);
-    return { statusCode: 500, headers: CORS, body: JSON.stringify({ error: 'Booking request error', detail: msg }) };
+    return { statusCode: 200, headers: CORS, body: JSON.stringify({ success: false, error: 'Booking request error', detail: msg }) };
   }
 };
