@@ -1,20 +1,19 @@
 /**
  * bookShipment.js
  * Creates a Courier Guy (Shiplogic) shipment/waybill for a paid order.
- * Endpoint spec from the TCG Postman collection: POST /shipments.
+ * Endpoint: POST https://api.portal.thecourierguy.co.za/shipments
+ *
+ * Uses Node's https module (same as payfast-notify.js, which works) rather than
+ * global fetch/undici — the fetch version crashed the Netlify runtime on this call.
  *
  * Auth: admin-triggered calls must pass adminKey === ADMIN_ORDER_KEY.
  * Env: TCG_API_KEY (booking-capable portal key), ADMIN_ORDER_KEY.
- *
- * Returns { success, tracking_reference, short_tracking_reference, shipment_id }.
  */
 
-const TCG_SHIPMENTS = 'https://api.portal.thecourierguy.co.za/shipments';
+const https = require('https');
 
-// Prevent a stray background rejection (e.g. from undici/fetch sockets) from
-// crashing the whole function process and producing an uncatchable 502.
-process.on('unhandledRejection', (r) => { console.error('unhandledRejection:', r && r.message ? r.message : r); });
-process.on('uncaughtException',  (e) => { console.error('uncaughtException:',  e && e.message ? e.message : e); });
+const TCG_HOST = 'api.portal.thecourierguy.co.za';
+const TCG_PATH = '/shipments';
 
 const CORS = {
   'Access-Control-Allow-Origin': '*',
@@ -65,6 +64,32 @@ function nextCollectionDate() {
   return d.toISOString();
 }
 
+// HTTPS POST with JSON body — resolves { status, body } (never rejects on HTTP error)
+function postJson(bodyStr, apiKey) {
+  return new Promise((resolve, reject) => {
+    const req = https.request(
+      {
+        hostname: TCG_HOST,
+        path: TCG_PATH,
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${apiKey}`,
+          'Content-Length': Buffer.byteLength(bodyStr),
+        },
+      },
+      (res) => {
+        let data = '';
+        res.on('data', (c) => (data += c));
+        res.on('end', () => resolve({ status: res.statusCode, body: data }));
+      }
+    );
+    req.on('error', reject);
+    req.write(bodyStr);
+    req.end();
+  });
+}
+
 exports.handler = async (event) => {
   if (event.httpMethod === 'OPTIONS') return { statusCode: 200, headers: CORS, body: '' };
   if (event.httpMethod !== 'POST') return { statusCode: 405, headers: CORS, body: JSON.stringify({ error: 'Method Not Allowed' }) };
@@ -73,11 +98,9 @@ exports.handler = async (event) => {
   try { body = JSON.parse(event.body || '{}'); } catch { return { statusCode: 400, headers: CORS, body: JSON.stringify({ error: 'Invalid JSON' }) }; }
 
   try {
-    // Auth (admin-triggered)
     if (!process.env.ADMIN_ORDER_KEY || body.adminKey !== process.env.ADMIN_ORDER_KEY) {
       return { statusCode: 401, headers: CORS, body: JSON.stringify({ error: 'Unauthorized' }) };
     }
-
     const key = process.env.TCG_API_KEY;
     if (!key) return { statusCode: 500, headers: CORS, body: JSON.stringify({ error: 'TCG_API_KEY not set' }) };
 
@@ -114,32 +137,25 @@ exports.handler = async (event) => {
       mute_notifications: false,
     };
 
-    // Dry run: return the exact payload without calling TCG (diagnostic)
     if (body.dryRun) {
-      return { statusCode: 200, headers: CORS, body: JSON.stringify({ success: true, dryRun: true, endpoint: TCG_SHIPMENTS, payload }) };
+      return { statusCode: 200, headers: CORS, body: JSON.stringify({ success: true, dryRun: true, endpoint: `https://${TCG_HOST}${TCG_PATH}`, payload }) };
     }
 
-    // Plain fetch — same pattern as getShipping.js (which works). No AbortController.
     const started = Date.now();
-    let res, text;
+    let resp;
     try {
-      res = await fetch(TCG_SHIPMENTS, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${key}` },
-        body: JSON.stringify(payload),
-      });
-      text = await res.text();
-    } catch (fe) {
-      return { statusCode: 504, headers: CORS, body: JSON.stringify({ error: 'TCG call error', detail: (fe && fe.message) || String(fe) }) };
+      resp = await postJson(JSON.stringify(payload), key);
+    } catch (e) {
+      return { statusCode: 504, headers: CORS, body: JSON.stringify({ error: 'TCG request error', detail: (e && e.message) || String(e) }) };
     }
     const elapsedMs = Date.now() - started;
 
     let data;
-    try { data = JSON.parse(text); } catch { data = { raw: (text || '').slice(0, 600) }; }
+    try { data = JSON.parse(resp.body); } catch { data = { raw: (resp.body || '').slice(0, 600) }; }
 
-    if (!res.ok) {
-      console.error('TCG booking failed:', res.status, text);
-      return { statusCode: 502, headers: CORS, body: JSON.stringify({ error: 'Booking failed', status: res.status, ms: elapsedMs, detail: data }) };
+    if (!resp.status || resp.status < 200 || resp.status >= 300) {
+      console.error('TCG booking failed:', resp.status, resp.body);
+      return { statusCode: 502, headers: CORS, body: JSON.stringify({ error: 'Booking failed', status: resp.status, ms: elapsedMs, detail: data }) };
     }
 
     return {
