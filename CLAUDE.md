@@ -68,7 +68,7 @@ Drop 004 Kenya is **Live**. GT/MX/NI remain Sold Out as compact origin cards.
 
 | Code | Origin | Coffee | Status |
 |------|--------|--------|--------|
-| KE · 004 | Kenya · Nyeri · Kiandu WS | Kiandu AB | **Live** — 200g R260 / 1kg Bundle R1040 |
+| KE · 004 | Kenya · Nyeri · Kiandu WS | Kiandu AB | **Live** — 200g R195 only |
 | GT · 001 | Guatemala · Huehuetenango | Blue Ayarza | Sold Out |
 | MX · 002 | Mexico · Chiapas | Ki Saya (Organic) | Sold Out |
 | NI · 003 | Nicaragua · Nueva Segovia | Rajuanse Estates | Sold Out |
