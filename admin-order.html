@@ -426,6 +426,11 @@ textarea.field-input{resize:vertical;min-height:72px;}
     <button class="action-btn primary" onclick="location.reload()">New Order</button>
   </div>
 
+  <div id="book-collection-wrap" style="display:none;margin-top:18px;padding-top:16px;border-top:1px solid var(--border);">
+    <button class="action-btn primary" id="book-collection-btn" onclick="bookOrder()">📦 Book Courier Collection</button>
+    <div id="book-collection-status" style="font-size:12px;color:var(--muted);margin-top:8px;line-height:1.6;"></div>
+  </div>
+
   <div style="margin-top:24px;padding-top:20px;border-top:1px solid var(--border);">
     <p style="font-size:11px;color:var(--muted);">This order is saved in Supabase with status <strong style="color:var(--white);">awaiting_payment</strong>. Once EFT reflects, update the status to <strong style="color:var(--green);">complete</strong> in your Supabase dashboard.</p>
   </div>
@@ -599,19 +604,19 @@ function renderRates(quotes) {
   var list=quotes||fallback;
   document.getElementById('rate-wrap').style.display='';
   document.getElementById('rate-list').innerHTML=list.map(function(q,i){
-    var lbl=rateLabel(q), amt=ratePrice(q), safe=String(lbl).replace(/'/g,"\\'");
-    return '<div class="rate-option'+(i===0?' selected':'')+'" onclick="selectRate(this,\''+safe+'\','+amt+')">'
+    var lbl=rateLabel(q), amt=ratePrice(q), code=(q.service_level_code||q.code||''), safe=String(lbl).replace(/'/g,"\\'");
+    return '<div class="rate-option'+(i===0?' selected':'')+'" onclick="selectRate(this,\''+safe+'\','+amt+',\''+code+'\')">'
       +'<input type="radio" name="rate" '+(i===0?'checked':'')+'>'
       +'<div class="rate-label-text"><strong>'+lbl+'</strong><br><span style="font-size:11px;color:var(--muted);">'+(q.etaDays||'2–5')+' business days</span></div>'
       +'<span class="rate-price">R'+amt.toFixed(2)+'</span></div>';
   }).join('');
-  selectedRate={label:rateLabel(list[0]),price:ratePrice(list[0])}; updateSummary();
+  selectedRate={label:rateLabel(list[0]),price:ratePrice(list[0]),service_level_code:(list[0].service_level_code||list[0].code||'')}; updateSummary();
 }
 
-function selectRate(el,label,price) {
+function selectRate(el,label,price,code) {
   document.querySelectorAll('.rate-option').forEach(function(r){ r.classList.remove('selected'); r.querySelector('input').checked=false; });
   el.classList.add('selected'); el.querySelector('input').checked=true;
-  selectedRate={label:label,price:price}; updateSummary();
+  selectedRate={label:label,price:price,service_level_code:code||''}; updateSummary();
 }
 
 function applyDiscount() {
@@ -881,6 +886,53 @@ function showConfirmation(data,total,orderNo) {
   var btns=cs.querySelectorAll('.action-btn');
   if(btns[0]) btns[0].onclick=function(){ copyWaDraft(draft,btns[0]); };
   if(btns[1]&&data.customerPhone) btns[1].onclick=function(){ openWhatsApp(data.customerPhone,draft); };
+
+  // Snapshot everything the courier booking needs
+  var fv=function(id){ var e=document.getElementById(id); return e?e.value.trim():''; };
+  bookingData={
+    orderNo: orderNo||ref||'',
+    service: (selectedRate&&selectedRate.service_level_code)||'',
+    delivery: { street_address:fv('d-address'), local_area:fv('d-suburb'), city:fv('d-city'), zone:fv('d-province'), code:fv('d-postal') },
+    contact:  { name:fv('c-name'), email:fv('c-email'), phone:fv('c-phone') },
+    weightKg: getKg(), declaredValue: getSub()
+  };
+  // Only offer courier booking for courier orders with a live service code + address
+  var canBook = fulfilMode==='courier' && bookingData.service && bookingData.delivery.street_address && bookingData.delivery.code;
+  var wrap=document.getElementById('book-collection-wrap');
+  if(wrap) wrap.style.display = canBook ? 'block' : 'none';
+  var bstat=document.getElementById('book-collection-status'); if(bstat) bstat.textContent='';
+  var bbtn=document.getElementById('book-collection-btn'); if(bbtn){ bbtn.disabled=false; bbtn.textContent='📦 Book Courier Collection'; }
+}
+
+var bookingData=null;
+async function bookOrder() {
+  if(!bookingData) return;
+  var btn=document.getElementById('book-collection-btn'), stat=document.getElementById('book-collection-status');
+  btn.disabled=true; btn.textContent='Booking…'; stat.style.color='var(--muted)'; stat.textContent='Creating shipment with The Courier Guy…';
+  try {
+    var res=await fetch('/.netlify/functions/bookShipment',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
+      adminKey:adminKey,
+      delivery:{ street_address:bookingData.delivery.street_address, local_area:bookingData.delivery.local_area, city:bookingData.delivery.city, zone:bookingData.delivery.zone, code:bookingData.delivery.code, type:'residential' },
+      contact:{ name:bookingData.contact.name, mobile_number:bookingData.contact.phone, email:bookingData.contact.email },
+      weightKg:bookingData.weightKg, declaredValue:bookingData.declaredValue, serviceLevelCode:bookingData.service,
+      reference:bookingData.orderNo, instructions:''
+    })});
+    var o=await res.json();
+    if(o.success){
+      var wb=o.tracking_reference||o.short_tracking_reference||o.shipment_id||'—';
+      stat.style.color='var(--green)';
+      stat.innerHTML='✓ Booked — Waybill <strong>'+wb+'</strong>. Print the label in your Courier Guy portal (Shipments → '+wb+').';
+      btn.textContent='Booked ✓';
+    } else {
+      stat.style.color='#ef4444';
+      var d=o.detail?(typeof o.detail==='string'?o.detail:JSON.stringify(o.detail)):'';
+      stat.textContent='Booking failed: '+(o.error||'error')+(o.status?(' ('+o.status+')'):'')+(d?(' — '+d):'');
+      btn.disabled=false; btn.textContent='📦 Retry Booking';
+    }
+  } catch(e){
+    stat.style.color='#ef4444'; stat.textContent='Error: '+e.message;
+    btn.disabled=false; btn.textContent='📦 Retry Booking';
+  }
 }
 </script>
 </body>
