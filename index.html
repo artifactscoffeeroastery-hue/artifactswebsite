@@ -374,6 +374,26 @@
       "offers": [
         {
           "@type": "Offer",
+          "name": "Kenya Kiandu AB 80g",
+          "price": "110.00",
+          "priceCurrency": "ZAR",
+          "availability": "https://schema.org/LimitedAvailability",
+          "url": "https://artifactscoffee.co.za/#ke",
+          "seller": { "@id": "https://artifactscoffee.co.za/#org" },
+          "hasMerchantReturnPolicy": { "@id": "https://artifactscoffee.co.za/#returnpolicy" },
+          "shippingDetails": {
+            "@type": "OfferShippingDetails",
+            "shippingRate": { "@type": "MonetaryAmount", "value": "85.00", "currency": "ZAR" },
+            "shippingDestination": { "@type": "DefinedRegion", "addressCountry": "ZA" },
+            "deliveryTime": {
+              "@type": "ShippingDeliveryTime",
+              "handlingTime": { "@type": "QuantitativeValue", "minValue": 1, "maxValue": 2, "unitCode": "DAY" },
+              "transitTime": { "@type": "QuantitativeValue", "minValue": 2, "maxValue": 5, "unitCode": "DAY" }
+            }
+          }
+        },
+        {
+          "@type": "Offer",
           "name": "Kenya Kiandu AB 200g",
           "price": "195.00",
           "priceCurrency": "ZAR",
@@ -495,6 +515,7 @@
     <span class="sz-label">Select Size</span>
     <div id="sz-ke" class="sz-toggle" data-selected-size="200g">
       <button class="sz-btn sel-k" onclick="selectPF(this,'ke','195');document.getElementById('ke-note').textContent='200g &middot; whole bean'">200g &mdash; R195</button>
+      <button class="sz-btn" onclick="selectPF(this,'ke','110');document.getElementById('ke-note').textContent='80g &middot; whole bean'">80g &mdash; R110</button>
     </div>
     <div class="price-row">
       <span class="p-curr">R</span>
