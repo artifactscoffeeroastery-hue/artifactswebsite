@@ -3,7 +3,7 @@
 **Repo:** artifactscoffeeroastery-hue/artifactswebsite  
 **Live site:** https://artifactscoffee.co.za  
 **Stack:** Static HTML/CSS/JS · Netlify · Supabase · PayFast  
-**Last updated:** 2026-06-30 (Session 10)
+**Last updated:** 2026-07-17
 
 ---
 
@@ -35,14 +35,13 @@
 **Env vars required in Netlify:**
 - `GOOGLE_PLACES_KEY` — domain-restricted in Google Cloud Console
 - `SUPABASE_URL`, `SUPABASE_SERVICE_KEY`
-- `BOBGO_API_KEY`
 - `GOOGLE_PLACES_SERVER_KEY` — no HTTP restrictions, restricted to Places API only (server-side key)
 - `GOOGLE_PLACE_ID` — ChIJ... Place ID from Google Business Profile
 - `ADMIN_ORDER_KEY` — secret gate code for `admin-order.html` / `createManualOrder.js`
 - `DATABASE_URL` — **must be the Supabase transaction pooler URL**, NOT the direct connection. Direct host `db.<ref>.supabase.co:5432` no longer resolves from Netlify (IPv4-only env → ENOTFOUND). Correct form: `postgresql://postgres.hwfwnzsjcblleykegiay:[pw]@aws-0-eu-central-2.pooler.supabase.com:6543/postgres`. Username must be `postgres.<ref>` (bare `postgres` fails auth). **Env var changes require a redeploy** — Netlify snapshots them at deploy time.
 - `RESEND_API_KEY` — transactional email (office leads, collection alerts, customer receipts)
 - `MAIL_FROM` — customer receipt sender; defaults to `onboarding@resend.dev` (sandbox → owner only). Set to `Artifacts Coffee <hello@artifactscoffee.co.za>` once the domain is verified in Resend.
-- `TCG_API_KEY` — The Courier Guy / Shiplogic (live rates via `/rates`; same portal key is booking-capable via `POST /shipments` for the pending auto-book feature). `FASTWAY_API_KEY` optional second courier.
+- `BOBGO_API_KEY` — Bob Go courier aggregator. `getShipping.js` calls `POST https://api.bobgo.co.za/v2/rates` (Bearer token). Returns `provider_rate_requests[].responses[]` with `rate_amount` (VAT-incl). TCG_API_KEY and FASTWAY_API_KEY no longer used — Bob Go aggregates all couriers.
 
 ---
 
@@ -218,6 +217,17 @@ Live bar replaces coming-soon bar above origin cards.
 - **Client autofill** — admin loads the Sheet client list via JSONP on gate unlock; typing a name/email suggests past clients and fills name/email/phone + structured address (re-fetches courier rates).
 - **Order numbers** — sequential `AC-####` (localStorage counter, timestamp fallback) assigned at quote generation, carried to its invoice; forced onto direct EFT (stored in `admin_notes`) and PayFast (`[ADMIN AC-####]` in description) orders; shown on preview, printed doc, confirmation, and Sheet.
 - **NEXT / pending:** (1) auto-book Courier Guy shipments on any paid order with a shipping charge — TCG portal key is booking-capable (`POST /shipments`); build `bookShipment()`, trigger from webhook (normal) + post-payment (admin), idempotent, needs structured address carried through checkout. (2) These changes not yet all committed at time of writing. (3) Resend domain verification still pending for customer emails to actually deliver.
+
+### Session 13 (SEO Verification — 2026-07-17)
+- Google Search Console URL Inspection confirmed all green for `https://artifactscoffee.co.za/`
+- **Page indexing:** indexed ✅
+- **Product snippets:** 3 valid items ✅
+- **Merchant listings:** 3 valid items ✅
+- **Review snippets:** 7 valid items ✅
+- Brand search works for both `artifactscoffee` and `artifacts coffee` on Google — no autocorrection issues
+- All structured data fixes from Session 5 (brand node, hasMerchantReturnPolicy, shippingDetails, aggregateRating) confirmed valid
+
+---
 
 ## Known / Watch Items
 
