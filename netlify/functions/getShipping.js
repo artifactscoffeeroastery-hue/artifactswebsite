@@ -75,6 +75,7 @@ exports.handler = async (event) => {
 
       if (res.ok) {
         const data = await res.json();
+        console.log('Bob Go raw response:', JSON.stringify(data).slice(0, 3000)); // TEMP DEBUG — remove once rates confirmed working
         for (const provider of (data.provider_rate_requests || [])) {
           if (provider.status !== 'success') continue;
           for (const r of (provider.responses || [])) {
