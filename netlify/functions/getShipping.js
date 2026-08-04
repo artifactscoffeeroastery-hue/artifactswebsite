@@ -5,7 +5,10 @@
  * through a single API call.
  *
  * Required env var:
- *   BOBGO_API_KEY — Bearer token from Bob Go Settings > API Keys
+ *   BOBGO_API_KEY — API key from Bob Go Sales Channels > Bob Go API channel
+ *
+ * Note: The Sales Channel API key requires a `bobgo-channel-identifier`
+ * header set to the store identifier (artifactscoffee.co.za).
  */
 
 const BOBGO_API = 'https://api.bobgo.co.za/v2/rates';
@@ -57,8 +60,9 @@ exports.handler = async (event) => {
       const res = await fetch(BOBGO_API, {
         method: 'POST',
         headers: {
-          'Content-Type':  'application/json',
-          'Authorization': `Bearer ${BOBGO_KEY}`,
+          'Content-Type':            'application/json',
+          'Authorization':           `Bearer ${BOBGO_KEY}`,
+          'bobgo-channel-identifier': 'artifactscoffee.co.za',
         },
         body: JSON.stringify({
           collection_address: COLLECTION,
