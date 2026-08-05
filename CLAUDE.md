@@ -75,7 +75,7 @@ Drop 004 Kenya and Drop 005 Nicaragua are both **Live**. GT/MX remain Sold Out a
 Kenya tasting notes (from And Sons cupping sheet): Peach · Tropical Fruit · Orange Soda · Toffee  
 Varietals: SL28, SL34 · Altitude: 1600–1700masl · Mutheka FCS  
 Kenya visual: CSS gradient placeholder (`#1a0a0b → #3d1012 → #C8373E`) — no licensed image yet.  
-Las Nubes tasting notes (bag label): Cocoa Truffle · Caramel Syrup · Pear Compote  
+Las Nubes tasting notes: Lime · Cocoa Truffle · Nut Praline · Caramel Syrup · Pear Compote (bag label shows the 3-note short version; site pills show all 5)  
 Variety: Red Catuai · Score 86 · `images/las-nubes.png` (real bag mockup, same template as Kenya's).  
 Live bar replaces coming-soon bar above origin cards.
 
