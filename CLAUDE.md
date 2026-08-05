@@ -3,7 +3,7 @@
 **Repo:** artifactscoffeeroastery-hue/artifactswebsite  
 **Live site:** https://artifactscoffee.co.za  
 **Stack:** Static HTML/CSS/JS · Netlify · Supabase · PayFast  
-**Last updated:** 2026-07-17
+**Last updated:** 2026-08-05
 
 ---
 
@@ -61,20 +61,22 @@
 
 ---
 
-## Product State (as of 2026-06-30)
+## Product State (as of 2026-08-05)
 
-Drop 004 Kenya is **Live**. GT/MX/NI remain Sold Out as compact origin cards.
+Drop 004 Kenya and Drop 005 Nicaragua are both **Live**. GT/MX remain Sold Out as compact origin cards. Kenya keeps top billing in hero/ticker/coming-soon banner by design (see Session 14) — Las Nubes has its own full product section and nav entry but isn't pushed as "the" headline drop.
 
 | Code | Origin | Coffee | Status |
 |------|--------|--------|--------|
-| KE · 004 | Kenya · Nyeri · Kiandu WS | Kiandu AB | **Live** — 200g R195 only |
+| KE · 004 | Kenya · Nyeri · Kiandu WS | Kiandu AB | **Live** — 80g R110 · 200g R195 |
+| NI · 005 | Nicaragua · Las Nubes | Las Nubes Red Catuai | **Live** — 80g R125 · 200g R220 |
 | GT · 001 | Guatemala · Huehuetenango | Blue Ayarza | Sold Out |
 | MX · 002 | Mexico · Chiapas | Ki Saya (Organic) | Sold Out |
-| NI · 003 | Nicaragua · Nueva Segovia | Rajuanse Estates | Sold Out |
 
 Kenya tasting notes (from And Sons cupping sheet): Peach · Tropical Fruit · Orange Soda · Toffee  
 Varietals: SL28, SL34 · Altitude: 1600–1700masl · Mutheka FCS  
 Kenya visual: CSS gradient placeholder (`#1a0a0b → #3d1012 → #C8373E`) — no licensed image yet.  
+Las Nubes tasting notes (bag label): Cocoa Truffle · Caramel Syrup · Pear Compote  
+Variety: Red Catuai · Score 86 · `images/las-nubes.png` (real bag mockup, same template as Kenya's).  
 Live bar replaces coming-soon bar above origin cards.
 
 ---
@@ -217,6 +219,18 @@ Live bar replaces coming-soon bar above origin cards.
 - **Client autofill** — admin loads the Sheet client list via JSONP on gate unlock; typing a name/email suggests past clients and fills name/email/phone + structured address (re-fetches courier rates).
 - **Order numbers** — sequential `AC-####` (localStorage counter, timestamp fallback) assigned at quote generation, carried to its invoice; forced onto direct EFT (stored in `admin_notes`) and PayFast (`[ADMIN AC-####]` in description) orders; shown on preview, printed doc, confirmation, and Sheet.
 - **NEXT / pending:** (1) auto-book Courier Guy shipments on any paid order with a shipping charge — TCG portal key is booking-capable (`POST /shipments`); build `bookShipment()`, trigger from webhook (normal) + post-payment (admin), idempotent, needs structured address carried through checkout. (2) These changes not yet all committed at time of writing. (3) Resend domain verification still pending for customer emails to actually deliver.
+
+### Session 14 (Nicaragua Drop 005 — Las Nubes Live, 2026-08-05)
+- **Bob Go integration parked** — API key generated under Settings → API Keys was the wrong key type; `/v2/rates` requires a Sales Channel API key (Sales Channels → Add channel → Bob Go API), which also requires a `bobgo-channel-identifier: artifactscoffee.co.za` header (added to `getShipping.js`). Root cause of empty rates traced via temp debug logging: every courier response returned `"status":"failed-indefinitely","failed_reason":"insufficient funds. Make a payment to top up your account"` — Bob Go account balance is R0.00. **Needs a wallet top-up before live rates will return; code is correct and ready.** Temp `console.log('Bob Go raw response...')` left in `getShipping.js` for when this resumes — remove once confirmed working.
+- **Pricing decisions** — Las Nubes launched at 80g R125 / 200g R220. Cost-plus-margin calculator (from the M6 roast profiling session) suggested R100/R235, but final numbers were set relative to Kiandu AB's competitive pricing logic (see `competitor-analysis.md` — Kenya's R195 undercuts Upper Room's identical-lot pricing of R1,120/kg). Kept Kiandu at R195 rather than swapping to R235, since R235 would have priced Artifacts *above* Upper Room's per-kg rate on the one SKU where it's a direct same-bean comparison.
+- **Nicaragua Drop 005 shipped** — old Sold Out "Rajuanse Estates" compact origin card removed from `origins-grid`; replaced with a full `product-section ni-theme flip` under the same `#ni` anchor (mirrors how Kenya was promoted out of the origin-card grid at launch). `flip` class used so the image sits on the right (visual alternation vs Kenya's left-image layout).
+- Nav dropdown + mobile overlay: "Nicaragua" link updated to "Nicaragua · Drop 005 ⚡" (white accent, same treatment as Kenya's ⚡ styling against the muted default nav color).
+- JSON-LD `#ni` Product entry rewritten in place (old Rajuanse Estates data replaced, not duplicated) — new name/description/tasting notes/offers, `LimitedAvailability`, image now points to `images/las-nubes.png` instead of the generic og-image. Old `aggregateRating`/`review` nodes removed (no reviews yet for the new lot, matching how Kenya's entry has none).
+- `admin-order.html` `PRODUCTS` array: `ni` entry updated to Las Nubes, `code:'NI · 005'`, `live:true`, sizes `[80g R125, 200g R220]`.
+- Image asset: `images/LAS NUBES.png` (space in filename, uploaded by user) copied to `images/las-nubes.png` for clean `url()` references — same product-shot template as Kenya's `KN.jpg` (two-bag mockup), no new photography needed.
+- **Deliberate scope decision:** the Head-to-Head compare table (GT/MX/NI legacy trio) was left untouched — it still shows old Rajuanse-era Nicaragua data. Same precedent as Kenya's launch, which also didn't get folded into that table. Flagged as a known stale reference, not fixed.
+- **Architecture question raised:** product sections currently live entirely inline in one `index.html` — no templating/build step. To make sections independently editable (edit-and-link-in workflow) would need a lightweight build step (e.g. a Node script assembling partials pre-deploy, or a static site generator like Eleventy) since Netlify serves this as a plain static site with no server-side includes. Not implemented — flagged as a future infra option, not done this session.
+- **Not yet done:** GSC re-validation for the new `#ni` JSON-LD, and updating `og-main.png`/social previews to reflect two live drops.
 
 ### Session 13 (SEO Verification — 2026-07-17)
 - Google Search Console URL Inspection confirmed all green for `https://artifactscoffee.co.za/`
