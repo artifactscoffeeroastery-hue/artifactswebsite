@@ -11,12 +11,22 @@
 
 | Layer | Detail |
 |-------|--------|
-| Frontend | Single-page `index.html` + `css/main.css` + `js/main.js` |
+| Frontend | `index.html` (nav/hero/shop grid/story/footer) + `shop/*.html` (per-product detail pages) + `css/main.css` + `js/main.js` |
+| Product pages | `shop/kenya.html`, `shop/nicaragua.html` (live), `shop/guatemala.html`, `shop/mexico.html` (sold out) — each a full standalone page (own `<nav>`/footer/cart-drawer copy, one level deep so all asset paths are `../`) |
 | Serverless | `netlify/functions/` — Node.js handlers |
 | Database | Supabase (PostgreSQL) — tables: `discount_uses`, `office_leads`, `orders`, `point_events`, `waitlist` |
 | Payments | PayFast — merchant_id `34420469`, merchant_key `q6qjvvpwgddvi` |
 | Shipping | Bob Go API via `getShipping.js` |
 | Maps | Google Places Autocomplete — key served via `getConfig.js` (never in source) |
+
+### Session 15 (Light theme + shop grid + product pages, 2026-08-05)
+- Full site flipped from dark theme to light theme. Design tokens now: `--cyan`, `--yellow`, `--black` (text), `--white` (page bg), `--off`/`--mid` (light card bg), `--border`, `--muted` — brand-strict, no invented colors (an earlier warm/beige/gold pass was explicitly rejected and reverted).
+- Homepage product sections (the old large alternating Kenya/Nicaragua full-bleed blocks + separate sold-out origin-card grid) replaced with a single unified `.shop-grid` catalog (Blue Bottle-style): square image tile with a soft cyan/yellow blurred mesh-gradient background (`.shop-img-wrap::before`), name+price row, tasting notes, badge (yellow "Live" / grey "Sold Out").
+- Product detail moved from an in-page modal (built, then discarded) to **real standalone pages** under `/shop/`: `kenya.html`, `nicaragua.html`, `guatemala.html`, `mexico.html`. Each duplicates nav/mobile-menu/footer/cart-drawer from `index.html` (no build step/includes on this static site, so this is intentional duplication — see below). Product image panel uses the same mesh-gradient tile, sized to 85% fill, with a `.pdp-dots`/`.pdp-slide` structure ready for a multi-image carousel (currently 1 image per product; add more `.pdp-slide` divs + dot buttons when more product photography exists).
+- Live pages (Kenya, Nicaragua) keep the existing size-toggle → price → Add to Cart flow, wired to the same `selectPF()`/`prepAddToCart()` in `main.js` — no cart/PayFast logic changed. Sold-out pages (Guatemala, Mexico) show a disabled "Sold Out" button instead.
+- All internal links updated: nav dropdown, mobile overlay, footer, hero waitlist button, coming-soon banner "Order Now" now point to `shop/kenya.html` / `shop/nicaragua.html` / `shop/guatemala.html` / `shop/mexico.html` instead of in-page `#ke`/`#ni`/`#gt`/`#mx` anchors. JSON-LD `Product.url` fields updated to match.
+- **Known limitation / future option:** because there's no templating or build step, nav/footer/cart-drawer markup now lives in 5 places (`index.html` + 4 `shop/*.html`). Any future nav/footer/cart edit must be applied to all 5 files by hand, or this becomes the forcing function to introduce a lightweight static-site build step (see Session 14's note on the same question).
+- `preview.html` in the repo root is a disposable local lab file used during this session to A/B test image-fill percentage and the mesh-gradient background before committing to values — safe to ignore/delete, not linked from the live site.
 
 ---
 

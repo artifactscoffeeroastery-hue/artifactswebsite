@@ -473,6 +473,7 @@ function scrollToSection(target, replace=false) {
 function navigateMob(e,target) { e.preventDefault(); closeMobInternal(); scrollToSection(target,history.state&&history.state.menu==='open'); }
 window.addEventListener('popstate',()=>{ closeMobInternal(); closeCart(); });
 window.addEventListener('keydown',e=>{ if(e.key==='Escape'){closeCart();closeMob();} });
+
 // ── OFFICE LEAD FORM ──
 async function submitOfficeLead(e) {
   e.preventDefault();
@@ -522,6 +523,27 @@ const io=new IntersectionObserver(es=>es.forEach(e=>{ if(e.isIntersecting){e.tar
 document.querySelectorAll('.reveal').forEach(r=>io.observe(r));
 (function(){
   document.querySelectorAll('.hero .reveal').forEach((el,i)=>{ el.style.transitionDelay=(i*0.14)+'s'; requestAnimationFrame(()=>requestAnimationFrame(()=>el.classList.add('in'))); });
+})();
+
+// ── HERO QUOTE TYPEWRITER ──
+(function(){
+  const el = document.getElementById('heroDescText');
+  if (!el) return;
+  const full = el.textContent;
+  el.textContent = '';
+  el.classList.add('typing');
+  let i = 0;
+  function type(){
+    el.textContent = full.slice(0, i);
+    i++;
+    if (i <= full.length) { setTimeout(type, 16); }
+    else {
+      el.classList.remove('typing');
+      const mini = document.querySelector('.entheos-mini');
+      if (mini) mini.classList.add('quote-in');
+    }
+  }
+  setTimeout(type, 750); // start once the hero fade-in has settled
 })();
 
 // ── FOUNDER ──
