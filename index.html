@@ -319,6 +319,26 @@
               "transitTime": { "@type": "QuantitativeValue", "minValue": 2, "maxValue": 5, "unitCode": "DAY" }
             }
           }
+        },
+        {
+          "@type": "Offer",
+          "name": "Nicaragua Las Nubes 400g",
+          "price": "345.00",
+          "priceCurrency": "ZAR",
+          "availability": "https://schema.org/LimitedAvailability",
+          "url": "https://artifactscoffee.co.za/shop/nicaragua.html",
+          "seller": { "@id": "https://artifactscoffee.co.za/#org" },
+          "hasMerchantReturnPolicy": { "@id": "https://artifactscoffee.co.za/#returnpolicy" },
+          "shippingDetails": {
+            "@type": "OfferShippingDetails",
+            "shippingRate": { "@type": "MonetaryAmount", "value": "85.00", "currency": "ZAR" },
+            "shippingDestination": { "@type": "DefinedRegion", "addressCountry": "ZA" },
+            "deliveryTime": {
+              "@type": "ShippingDeliveryTime",
+              "handlingTime": { "@type": "QuantitativeValue", "minValue": 1, "maxValue": 2, "unitCode": "DAY" },
+              "transitTime": { "@type": "QuantitativeValue", "minValue": 2, "maxValue": 5, "unitCode": "DAY" }
+            }
+          }
         }
       ]
     },
@@ -377,6 +397,26 @@
               "transitTime": { "@type": "QuantitativeValue", "minValue": 2, "maxValue": 5, "unitCode": "DAY" }
             }
           }
+        },
+        {
+          "@type": "Offer",
+          "name": "Kenya Kiandu AB 400g",
+          "price": "305.00",
+          "priceCurrency": "ZAR",
+          "availability": "https://schema.org/LimitedAvailability",
+          "url": "https://artifactscoffee.co.za/shop/kenya.html",
+          "seller": { "@id": "https://artifactscoffee.co.za/#org" },
+          "hasMerchantReturnPolicy": { "@id": "https://artifactscoffee.co.za/#returnpolicy" },
+          "shippingDetails": {
+            "@type": "OfferShippingDetails",
+            "shippingRate": { "@type": "MonetaryAmount", "value": "85.00", "currency": "ZAR" },
+            "shippingDestination": { "@type": "DefinedRegion", "addressCountry": "ZA" },
+            "deliveryTime": {
+              "@type": "ShippingDeliveryTime",
+              "handlingTime": { "@type": "QuantitativeValue", "minValue": 1, "maxValue": 2, "unitCode": "DAY" },
+              "transitTime": { "@type": "QuantitativeValue", "minValue": 2, "maxValue": 5, "unitCode": "DAY" }
+            }
+          }
         }
       ]
     }
@@ -393,9 +433,8 @@
       <button type="button" class="nav-dropdown-trigger" aria-expanded="false" aria-haspopup="true" id="navCoffeeBtn">Coffee <span class="nav-dropdown-caret" aria-hidden="true">&#9662;</span></button>
       <ul class="nav-dropdown-menu" role="menu" aria-label="Coffee">
         <li role="none"><a href="shop/kenya.html" role="menuitem" style="color:var(--black);">Kenya · Drop 004 ⚡</a></li>
-        <li role="none"><a href="shop/guatemala.html" role="menuitem">Guatemala</a></li>
-        <li role="none"><a href="shop/mexico.html" role="menuitem">Mexico</a></li>
         <li role="none"><a href="shop/nicaragua.html" role="menuitem" style="color:var(--black);">Nicaragua · Drop 005 ⚡</a></li>
+        <li role="none"><a href="archive.html" role="menuitem">Past Drops</a></li>
         <li role="none"><a href="#office" role="menuitem">Office</a></li>
       </ul>
     </li>
@@ -418,6 +457,7 @@
   <div class="mob-links">
     <a class="mob-link" href="shop/kenya.html" style="color:var(--black);">Kenya · Drop 004 ⚡</a>
     <a class="mob-link" href="shop/nicaragua.html" style="color:var(--black);">Nicaragua · Drop 005 ⚡</a>
+    <a class="mob-link" href="archive.html">Past Drops</a>
     <a class="mob-link" href="#office" onclick="navigateMob(event,'#office')">Office Coffee</a>
     <a class="mob-link mob-after-coffee" href="cup.html" onclick="closeMob()">Origin Cup</a>
     <a class="mob-link" href="#story" onclick="navigateMob(event,'#story')">Our Story</a>
@@ -498,34 +538,41 @@
       <p class="shop-meta">Washed &middot; Red Catuai &middot; Score 86</p>
     </a>
 
-    <!-- GT card (sold out) -->
-    <a class="shop-card sold" href="shop/guatemala.html">
-      <div class="shop-img-wrap">
-        <span class="shop-badge sold">Sold Out</span>
+    <!-- Past Drops teaser -->
+    <a class="shop-card sold" href="archive.html" style="grid-column:1/-1;display:flex;flex-direction:row;align-items:center;gap:24px;padding:20px 24px;border:1px solid var(--border);">
+      <div class="shop-img-wrap" style="width:80px;height:80px;flex-shrink:0;margin:0;aspect-ratio:auto;">
         <div class="shop-img" style="background-image:url('images/gt-1080.webp');"></div>
       </div>
-      <div class="shop-top-row">
-        <span class="shop-name">Blue Ayarza | Guatemala</span>
-        <span class="shop-price">R75</span>
+      <div style="flex:1;">
+        <span class="shop-name" style="display:block;margin-bottom:4px;">Past Drops</span>
+        <p class="shop-notes" style="margin:0;">Guatemala Blue Ayarza &middot; Mexico Ki Saya &mdash; sold out, kept here for reference &rarr;</p>
       </div>
-      <p class="shop-notes">Chocolate, Stone Fruit, Floral</p>
-      <p class="shop-meta">Washed &middot; Huehuetenango</p>
     </a>
 
-    <!-- MX card (sold out) -->
-    <a class="shop-card sold" href="shop/mexico.html">
-      <div class="shop-img-wrap">
-        <span class="shop-badge sold">Sold Out</span>
-        <div class="shop-img" style="background-image:url('images/mx-1080.webp');"></div>
-      </div>
-      <div class="shop-top-row">
-        <span class="shop-name">Ki Saya | Mexico</span>
-        <span class="shop-price">R75</span>
-      </div>
-      <p class="shop-notes">Chocolate, Caramel, Soft Citrus</p>
-      <p class="shop-meta">Washed &middot; Certified Organic</p>
-    </a>
+  </div>
+</section>
 
+<!-- COMPARE -->
+<section class="compare-section reveal">
+  <p class="sec-kicker">Head to Head</p>
+  <h2 class="sec-head">Find Your<br>Perfect Cup</h2>
+  <!-- LIVE-DROP COMPARE TABLE — keep in sync with Product State whenever a drop goes live/sells out. See CLAUDE.md "Live Drop Checklist". Currently: KE Kiandu AB + NI Las Nubes (both live). GT/MX are sold out — see archive.html, not shown here. -->
+  <div class="ctable-wrap">
+    <table class="ctable">
+      <thead><tr><th></th><th class="cc">KE Kiandu AB</th><th class="cy">NI Las Nubes</th></tr></thead>
+      <tbody>
+        <tr><td class="alabel">Origin</td><td class="cc">Kenya &middot; Nyeri</td><td class="cy">Nicaragua &middot; Las Nubes</td></tr>
+        <tr><td class="alabel">Process</td><td>Fully Washed</td><td>Fully Washed</td></tr>
+        <tr><td class="alabel">Variety</td><td>SL28, SL34</td><td>Red Catuai</td></tr>
+        <tr><td class="alabel">Score</td><td>88</td><td>86</td></tr>
+        <tr><td class="alabel">Fruit Notes</td><td>Peach, Tropical Fruit, Orange Soda</td><td>Lime, Pear Compote</td></tr>
+        <tr><td class="alabel">Caramel / Nutty / Cocoa</td><td>Toffee</td><td>Cocoa Truffle, Nut Praline, Caramel Syrup</td></tr>
+        <tr><td class="alabel">Complexity</td><td>High &middot; bright &amp; fruit-forward</td><td>Smooth &middot; dessert-leaning</td></tr>
+        <tr><td class="alabel">Best For</td><td>Adventurous palates</td><td>Comfort lovers</td></tr>
+        <tr><td class="alabel">200g Price</td><td class="cc">R195</td><td class="cy">R220</td></tr>
+        <tr><td class="alabel">80g Price</td><td class="cc">R110</td><td class="cy">R125</td></tr>
+      </tbody>
+    </table>
   </div>
 </section>
 
@@ -567,7 +614,10 @@
   </div>
   <div class="phil-right">
     <p class="phil-body"><strong>Artifacts Coffee draws its name from a background in information systems and UX design</strong>, where &ldquo;artefacts&rdquo; represent the tangible outputs of research, analysis, and deliberate process.<br><br>In coffee, the same principle applies. Every roasted batch is the result of sourcing decisions, supplier relationships, roast development, and controlled execution. <strong>The final product is not accidental &mdash; it is the outcome of structure and precision.</strong><br><br>Artifacts Coffee treats each roast as the final artefact of that process: clear in origin, intentional in development, and consistent in delivery.</p>
-    <div class="phil-detail"><span>Johannesburg-based micro-roastery</span><br>Single origins &amp; structured blends<br>Available in <span>1kg</span>, <span>200g</span> and <span>80g</span> formats<br>For home brewers &amp; office supply</div>
+    <div class="phil-detail">
+      <div class="phil-detail-col"><span>Johannesburg-based micro-roastery</span><br>Single origins &amp; structured blends</div>
+      <div class="phil-detail-col">Available in <span>400g</span>, <span>200g</span> and <span>80g</span> formats<br>For home brewers &amp; office supply</div>
+    </div>
   </div>
 </section>
 
@@ -579,30 +629,6 @@
     <div class="obj-card"><p class="obj-q">&ldquo;Will this work for me?&rdquo;</p><h3 class="obj-a">Whole Bean, Roasted to Order</h3><p class="obj-b">Every bag is roasted specifically for your order &mdash; not shelf stock. Whole bean means you grind fresh for maximum flavour. Pick your origin in the shop above &mdash; not sure which? The tasting notes on each card will guide you.</p></div>
     <div class="obj-card"><p class="obj-q">&ldquo;Is it worth the price?&rdquo;</p><h3 class="obj-a">Farm-Direct. Traceable. Specialty Grade.</h3><p class="obj-b">Every rand goes toward direct-trade relationships &mdash; no middlemen. Specialty grade means it&#8217;s been scored, cupped, and verified. You&#8217;re paying for the actual coffee. That&#8217;s what you taste.</p></div>
     <div class="obj-card"><p class="obj-q">&ldquo;Can I trust this?&rdquo;</p><h3 class="obj-a">Order Online. Delivered to Your Door.</h3><p class="obj-b">Checkout takes under two minutes &mdash; no account needed. We roast after you order and ship via The Courier Guy. Got a question? Reach us on WhatsApp and we&#8217;ll sort it out directly.</p></div>
-  </div>
-</section>
-
-<!-- COMPARE -->
-<section class="compare-section reveal">
-  <p class="sec-kicker">Head to Head</p>
-  <h2 class="sec-head">Find Your<br>Perfect Cup</h2>
-  <div class="ctable-wrap">
-    <table class="ctable">
-      <thead><tr><th></th><th class="cc">GT Blue Ayarza</th><th class="cy">MX Ki Saya</th><th class="cw">NI Rajuanse</th></tr></thead>
-      <tbody>
-        <tr><td class="alabel">Origin</td><td class="cc">Guatemala</td><td class="cy">Mexico</td><td class="cw">Nicaragua</td></tr>
-        <tr><td class="alabel">Process</td><td>Fully Washed</td><td>Fully Washed</td><td>Fully Washed</td></tr>
-        <tr><td class="alabel">Certified Organic</td><td><span class="dot-off">&#9675;</span></td><td><span class="dot-on">&#9679;</span></td><td><span class="dot-off">&#9675;</span></td></tr>
-        <tr><td class="alabel">Chocolate Notes</td><td><span class="dot-on">&#9679;</span></td><td><span class="dot-on">&#9679;</span></td><td><span class="dot-on">&#9679;</span></td></tr>
-        <tr><td class="alabel">Fruit / Floral</td><td>Stone Fruit + Floral</td><td><span class="dot-off">&#9675;</span></td><td><span class="dot-off">&#9675;</span></td></tr>
-        <tr><td class="alabel">Caramel / Nutty</td><td><span class="dot-off">&#9675;</span></td><td>Caramel</td><td>Caramel + Hazelnut</td></tr>
-        <tr><td class="alabel">Complexity</td><td>High</td><td>Medium</td><td>Smooth / Comforting</td></tr>
-        <tr><td class="alabel">Best For</td><td>Adventurous palates</td><td>Clean everyday cup</td><td>Comfort lovers</td></tr>
-        <tr><td class="alabel">1kg Price</td><td class="cc">R600</td><td class="cy">R592</td><td class="cw">R560</td></tr>
-        <tr><td class="alabel">200g Price</td><td class="cc">R150</td><td class="cy">R148</td><td class="cw">R140</td></tr>
-        <tr><td class="alabel">80g Price</td><td class="cc">R75</td><td class="cy">R75</td><td class="cw">R75</td></tr>
-      </tbody>
-    </table>
   </div>
 </section>
 
@@ -658,11 +684,11 @@
   <div class="faq-inner reveal">
     <p class="sec-kicker" style="text-align:left">Common Questions</p>
     <h2 class="sec-head" style="text-align:left;margin-bottom:44px">Your Doubts,<br>Resolved.</h2>
-    <div class="faq-item"><button class="faq-q" onclick="tFaq(this)" aria-expanded="false">How do I place an order?<span class="faq-icon">+</span></button><div class="faq-ans"><div class="faq-ans-in"><ol><li>Choose your coffee and size, then tap <strong style="color:var(--white)">Add to Cart</strong>.</li><li>Open <strong style="color:var(--white)">Cart</strong> in the nav and enter your name and email to continue as a guest.</li><li>Enter your delivery address and pick a courier option.</li><li>Add a discount code if you have one, then tap <strong style="color:var(--white)">Pay Securely</strong>.</li><li>We roast your order fresh and ship &mdash; confirmation lands in your inbox.</li></ol></div></div></div>
+    <div class="faq-item"><button class="faq-q" onclick="tFaq(this)" aria-expanded="false">How do I place an order?<span class="faq-icon">+</span></button><div class="faq-ans"><div class="faq-ans-in"><ol class="faq-steps"><li><span class="faq-step-n">1</span>Choose your coffee and size, then tap <strong style="color:var(--cyan)">Add to Cart</strong>.</li><li><span class="faq-step-n">2</span>Open <strong style="color:var(--cyan)">Cart</strong> in the nav and enter your name and email to continue as a guest.</li><li><span class="faq-step-n">3</span>Enter your delivery address and pick a courier option.</li><li><span class="faq-step-n">4</span>Add a discount code if you have one, then tap <strong style="color:var(--cyan)">Pay Securely</strong>.</li><li><span class="faq-step-n">5</span>We roast your order fresh and ship &mdash; confirmation lands in your inbox.</li></ol></div></div></div>
     <div class="faq-item"><button class="faq-q" onclick="tFaq(this)" aria-expanded="false">When does my coffee get roasted?<span class="faq-icon">+</span></button><div class="faq-ans"><div class="faq-ans-in">We roast weekly to order. Let your bag rest for 10&ndash;14 days from the roast date before your first brew &mdash; that&#8217;s when the flavours have fully settled and the coffee is at its absolute best.</div></div></div>
     <div class="faq-item"><button class="faq-q" onclick="tFaq(this)" aria-expanded="false">Do you only sell whole bean?<span class="faq-icon">+</span></button><div class="faq-ans"><div class="faq-ans-in">Yes &mdash; all coffees are whole bean for now. Grind options may come in future &mdash; let us know via WhatsApp.</div></div></div>
     <div class="faq-item"><button class="faq-q" onclick="tFaq(this)" aria-expanded="false">Do you ship across South Africa?<span class="faq-icon">+</span></button><div class="faq-ans"><div class="faq-ans-in">Yes &mdash; we ship nationwide from Johannesburg. Standard tracked delivery is 2&ndash;4 business days.</div></div></div>
-    <div class="faq-item"><button class="faq-q" onclick="tFaq(this)" aria-expanded="false">How long should I rest the coffee?<span class="faq-icon">+</span></button><div class="faq-ans"><div class="faq-ans-in">Rest for <strong style="color:var(--white)">10&ndash;14 days from the roast date</strong> before your first brew. Freshly roasted beans release CO&#8322; which disrupts extraction. By day 14 you&#8217;re in the sweet spot.</div></div></div>
+    <div class="faq-item"><button class="faq-q" onclick="tFaq(this)" aria-expanded="false">How long should I rest the coffee?<span class="faq-icon">+</span></button><div class="faq-ans"><div class="faq-ans-in">Rest for <strong style="color:var(--cyan)">10&ndash;14 days from the roast date</strong> before your first brew. Freshly roasted beans release CO&#8322; which disrupts extraction. By day 14 you&#8217;re in the sweet spot.</div></div></div>
     <div class="faq-item"><button class="faq-q" onclick="tFaq(this)" aria-expanded="false">What does &ldquo;enTheos&rdquo; mean?<span class="faq-icon">+</span></button><div class="faq-ans"><div class="faq-ans-in">enTheos is Greek for &ldquo;God within&rdquo; &mdash; our mark of devotion. Every roast is offered in gratitude to God Almighty, to the farmers who tend the land, and to the craft that demands excellence. It is not a product feature. It is a posture of faith.</div></div></div>
   </div>
 </section>
@@ -676,9 +702,9 @@
 
 <!-- FOOTER -->
 <footer>
-  <img src="images/logo.png" alt="Artifacts Coffee" loading="lazy">
+  <a href="index.html" aria-label="Back to top"><img src="images/logo.png" alt="Artifacts Coffee" loading="lazy"></a>
   <ul class="foot-links">
-    <li><a href="shop/kenya.html">Kenya</a></li><li><a href="shop/guatemala.html">Guatemala</a></li><li><a href="shop/mexico.html">Mexico</a></li><li><a href="shop/nicaragua.html">Nicaragua</a></li>
+    <li><a href="shop/kenya.html">Kenya</a></li><li><a href="shop/nicaragua.html">Nicaragua</a></li><li><a href="archive.html">Past Drops</a></li>
     <li><a href="#office">Office</a></li><li><a href="#story">Our Story</a></li>
     <li><a href="rewards.html" style="color:var(--cyan)">Brew Circle</a></li>
   </ul>
@@ -730,7 +756,7 @@
     </div>
     <!-- PUDO INFO (collect mode only) -->
     <div id="pudo-info" class="shipping-box" style="display:none;margin-top:10px;">
-      <p style="font-size:12px;color:var(--muted);line-height:1.7;">Drop your order at any <strong style="color:var(--white);">TCG PUDO Locker</strong> near you. You'll receive a booking reference by email after payment. R60 flat rate nationwide.</p>
+      <p style="font-size:12px;color:var(--muted);line-height:1.7;">Drop your order at any <strong style="color:var(--black);">TCG PUDO Locker</strong> near you. You'll receive a booking reference by email after payment. R60 flat rate nationwide.</p>
     </div>
     <!-- COLLECT-FROM-US INFO (pickup mode only) -->
     <div id="pickup-info" class="shipping-box" style="display:none;margin-top:10px;">
@@ -748,11 +774,11 @@
           <option>KwaZulu-Natal</option><option>Limpopo</option><option>Mpumalanga</option>
           <option>Northern Cape</option><option>North West</option><option>Western Cape</option>
         </select>
-        <input id="ship-address-line1" type="text" autocomplete="address-line1" placeholder="Street address" style="width:100%;margin-bottom:8px;background:#fff;border:1px solid var(--border);color:var(--white);padding:10px 12px;font-size:13px;" />
-        <input id="ship-suburb" type="text" autocomplete="address-level3" placeholder="Suburb" style="width:100%;margin-bottom:8px;background:#fff;border:1px solid var(--border);color:var(--white);padding:10px 12px;font-size:13px;" />
+        <input id="ship-address-line1" type="text" autocomplete="address-line1" placeholder="Street address" style="width:100%;margin-bottom:8px;background:#fff;border:1px solid var(--border);color:var(--black);padding:10px 12px;font-size:13px;" />
+        <input id="ship-suburb" type="text" autocomplete="address-level3" placeholder="Suburb" style="width:100%;margin-bottom:8px;background:#fff;border:1px solid var(--border);color:var(--black);padding:10px 12px;font-size:13px;" />
         <div class="ship-row-2">
-          <input id="ship-city" type="text" autocomplete="address-level2" placeholder="City" style="background:#fff;border:1px solid var(--border);color:var(--white);padding:10px 12px;font-size:13px;" />
-          <input id="ship-postal-code" type="text" autocomplete="postal-code" placeholder="Postal code" style="background:#fff;border:1px solid var(--border);color:var(--white);padding:10px 12px;font-size:13px;" />
+          <input id="ship-city" type="text" autocomplete="address-level2" placeholder="City" style="background:#fff;border:1px solid var(--border);color:var(--black);padding:10px 12px;font-size:13px;" />
+          <input id="ship-postal-code" type="text" autocomplete="postal-code" placeholder="Postal code" style="background:#fff;border:1px solid var(--border);color:var(--black);padding:10px 12px;font-size:13px;" />
         </div>
       </div>
       <div id="shipping-validation-status" style="font-size:11px;color:var(--muted);margin-top:8px;">Rates load automatically when province &amp; postal code are set.</div>
@@ -760,7 +786,7 @@
     <div class="shipping-box" style="margin-top:10px;">
       <span class="sz-label" style="display:block;margin-bottom:6px;">Discount Code</span>
       <div style="display:flex;gap:8px;">
-        <input id="discount-code-input" type="text" autocomplete="off" placeholder="Enter discount code" style="flex:1;background:#fff;border:1px solid rgba(2,12,26,0.18);color:var(--white);padding:12px 14px;font-size:14px;text-transform:uppercase;letter-spacing:0.08em;border-radius:4px 0 0 4px;" />
+        <input id="discount-code-input" type="text" autocomplete="off" placeholder="Enter discount code" style="flex:1;background:#fff;border:1px solid rgba(2,12,26,0.18);color:var(--black);padding:12px 14px;font-size:14px;text-transform:uppercase;letter-spacing:0.08em;border-radius:4px 0 0 4px;" />
         <button type="button" onclick="applyDiscountCode()" style="width:auto;padding:12px 18px;margin:0;font-size:14px;font-family:'DM Mono',monospace;letter-spacing:0.08em;background:var(--cyan);color:black;border:none;border-radius:0 4px 4px 0;flex-shrink:0;cursor:pointer;">Apply</button>
       </div>
       <div id="discount-status" style="font-size:11px;color:var(--muted);margin-top:8px;">Have a promo link? Your code can auto-apply here.</div>

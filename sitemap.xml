@@ -6,6 +6,31 @@
     <priority>1.0</priority>
   </url>
   <url>
+    <loc>https://artifactscoffee.co.za/shop/kenya.html</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://artifactscoffee.co.za/shop/nicaragua.html</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://artifactscoffee.co.za/shop/guatemala.html</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://artifactscoffee.co.za/shop/mexico.html</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://artifactscoffee.co.za/archive.html</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.4</priority>
+  </url>
+  <url>
     <loc>https://artifactscoffee.co.za/rewards.html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>

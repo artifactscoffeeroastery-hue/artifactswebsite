@@ -3,7 +3,7 @@
 **Repo:** artifactscoffeeroastery-hue/artifactswebsite  
 **Live site:** https://artifactscoffee.co.za  
 **Stack:** Static HTML/CSS/JS · Netlify · Supabase · PayFast  
-**Last updated:** 2026-08-05
+**Last updated:** 2026-08-06
 
 ---
 
@@ -18,6 +18,17 @@
 | Payments | PayFast — merchant_id `34420469`, merchant_key `q6qjvvpwgddvi` |
 | Shipping | Bob Go API via `getShipping.js` |
 | Maps | Google Places Autocomplete — key served via `getConfig.js` (never in source) |
+
+### Session 16 (400g bag size, compare table reorder, checkout invisible-text fixes, 2026-08-06)
+- **400g bag size added** to Kenya and Nicaragua: price = 80g price + 200g price (Kenya R305, Nicaragua R345). This is not linear scaling — it's a real ~20% per-kg discount vs. buying two 200g bags (Kenya 2×R195=R390, Nicaragua 2×R220=R440), meant to incentivize trading up. Added to `index.html` JSON-LD offers, `shop/kenya.html` + `shop/nicaragua.html` size toggles (with "Save Rxx vs. two 200g bags" copy shown when 400g is selected — the savings framing does the psychological work, not the sticker digit), and `admin-order.html` PRODUCTS sizes arrays.
+- **Margin check (real cost data from the M6 roast profiling chat, not this project's files):** actual last-purchase green bean cost was Kenya R334/kg, Nicaragua R295/kg (both higher than the R304/kg used for the original Kenya launch decision) — 18% roast loss, R10/200g bag+label, R6.50/80g bag+label. At current live prices: Kenya 200g margin ~53%, 80g ~64%; Nicaragua 200g ~63%, 80g ~72%. **400g reuses the existing 200g bag** (same pouch physically holds 400g, no separate packaging SKU) — so 400g margin is ~43% (Kenya) / ~55% (Nicaragua) at R10 packaging cost, not the ~R13 estimate first used.
+- **Compare table (`.compare-section`) rebuilt** — was still showing the pre-relaunch trio (GT Blue Ayarza / MX Ki Saya / NI "Rajuanse", the old Nicaragua product name from before Las Nubes). Replaced with the two actually-live coffees (KE Kiandu AB vs NI Las Nubes), real tasting notes/score/price data. Dropped the old "Certified Organic" and "1kg Price" rows (neither KE nor NI has a 1kg SKU or organic cert). Added an inline HTML comment above the table pointing to the new Live Drop Checklist section below.
+- **Section order changed**: Compare table moved from just-before-Testimonials to immediately after the homepage Shop Grid (Hero → Shop Grid → Compare Table → Office/Story/etc.) — catches the customer while they're actively comparing products, before pushing them into brand-story content.
+- **`archive.html` created** — new standalone page for sold-out origins (Guatemala, Mexico). Nav dropdown, mobile overlay, and footer now show only live origins (Kenya, Nicaragua) plus one "Past Drops" link to this page. Homepage shop-grid's two sold-out tiles replaced with a single wide "Past Drops" teaser card linking to `archive.html`. Added to `sitemap.xml`.
+- **Critical bug fixed: invisible checkout text.** Leftover dark-theme `color:var(--white)` inline styles (never updated in the Session 9-15 light-theme conversion) made the delivery address fields, discount code field, and PUDO locker copy in the cart drawer render as white-on-white — completely unreadable — across `index.html` and all 4 `shop/*.html` pages. Fixed everywhere (also fixed the same bug in the homepage FAQ text, which is what surfaced it).
+- **SEO**: `sitemap.xml` was missing all 4 `/shop/*.html` product pages entirely (plus now `archive.html`) — added. Site itself is indexed and ranking fine for "artifacts coffee" searches; no other structural SEO issue found.
+- Footer logo now links to `index.html` (wasn't a link before at all).
+- Removed a stray `border-top:2px solid var(--yellow)` on `.philosophy-section` that was rendering as an unexplained thin yellow line above the Story section.
 
 ### Session 15 (Light theme + shop grid + product pages, 2026-08-05)
 - Full site flipped from dark theme to light theme. Design tokens now: `--cyan`, `--yellow`, `--black` (text), `--white` (page bg), `--off`/`--mid` (light card bg), `--border`, `--muted` — brand-strict, no invented colors (an earlier warm/beige/gold pass was explicitly rejected and reverted).
@@ -77,8 +88,8 @@ Drop 004 Kenya and Drop 005 Nicaragua are both **Live**. GT/MX remain Sold Out a
 
 | Code | Origin | Coffee | Status |
 |------|--------|--------|--------|
-| KE · 004 | Kenya · Nyeri · Kiandu WS | Kiandu AB | **Live** — 80g R110 · 200g R195 |
-| NI · 005 | Nicaragua · Las Nubes | Las Nubes Red Catuai | **Live** — 80g R125 · 200g R220 |
+| KE · 004 | Kenya · Nyeri · Kiandu WS | Kiandu AB | **Live** — 80g R110 · 200g R195 · 400g R305 |
+| NI · 005 | Nicaragua · Las Nubes | Las Nubes Red Catuai | **Live** — 80g R125 · 200g R220 · 400g R345 |
 | GT · 001 | Guatemala · Huehuetenango | Blue Ayarza | Sold Out |
 | MX · 002 | Mexico · Chiapas | Ki Saya (Organic) | Sold Out |
 
@@ -88,6 +99,20 @@ Kenya visual: CSS gradient placeholder (`#1a0a0b → #3d1012 → #C8373E`) — n
 Las Nubes tasting notes: Lime · Cocoa Truffle · Nut Praline · Caramel Syrup · Pear Compote (bag label shows the 3-note short version; site pills show all 5)  
 Variety: Red Catuai · Score 86 · `images/las-nubes.png` (real bag mockup, same template as Kenya's).  
 Live bar replaces coming-soon bar above origin cards.
+
+### Live Drop Checklist — update ALL of these when a drop goes live or sells out
+
+No build step/templating on this site, so nothing here updates itself — every one of these has to be touched by hand, every time. Treat this list as the source of truth for "what did I forget."
+
+- [ ] `index.html` — nav dropdown (`.nav-dropdown-menu`), mobile overlay (`.mob-links`), footer (`.foot-links`)
+- [ ] `index.html` — homepage `.shop-grid` cards (add/remove/reorder live tiles; sold-out ones move to the "Past Drops" teaser, not their own tile)
+- [ ] `index.html` — `.compare-section` Head-to-Head table (only ever shows currently-**live** origins, max 2–3 columns; sold-out origins come out of this table, not just get greyed out)
+- [ ] `index.html` — JSON-LD `@graph` Product entries (`availability`, `price`, `url`)
+- [ ] `archive.html` — sold-out origins list (add here when something sells out, remove if it comes back)
+- [ ] `shop/<origin>.html` — the standalone product page itself (live buy-flow vs. sold-out static block)
+- [ ] `sitemap.xml` — add new `/shop/*.html` pages when created
+- [ ] `admin-order.html` — `PRODUCTS` array (`live:true/false`, `sizes`)
+- [ ] This "Product State" table + the top-of-file "Last updated" date
 
 ---
 

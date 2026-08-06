@@ -91,14 +91,16 @@
       <div class="divider"></div>
       <span class="sz-label">Select Size</span>
       <div id="sz-ke" class="sz-toggle" data-selected-size="200g">
-          <button class="sz-btn sel-k" onclick="selectPF(this,'ke','195');document.getElementById('ke-note').textContent='200g &middot; whole bean'">200g &mdash; R195</button>
-          <button class="sz-btn" onclick="selectPF(this,'ke','110');document.getElementById('ke-note').textContent='80g &middot; whole bean'">80g &mdash; R110</button>
+          <button class="sz-btn" onclick="selectPF(this,'ke','110');document.getElementById('ke-note').textContent='80g &middot; whole bean';document.getElementById('ke-save').textContent=''">80g &mdash; R110</button>
+          <button class="sz-btn sel-k" onclick="selectPF(this,'ke','195');document.getElementById('ke-note').textContent='200g &middot; whole bean';document.getElementById('ke-save').textContent=''">200g &mdash; R195</button>
+          <button class="sz-btn" onclick="selectPF(this,'ke','305');document.getElementById('ke-note').textContent='400g &middot; whole bean';document.getElementById('ke-save').textContent='Save R85 vs. two 200g bags'">400g &mdash; R305</button>
       </div>
       <div class="price-row">
         <span class="p-curr">R</span>
         <span class="p-amount" id="ke-p">195</span>
         <span class="p-note" id="ke-note">200g &middot; whole bean</span>
       </div>
+      <div class="save-note" id="ke-save" style="font-size:12px;color:var(--cyan);font-weight:700;margin-top:-8px;margin-bottom:8px;min-height:16px;"></div>
       <div class="pf-selector-wrap">
         <button id="btn-ke" class="order-btn btn-ke" onclick="prepAddToCart('Kenya Kiandu AB','ke')">Add to Cart</button>
       </div>
@@ -172,7 +174,7 @@
     </div>
     <!-- PUDO INFO (collect mode only) -->
     <div id="pudo-info" class="shipping-box" style="display:none;margin-top:10px;">
-      <p style="font-size:12px;color:var(--muted);line-height:1.7;">Drop your order at any <strong style="color:var(--white);">TCG PUDO Locker</strong> near you. You'll receive a booking reference by email after payment. R60 flat rate nationwide.</p>
+      <p style="font-size:12px;color:var(--muted);line-height:1.7;">Drop your order at any <strong style="color:var(--black);">TCG PUDO Locker</strong> near you. You'll receive a booking reference by email after payment. R60 flat rate nationwide.</p>
     </div>
     <!-- COLLECT-FROM-US INFO (pickup mode only) -->
     <div id="pickup-info" class="shipping-box" style="display:none;margin-top:10px;">
@@ -190,11 +192,11 @@
           <option>KwaZulu-Natal</option><option>Limpopo</option><option>Mpumalanga</option>
           <option>Northern Cape</option><option>North West</option><option>Western Cape</option>
         </select>
-        <input id="ship-address-line1" type="text" autocomplete="address-line1" placeholder="Street address" style="width:100%;margin-bottom:8px;background:#fff;border:1px solid var(--border);color:var(--white);padding:10px 12px;font-size:13px;" />
-        <input id="ship-suburb" type="text" autocomplete="address-level3" placeholder="Suburb" style="width:100%;margin-bottom:8px;background:#fff;border:1px solid var(--border);color:var(--white);padding:10px 12px;font-size:13px;" />
+        <input id="ship-address-line1" type="text" autocomplete="address-line1" placeholder="Street address" style="width:100%;margin-bottom:8px;background:#fff;border:1px solid var(--border);color:var(--black);padding:10px 12px;font-size:13px;" />
+        <input id="ship-suburb" type="text" autocomplete="address-level3" placeholder="Suburb" style="width:100%;margin-bottom:8px;background:#fff;border:1px solid var(--border);color:var(--black);padding:10px 12px;font-size:13px;" />
         <div class="ship-row-2">
-          <input id="ship-city" type="text" autocomplete="address-level2" placeholder="City" style="background:#fff;border:1px solid var(--border);color:var(--white);padding:10px 12px;font-size:13px;" />
-          <input id="ship-postal-code" type="text" autocomplete="postal-code" placeholder="Postal code" style="background:#fff;border:1px solid var(--border);color:var(--white);padding:10px 12px;font-size:13px;" />
+          <input id="ship-city" type="text" autocomplete="address-level2" placeholder="City" style="background:#fff;border:1px solid var(--border);color:var(--black);padding:10px 12px;font-size:13px;" />
+          <input id="ship-postal-code" type="text" autocomplete="postal-code" placeholder="Postal code" style="background:#fff;border:1px solid var(--border);color:var(--black);padding:10px 12px;font-size:13px;" />
         </div>
       </div>
       <div id="shipping-validation-status" style="font-size:11px;color:var(--muted);margin-top:8px;">Rates load automatically when province &amp; postal code are set.</div>
@@ -202,7 +204,7 @@
     <div class="shipping-box" style="margin-top:10px;">
       <span class="sz-label" style="display:block;margin-bottom:6px;">Discount Code</span>
       <div style="display:flex;gap:8px;">
-        <input id="discount-code-input" type="text" autocomplete="off" placeholder="Enter discount code" style="flex:1;background:#fff;border:1px solid rgba(2,12,26,0.18);color:var(--white);padding:12px 14px;font-size:14px;text-transform:uppercase;letter-spacing:0.08em;border-radius:4px 0 0 4px;" />
+        <input id="discount-code-input" type="text" autocomplete="off" placeholder="Enter discount code" style="flex:1;background:#fff;border:1px solid rgba(2,12,26,0.18);color:var(--black);padding:12px 14px;font-size:14px;text-transform:uppercase;letter-spacing:0.08em;border-radius:4px 0 0 4px;" />
         <button type="button" onclick="applyDiscountCode()" style="width:auto;padding:12px 18px;margin:0;font-size:14px;font-family:'DM Mono',monospace;letter-spacing:0.08em;background:var(--cyan);color:black;border:none;border-radius:0 4px 4px 0;flex-shrink:0;cursor:pointer;">Apply</button>
       </div>
       <div id="discount-status" style="font-size:11px;color:var(--muted);margin-top:8px;">Have a promo link? Your code can auto-apply here.</div>
