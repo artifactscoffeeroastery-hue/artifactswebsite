@@ -52,6 +52,8 @@ body{min-height:100vh;overflow-x:hidden;}
 .prod-line-price{min-width:56px;text-align:right;font-family:'Barlow Condensed',sans-serif;font-size:15px;}
 .tag-live{display:inline-block;background:var(--ke);color:#fff;font-size:9px;font-family:'Barlow Condensed',sans-serif;font-weight:700;letter-spacing:0.15em;padding:2px 6px;margin-left:6px;vertical-align:middle;}
 .tag-sold{display:inline-block;background:#222;color:var(--muted);font-size:9px;font-family:'Barlow Condensed',sans-serif;font-weight:700;letter-spacing:0.15em;padding:2px 6px;margin-left:6px;vertical-align:middle;}
+.archived-toggle-btn{display:block;width:100%;text-align:left;background:none;border:none;border-top:1px solid var(--border);color:var(--muted);font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;padding:12px 0;margin-top:8px;cursor:pointer;}
+.archived-toggle-btn:hover{color:#fff;}
 
 /* FIELDS */
 .field-group{margin-bottom:14px;}
@@ -185,6 +187,8 @@ textarea.field-input{resize:vertical;min-height:72px;}
   <div class="section-gap">
     <p class="section-title">Products</p>
     <div id="product-list"></div>
+    <button type="button" id="archived-toggle" class="archived-toggle-btn" onclick="toggleArchivedProducts()">&#9656; Sold Out / Archived Origins</button>
+    <div id="product-list-archived" style="display:none;"></div>
   </div>
 
   <!-- CUSTOMER -->
@@ -528,28 +532,39 @@ function autofillFromName() {
 }
 
 // ── INIT PRODUCTS ─────────────────────────────────────────────────────────────
+function productRowHtml(p) {
+  qtys[p.id] = 0; sizes[p.id] = p.sizes[0].l; prices[p.id] = p.sizes[0].p;
+  const tag = p.live ? '<span class="tag-live">LIVE</span>' : '<span class="tag-sold">SOLD OUT</span>';
+  const opts = p.sizes.map(s=>'<option value="'+s.l+'" data-price="'+s.p+'">'+s.l+' — R'+s.p+'</option>').join('');
+  return '<div class="product-row">'
+    +'<div class="prod-accent" style="background:'+p.color+'"></div>'
+    +'<div class="prod-info">'
+      +'<div class="prod-code">'+p.code+'</div>'
+      +'<div class="prod-name">'+p.name+tag+'</div>'
+      +'<div class="prod-origin">'+p.origin+'</div>'
+    +'</div>'
+    +'<select class="prod-size-sel" id="sel-'+p.id+'" onchange="onSizeChange(\''+p.id+'\',this)">'+opts+'</select>'
+     +'<div class="qty-ctrl">'
+      +'<button class="qty-btn" onclick="changeQty(\''+p.id+'\',-1)">−</button>'
+      +'<span class="qty-val" id="qty-'+p.id+'">0</span>'
+      +'<button class="qty-btn" onclick="changeQty(\''+p.id+'\',1)">+</button>'
+    +'</div>'
+    +'<div class="prod-line-price" id="lp-'+p.id+'">—</div>'
+  +'</div>';
+}
 function initProducts() {
-  const el = document.getElementById('product-list');
-  el.innerHTML = PRODUCTS.map(p => {
-    qtys[p.id] = 0; sizes[p.id] = p.sizes[0].l; prices[p.id] = p.sizes[0].p;
-    const tag = p.live ? '<span class="tag-live">LIVE</span>' : '<span class="tag-sold">SOLD OUT</span>';
-    const opts = p.sizes.map(s=>'<option value="'+s.l+'" data-price="'+s.p+'">'+s.l+' — R'+s.p+'</option>').join('');
-    return '<div class="product-row">'
-      +'<div class="prod-accent" style="background:'+p.color+'"></div>'
-      +'<div class="prod-info">'
-        +'<div class="prod-code">'+p.code+'</div>'
-        +'<div class="prod-name">'+p.name+tag+'</div>'
-        +'<div class="prod-origin">'+p.origin+'</div>'
-      +'</div>'
-      +'<select class="prod-size-sel" id="sel-'+p.id+'" onchange="onSizeChange(\''+p.id+'\',this)">'+opts+'</select>'
-       +'<div class="qty-ctrl">'
-        +'<button class="qty-btn" onclick="changeQty(\''+p.id+'\',-1)">−</button>'
-        +'<span class="qty-val" id="qty-'+p.id+'">0</span>'
-        +'<button class="qty-btn" onclick="changeQty(\''+p.id+'\',1)">+</button>'
-      +'</div>'
-      +'<div class="prod-line-price" id="lp-'+p.id+'">—</div>'
-    +'</div>';
-  }).join('');
+  document.getElementById('product-list').innerHTML = PRODUCTS.filter(p=>p.live).map(productRowHtml).join('');
+  var archived = PRODUCTS.filter(p=>!p.live);
+  document.getElementById('product-list-archived').innerHTML = archived.map(productRowHtml).join('');
+  var toggle = document.getElementById('archived-toggle');
+  toggle.textContent = '▶ Sold Out / Archived Origins (' + archived.length + ')';
+}
+function toggleArchivedProducts() {
+  var el = document.getElementById('product-list-archived');
+  var btn = document.getElementById('archived-toggle');
+  var opening = el.style.display === 'none';
+  el.style.display = opening ? '' : 'none';
+  btn.textContent = (opening ? '▼' : '▶') + ' Sold Out / Archived Origins (' + PRODUCTS.filter(p=>!p.live).length + ')';
 }
 
 function onSizeChange(id, sel) {
@@ -689,6 +704,13 @@ function payViaPayFast() {
   document.getElementById('pf-ship-amt').value=ship.toFixed(2);
   document.getElementById('pf-ship-addr').value=addr;
   document.getElementById('pf-phone').value=phone;
+  logToSheet('invoice', {
+    orderNo:orderNo, ref:'PF-'+orderNo,
+    customer:{name:name,email:email,phone:phone},
+    items:PRODUCTS.filter(function(p){return qtys[p.id]>0;}).map(function(p){return{name:p.name,size:sizes[p.id],price:prices[p.id],qty:qtys[p.id]};}),
+    sub:sub, ship:ship, disc:disc, total:total,
+    fulfilLabel:getFulfilLabel(), fulfilAddress:addr, notes:document.getElementById('admin-notes').value.trim()
+  });
   document.getElementById('pf-form').submit();
 }
 
@@ -705,6 +727,13 @@ async function payViaEFT() {
     var res=await fetch('/.netlify/functions/createManualOrder',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({adminKey:adminKey,customer:{name:name,email:email,phone:phone},items:PRODUCTS.filter(function(p){return qtys[p.id]>0;}).map(function(p){return{name:p.name,size:sizes[p.id],price:prices[p.id],qty:qtys[p.id]};}),shipping:{method:getFulfilLabel(),amount:ship,address:addr},discountCode:appliedDisc.code||null,discountAmt:disc,notes:notesFull,paymentMethod:'eft'})});
     var data=await res.json();
     if(!res.ok||!data.success){ if(res.status===401){alert('Admin code rejected.');return;} throw new Error(data.error||'Server error'); }
+    logToSheet('invoice', {
+      orderNo:orderNo, ref:'EFT-'+orderNo,
+      customer:{name:name,email:email,phone:phone},
+      items:PRODUCTS.filter(function(p){return qtys[p.id]>0;}).map(function(p){return{name:p.name,size:sizes[p.id],price:prices[p.id],qty:qtys[p.id]};}),
+      sub:sub, ship:ship, disc:disc, total:total,
+      fulfilLabel:getFulfilLabel(), fulfilAddress:addr, notes:notesFull
+    });
     showConfirmation(data,total,orderNo);
   } catch(e){ alert('Error: '+e.message); }
   finally { btn.textContent='Send EFT Request'; btn.style.opacity=''; btn.style.pointerEvents=''; }
@@ -724,19 +753,24 @@ async function customerUUID(email){
   var h=Array.prototype.map.call(b,function(x){return ('0'+x.toString(16)).slice(-2);}).join('');
   return h.slice(0,8)+'-'+h.slice(8,12)+'-'+h.slice(12,16)+'-'+h.slice(16,20)+'-'+h.slice(20);
 }
-async function logToSheet(kind) {
-  if(!SHEET_LOG_URL||!docState) return;
-  var ref=kind==='invoice'?(docState.invoiceRef||docState.ref):docState.ref;
-  var items=docState.items.map(function(it){return it.qty+'x '+it.name+' ('+it.size+')';}).join('; ');
-  var customerId=await customerUUID(docState.customer.email);
+async function logToSheet(kind, data) {
+  data = data || docState;
+  if(!SHEET_LOG_URL||!data) return;
+  var ref=kind==='invoice'?(data.invoiceRef||data.ref):data.ref;
+  var items=data.items.map(function(it){return it.qty+'x '+it.name+' ('+it.size+')';}).join('; ');
+  var customerId=await customerUUID(data.customer.email);
   var A=function(id){ var el=document.getElementById(id); return el?el.value.trim():''; };
   var addr={ line1:A('d-address'), suburb:A('d-suburb'), city:A('d-city'), province:A('d-province'), postal:A('d-postal'), personal:A('d-personal-address') };
-  var payload={ token:SHEET_LOG_TOKEN, customerId:customerId, orderNo:docState.orderNo||'', type:kind, ref:ref, timestamp:new Date().toISOString(),
-    name:docState.customer.name, email:docState.customer.email, phone:docState.customer.phone,
-    items:items, subtotal:docState.sub, shipping:docState.ship, discount:docState.disc, total:docState.total,
-    fulfilment:docState.fulfilLabel, address:docState.fulfilAddress||'', notes:docState.notes||'', addressData:JSON.stringify(addr) };
-  try { fetch(SHEET_LOG_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(payload)}); }
-  catch(e){ console.warn('Sheet log failed:',e); }
+  var payload={ token:SHEET_LOG_TOKEN, customerId:customerId, orderNo:data.orderNo||'', type:kind, ref:ref, timestamp:new Date().toISOString(),
+    name:data.customer.name, email:data.customer.email, phone:data.customer.phone,
+    items:items, subtotal:data.sub, shipping:data.ship, discount:data.disc, total:data.total,
+    fulfilment:data.fulfilLabel, address:data.fulfilAddress||'', notes:data.notes||'', addressData:JSON.stringify(addr) };
+  var body=JSON.stringify(payload);
+  try {
+    // sendBeacon survives an immediate page redirect (e.g. PayFast); fetch can get cancelled mid-flight
+    if (navigator.sendBeacon) navigator.sendBeacon(SHEET_LOG_URL, new Blob([body],{type:'text/plain;charset=utf-8'}));
+    else fetch(SHEET_LOG_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain;charset=utf-8'},body:body});
+  } catch(e){ console.warn('Sheet log failed:',e); }
 }
 // Human-readable order number — sequential per admin device, timestamp fallback
 function nextOrderNo() {
@@ -758,7 +792,7 @@ function generateQuote() {
     date:new Date().toLocaleDateString('en-ZA',{day:'2-digit',month:'short',year:'numeric'})
   };
   docState.total=Math.max(0,docState.sub+docState.ship-docState.disc);
-  logToSheet('quote');
+  logToSheet('quote', docState);
   showQuoteScreen('quote');
 }
 
@@ -798,7 +832,7 @@ function convertToInvoice() {
   docState.type='invoice';
   docState.invoiceRef='INV-'+Date.now();
   docState.invoiceDate=new Date().toLocaleDateString('en-ZA',{day:'2-digit',month:'short',year:'numeric'});
-  logToSheet('invoice');
+  logToSheet('invoice', docState);
   showQuoteScreen('invoice');
 }
 
