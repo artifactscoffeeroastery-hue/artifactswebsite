@@ -488,7 +488,21 @@ async function checkGate() {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ adminKey: v, ping: true })
     });
-    if (!res.ok) { err.style.display = 'block'; return; }
+    if (!res.ok) {
+      // Distinguish "wrong code" from "server/deploy problem" instead of always
+      // showing the same generic message — a 401 means the code genuinely doesn't
+      // match ADMIN_ORDER_KEY; anything else means the env var or function itself
+      // is misconfigured, which typing the right code will never fix.
+      if (res.status === 401) {
+        err.textContent = 'Incorrect — re-enter your admin code.';
+      } else {
+        let detail = '';
+        try { detail = (await res.json()).error || ''; } catch (e) {}
+        err.textContent = `Server error (HTTP ${res.status}${detail ? ': ' + detail : ''}) — this isn't a wrong-code issue. Check the ADMIN_ORDER_KEY env var in Netlify and that the latest deploy is live.`;
+      }
+      err.style.display = 'block';
+      return;
+    }
   } catch (e) {
     err.textContent = 'Could not reach the server — check your connection and try again.';
     err.style.display = 'block';
