@@ -994,7 +994,15 @@
       const { data, error } = await sb.auth.signUp({
         email,
         password: pass,
-        options: { data: { name, birthdate } }
+        options: {
+          data: { name, birthdate },
+          // Without this, the confirmation email falls back to whatever
+          // Supabase Auth's dashboard "Site URL" is set to — which was
+          // still the local-dev default (http://localhost:3000), sending
+          // every real signup to a dead localhost page. Forcing it here
+          // means signup works even if that dashboard setting is wrong.
+          emailRedirectTo: 'https://artifactscoffee.co.za/rewards.html'
+        }
       });
 
       if (error) return toast(error.message, 'error');
