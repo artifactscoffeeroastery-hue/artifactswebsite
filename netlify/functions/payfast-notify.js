@@ -25,6 +25,40 @@ const PAYFAST_MERCHANT_ID  = '34420469';
 const PAYFAST_VALIDATE_URL = 'https://www.payfast.co.za/eng/query/validate';
 const POINTS_PER_RAND      = 1; // 1 point per R1 spent
 
+// Map product name keywords → drop_code for stock tracking
+const PRODUCT_STOCK_MAP = [
+  { keywords: ['kiandu', 'kenya'], dropCode: 'KE-004' },
+];
+
+/** Parse item_description → [{dropCode, sizeGrams, qty}] */
+function parseStockItems(itemDesc) {
+  if (!itemDesc) return [];
+  return itemDesc.split(',').flatMap(part => {
+    const qty  = parseInt((part.match(/(\d+)x/i) || [])[1] || '0');
+    const size = parseInt((part.match(/(\d+)\s*g/i) || [])[1] || '0');
+    if (!qty || !size) return [];
+    const lower = part.toLowerCase();
+    const match = PRODUCT_STOCK_MAP.find(p => p.keywords.some(k => lower.includes(k)));
+    return match ? [{ dropCode: match.dropCode, sizeGrams: size, qty }] : [];
+  });
+}
+
+/** Decrement roasted_stock via Supabase RPC */
+async function decrementStock(supabaseUrl, serviceKey, itemDesc) {
+  const items = parseStockItems(itemDesc);
+  for (const { dropCode, sizeGrams, qty } of items) {
+    await fetch(`${supabaseUrl}/rest/v1/rpc/decrement_stock`, {
+      method:  'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        apikey:         serviceKey,
+        Authorization:  `Bearer ${serviceKey}`,
+      },
+      body: JSON.stringify({ p_drop_code: dropCode, p_size_grams: sizeGrams, p_qty: qty }),
+    }).catch(e => console.warn('decrement_stock failed:', e.message));
+  }
+}
+
 // ── Business / customer-invoice details ──────────────────────────────────────
 // MAIL_FROM: once your domain is verified in Resend, set env MAIL_FROM to
 // "Artifacts Coffee <hello@artifactscoffee.co.za>". Until then the shared
@@ -112,7 +146,7 @@ async function recordOrderAndAwardPoints({ email, amountRand, paymentId, itemDes
   };
 
   // 2. Upsert order record
-  await fetch(`${supabaseUrl}/rest/v1/orders`, {
+  const orderRes = await fetch(`${supabaseUrl}/rest/v1/orders`, {
     method:  'POST',
     headers: { ...authHeaders, Prefer: 'resolution=ignore-duplicates,return=minimal' },
     body: JSON.stringify({
@@ -126,31 +160,40 @@ async function recordOrderAndAwardPoints({ email, amountRand, paymentId, itemDes
       status:          'complete',
     }),
   });
+  if (!orderRes.ok) console.error('orders insert failed:', orderRes.status, await orderRes.text());
 
   // 3. Record discount code use (powers live founder counter)
   if (discountCode) {
-    await fetch(`${supabaseUrl}/rest/v1/discount_uses`, {
+    const discRes = await fetch(`${supabaseUrl}/rest/v1/discount_uses`, {
       method:  'POST',
       headers: { ...authHeaders, Prefer: 'resolution=ignore-duplicates,return=minimal' },
       body: JSON.stringify({ code: discountCode, payment_id: paymentId, email }),
     });
+    if (!discRes.ok) console.error('discount_uses insert failed:', discRes.status, await discRes.text());
   }
 
   // 4. Credit point_events
-  await fetch(`${supabaseUrl}/rest/v1/point_events`, {
+  // NOTE: point_events has no `reference_id` column (confirmed via
+  // information_schema — real columns are id, customer_id, event_type,
+  // points, description, order_id, created_by, created_at). This insert
+  // used to send `reference_id: paymentId`, which PostgREST rejects
+  // outright — meaning this call has been failing on every single real
+  // purchase, silently, since the response was never checked. Fixed to
+  // match the real schema, and now logs if it ever fails again.
+  const peRes = await fetch(`${supabaseUrl}/rest/v1/point_events`, {
     method:  'POST',
     headers: authHeaders,
     body: JSON.stringify({
-      customer_id:  customerId,
-      event_type:   'purchase',
-      points:       points,
-      description:  `Order ${paymentId} — R${amountRand.toFixed(2)}`,
-      reference_id: paymentId,
+      customer_id: customerId,
+      event_type:  'purchase',
+      points:      points,
+      description: `Order ${paymentId} — R${amountRand.toFixed(2)}`,
     }),
   });
+  if (!peRes.ok) console.error('point_events insert failed:', peRes.status, await peRes.text());
 
   // 5. Update customer points balance (incremental)
-  await fetch(
+  const incRes = await fetch(
     `${supabaseUrl}/rest/v1/rpc/increment_customer_points`,
     {
       method:  'POST',
@@ -158,6 +201,7 @@ async function recordOrderAndAwardPoints({ email, amountRand, paymentId, itemDes
       body: JSON.stringify({ p_customer_id: customerId, p_points: points }),
     }
   );
+  if (!incRes.ok) console.error('increment_customer_points failed:', incRes.status, await incRes.text());
 
   console.log(`Awarded ${points} pts to ${email} for order ${paymentId}`);
 }
@@ -286,6 +330,13 @@ exports.handler = async (event) => {
         discountCode:   params.custom_str1 || '',
         shippingMethod: shipMethod,
       });
+
+      // Decrement roasted stock
+      await decrementStock(
+        process.env.SUPABASE_URL,
+        process.env.SUPABASE_SERVICE_KEY,
+        params.item_description || ''
+      ).catch(e => console.error('Stock decrement error:', e.message));
 
       // Email the customer their paid receipt / tax invoice
       await sendCustomerInvoice({

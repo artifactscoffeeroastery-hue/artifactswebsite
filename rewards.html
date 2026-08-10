@@ -1025,13 +1025,21 @@
       document.getElementById('dash-email').textContent = user.email;
 
       // Customer rewards summary
-      const { data: reward } = await sb
+      const { data: reward, error: rewardError } = await sb
         .from('v_customer_rewards')
         .select('*')
         .eq('id', user.id)
         .single();
 
-      if (reward) renderDashboard(reward);
+      if (reward) {
+        renderDashboard(reward);
+      } else {
+        // Previously failed silently, leaving the dashboard stuck on
+        // "Loading..." forever with no indication anything was wrong.
+        console.error('v_customer_rewards fetch failed:', rewardError);
+        document.getElementById('dash-to-next').textContent = 'Could not load your rewards.';
+        toast('Could not load your rewards — please refresh, or contact hello@artifactscoffee.co.za if this keeps happening.', 'error');
+      }
 
       // Activity feed
       const { data: events } = await sb
