@@ -11,7 +11,13 @@ const discountCodes = {
   FOUNDER20:   { type:'fixed',   value:20,  label:'R20 off — Founder'        },
   DISCOVERY15: { type:'percent', value:15,  label:'15% off order subtotal'    },
   SAMPLE25:    { type:'fixed',   value:25,  label:'R25 off order subtotal'    },
-  FAMILY:      { type:'collect', value:0,   label:'Friends & Family — Free Collection' }
+  FAMILY:      { type:'collect', value:0,   label:'Friends & Family — Free Collection' },
+  // One-off personal thank-you code for Hilary (Brew Circle sign-up bug
+  // report) — R10 ≈ 100 Brew Circle points at the site's 500pts=R50 rate.
+  // Not enforced server-side as single-use (no code on this site is —
+  // client-side discountCodes object only), fine for a one-off like this.
+  // Safe to delete this entry once she's used it or you'd rather retire it.
+  HILARY10:    { type:'fixed',   value:10,  label:'R10 off — thank you!'      }
 };
 function setStatus(id, msg, kind) {
   const el = document.getElementById(id); if (!el) return;

@@ -24,6 +24,7 @@
 - **Fixed the orders insert to match the real schema.** Also split `paymentId` into `paymentId` (PayFast's `m_payment_id`, used everywhere else in the file — emails, logs, descriptions) and a new `pfPaymentId` (`params.pf_payment_id`, PayFast's own internal ID) so both `payfast_payment_id` and `payfast_pf_payment_id` get populated correctly. `total_rand` is `Math.round(amountRand)` since the column is `integer` (fine — every product in this shop is priced in whole Rand already, no cents). `discount_rand` deliberately omitted (defaults to 0 — we don't have the actual discount amount at the webhook layer, only the code string).
 - **`order_items` line-item population added.** New `PRODUCT_PRICE_MAP` (mirrors `admin-order.html`'s `PRODUCTS` — keep both in sync per the Live Drop Checklist) + `parseOrderItems()` parse `item_description` (built client-side in `js/main.js` as `` `${qty}x ${name} (${size})` ``) into `{product_slug, product_name, quantity, unit_price_rand}` rows. `recordOrderAndAwardPoints` now generates the order's `id` itself via `crypto.randomUUID()` (instead of letting Postgres default it) so it can immediately insert `order_items` rows referencing it without a second round-trip. Unmatched/unpriced line items are skipped with a `console.warn`, not blocking the rest of order/points processing. `grind` is left null — the live checkout flow doesn't currently collect a grind preference.
 - **Also worth noting:** `orders.customer_id` is `NOT NULL`, and `recordOrderAndAwardPoints` still early-returns before ever reaching the orders insert if no matching Brew Circle account is found for the paying email. So guest checkouts (no Brew Circle signup) still never get a row in this table — that's fine, this table is the loyalty program's own order ledger, not the authoritative order record (that's the separate admin-project `orders` table, project `hwfwnzsjcblleykegiay`).
+- **One-off `HILARY10` discount code added** to `js/main.js`'s `discountCodes` — R10 off, personal thank-you for a real customer (Hilary) who reported the Brew Circle sign-up bug via WhatsApp. Not enforced as single-use server-side (no code on this site is — `discountCodes` is a plain client-side object, `discount_uses` is write-only/record-keeping, nothing checks it before allowing checkout). Fine for a one-off like this. Safe to delete the entry once used.
 
 ---
 
@@ -140,6 +141,7 @@ No build step/templating on this site, so nothing here updates itself — every 
 - [ ] `shop/<origin>.html` — the standalone product page itself (live buy-flow vs. sold-out static block)
 - [ ] `sitemap.xml` — add new `/shop/*.html` pages when created
 - [ ] `admin-order.html` — `PRODUCTS` array (`live:true/false`, `sizes`)
+- [ ] `netlify/functions/payfast-notify.js` — `PRODUCT_PRICE_MAP` (keywords/slug/name/prices — powers `order_items` line-item backfill; also `PRODUCT_STOCK_MAP` just above it if the drop needs stock decrement tracking)
 - [ ] This "Product State" table + the top-of-file "Last updated" date
 
 ---
