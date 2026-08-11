@@ -43,6 +43,46 @@ function parseStockItems(itemDesc) {
   });
 }
 
+// Map product name keywords → slug/name/price-by-size, for populating order_items.
+// Mirrors admin-order.html's PRODUCTS array — keep the two in sync (see
+// CLAUDE.md "Live Drop Checklist"). item_description comes from
+// `${qty}x ${name} (${size})` built client-side in js/main.js's checkout flow.
+const PRODUCT_PRICE_MAP = [
+  { keywords: ['kiandu', 'kenya'],        slug: 'kenya',     name: 'Kenya Kiandu AB',     prices: { 80: 110, 200: 195, 400: 305 } },
+  { keywords: ['las nubes', 'nicaragua'], slug: 'nicaragua', name: 'Nicaragua Las Nubes', prices: { 80: 125, 200: 220, 400: 345 } },
+];
+
+/** Parse item_description → [{product_slug, product_name, quantity, unit_price_rand}] */
+function parseOrderItems(itemDesc) {
+  if (!itemDesc) return [];
+  return itemDesc.split(',').flatMap(part => {
+    const trimmed = part.trim();
+    const qty  = parseInt((trimmed.match(/^(\d+)x/i) || [])[1] || '0');
+    const size = parseInt((trimmed.match(/(\d+)\s*g/i) || [])[1] || '0');
+    if (!qty) return [];
+
+    const lower = trimmed.toLowerCase();
+    const match = PRODUCT_PRICE_MAP.find(p => p.keywords.some(k => lower.includes(k)));
+    if (!match) {
+      console.warn(`order_items: no product match for "${trimmed}" — skipping line item`);
+      return [];
+    }
+
+    const unitPrice = match.prices[size];
+    if (unitPrice === undefined) {
+      console.warn(`order_items: no known price for ${match.slug} at ${size || '?'}g — skipping line item`);
+      return [];
+    }
+
+    return [{
+      product_slug:    match.slug,
+      product_name:    size ? `${match.name} — ${size}g` : match.name,
+      quantity:        qty,
+      unit_price_rand: unitPrice,
+    }];
+  });
+}
+
 /** Decrement roasted_stock via Supabase RPC */
 async function decrementStock(supabaseUrl, serviceKey, itemDesc) {
   const items = parseStockItems(itemDesc);
@@ -113,7 +153,7 @@ function validateWithPayFast(rawBody) {
 }
 
 /** Award purchase points and record the order in Supabase */
-async function recordOrderAndAwardPoints({ email, amountRand, paymentId, itemDesc, discountCode, shippingMethod }) {
+async function recordOrderAndAwardPoints({ email, amountRand, paymentId, pfPaymentId, itemDesc, discountCode, shippingMethod }) {
   const supabaseUrl = process.env.SUPABASE_URL;
   const serviceKey  = process.env.SUPABASE_SERVICE_KEY;
 
@@ -146,21 +186,60 @@ async function recordOrderAndAwardPoints({ email, amountRand, paymentId, itemDes
   };
 
   // 2. Upsert order record
+  // NOTE: this `orders` table (project xpxbldyrigqjkdmrfhvh) is the Brew
+  // Circle's own lean order ledger — confirmed via information_schema it
+  // only has: id, customer_id, total_rand, payfast_payment_id,
+  // payfast_pf_payment_id, status, promo_code, discount_rand, created_at,
+  // updated_at. No email/item_description/shipping_method columns exist
+  // here (those live in the separate admin-order Supabase project's own
+  // orders table). The previous insert used entirely made-up column names
+  // (payment_id, email, amount_rand, item_description, discount_code,
+  // shipping_method) — every one of those requests would have been
+  // rejected outright, so this table has had zero rows in it, ever, until
+  // this fix. customer_id is NOT NULL, so guest checkouts (no matching
+  // Brew Circle account) still won't get a row here — that's fine, this
+  // table only tracks members' orders.
+  //
+  // We generate the id ourselves (instead of letting the DB default it)
+  // so we can immediately use it below for order_items without a second
+  // round-trip / needing return=representation.
+  const orderId = crypto.randomUUID();
   const orderRes = await fetch(`${supabaseUrl}/rest/v1/orders`, {
     method:  'POST',
     headers: { ...authHeaders, Prefer: 'resolution=ignore-duplicates,return=minimal' },
     body: JSON.stringify({
-      payment_id:      paymentId,
-      customer_id:     customerId,
-      email,
-      amount_rand:     amountRand,
-      item_description: itemDesc,
-      discount_code:   discountCode || null,
-      shipping_method: shippingMethod || null,
-      status:          'complete',
+      id:                    orderId,
+      customer_id:           customerId,
+      total_rand:            Math.round(amountRand),
+      payfast_payment_id:    paymentId,
+      payfast_pf_payment_id: pfPaymentId || null,
+      status:                'complete',
+      promo_code:            discountCode || null,
     }),
   });
-  if (!orderRes.ok) console.error('orders insert failed:', orderRes.status, await orderRes.text());
+  if (!orderRes.ok) {
+    console.error('orders insert failed:', orderRes.status, await orderRes.text());
+  } else {
+    // 2b. Line items — best-effort. Parses item_description (built
+    // client-side in js/main.js as `${qty}x ${name} (${size})`) against
+    // PRODUCT_PRICE_MAP. Unmatched lines are skipped with a warning
+    // rather than blocking the rest of order/points processing.
+    const items = parseOrderItems(itemDesc);
+    for (const item of items) {
+      const itemRes = await fetch(`${supabaseUrl}/rest/v1/order_items`, {
+        method:  'POST',
+        headers: authHeaders,
+        body: JSON.stringify({
+          order_id:        orderId,
+          product_slug:    item.product_slug,
+          product_name:    item.product_name,
+          quantity:        item.quantity,
+          unit_price_rand: item.unit_price_rand,
+        }),
+      });
+      if (!itemRes.ok) console.error('order_items insert failed:', itemRes.status, await itemRes.text());
+    }
+  }
 
   // 3. Record discount code use (powers live founder counter)
   if (discountCode) {
@@ -318,14 +397,16 @@ exports.handler = async (event) => {
 
     // ── 4. Process completed payments ───────────────────────────────────────
     if (params.payment_status === 'COMPLETE') {
-      const amountRand = parseFloat(params.amount_gross || '0');
-      const paymentId  = params.m_payment_id || params.pf_payment_id || `PF-${Date.now()}`;
-      const shipMethod = params.custom_str2 || '';
+      const amountRand  = parseFloat(params.amount_gross || '0');
+      const paymentId   = params.m_payment_id || params.pf_payment_id || `PF-${Date.now()}`;
+      const pfPaymentId = params.pf_payment_id || null;
+      const shipMethod  = params.custom_str2 || '';
 
       await recordOrderAndAwardPoints({
         email:          params.email_address || '',
         amountRand,
         paymentId,
+        pfPaymentId,
         itemDesc:       params.item_description || '',
         discountCode:   params.custom_str1 || '',
         shippingMethod: shipMethod,
