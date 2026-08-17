@@ -52,35 +52,54 @@ const PRODUCT_PRICE_MAP = [
   { keywords: ['las nubes', 'nicaragua'], slug: 'nicaragua', name: 'Nicaragua Las Nubes', prices: { 80: 125, 200: 220, 400: 345 } },
 ];
 
-/** Parse item_description → [{product_slug, product_name, quantity, unit_price_rand}] */
+/** Parse item_description → [{product_slug, product_name, quantity, unit_price_rand, grind}]
+ *  item_description is built client-side (js/main.js) as `${qty}x ${name} (${size}, ${grind})`,
+ *  items themselves joined with ", ". Since each item's own "(size, grind)" contains a comma,
+ *  a naive top-level split(',') breaks one item into two fragments — the first starting with
+ *  "<qty>x", the second (the grind) not. Walk the fragments and re-join a non-"<qty>x" fragment
+ *  onto the item before it. Also tolerates the old grind-less format ("(size)", no internal
+ *  comma, one fragment per item) for any pre-existing/older order_description values. */
 function parseOrderItems(itemDesc) {
   if (!itemDesc) return [];
-  return itemDesc.split(',').flatMap(part => {
-    const trimmed = part.trim();
-    const qty  = parseInt((trimmed.match(/^(\d+)x/i) || [])[1] || '0');
-    const size = parseInt((trimmed.match(/(\d+)\s*g/i) || [])[1] || '0');
-    if (!qty) return [];
+  const parts = itemDesc.split(',').map(p => p.trim());
+  const results = [];
+  for (let i = 0; i < parts.length; i++) {
+    if (!/^\d+x/i.test(parts[i])) continue; // stray fragment, already consumed below
+    let combined = parts[i];
+    if (i + 1 < parts.length && !/^\d+x/i.test(parts[i + 1])) {
+      combined += ', ' + parts[i + 1];
+      i++; // consume it so the outer loop doesn't also treat it as its own fragment
+    }
 
-    const lower = trimmed.toLowerCase();
+    const qty  = parseInt((combined.match(/^(\d+)x/i) || [])[1] || '0');
+    const size = parseInt((combined.match(/(\d+)\s*g/i) || [])[1] || '0');
+    if (!qty) continue;
+
+    const grindMatch = combined.match(/,\s*([^,()]+)\)\s*$/);
+    const grind = grindMatch ? grindMatch[1].trim() : 'Whole Bean';
+
+    const lower = combined.toLowerCase();
     const match = PRODUCT_PRICE_MAP.find(p => p.keywords.some(k => lower.includes(k)));
     if (!match) {
-      console.warn(`order_items: no product match for "${trimmed}" — skipping line item`);
-      return [];
+      console.warn(`order_items: no product match for "${combined}" — skipping line item`);
+      continue;
     }
 
     const unitPrice = match.prices[size];
     if (unitPrice === undefined) {
       console.warn(`order_items: no known price for ${match.slug} at ${size || '?'}g — skipping line item`);
-      return [];
+      continue;
     }
 
-    return [{
+    results.push({
       product_slug:    match.slug,
       product_name:    size ? `${match.name} — ${size}g` : match.name,
       quantity:        qty,
       unit_price_rand: unitPrice,
-    }];
-  });
+      grind,
+    });
+  }
+  return results;
 }
 
 /** Decrement roasted_stock via Supabase RPC */
@@ -235,6 +254,7 @@ async function recordOrderAndAwardPoints({ email, amountRand, paymentId, pfPayme
           product_name:    item.product_name,
           quantity:        item.quantity,
           unit_price_rand: item.unit_price_rand,
+          grind:           item.grind,
         }),
       });
       if (!itemRes.ok) console.error('order_items insert failed:', itemRes.status, await itemRes.text());

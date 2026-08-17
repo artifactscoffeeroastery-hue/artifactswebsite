@@ -44,6 +44,7 @@ body{min-height:100vh;overflow-x:hidden;}
 .prod-name{font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:700;}
 .prod-origin{font-size:11px;color:var(--muted);}
 .prod-size-sel{background:var(--off);border:1px solid var(--border);color:var(--white);padding:6px 8px;font-family:'DM Mono',monospace;font-size:11px;cursor:pointer;outline:none;min-width:140px;}
+.prod-grind-sel{background:var(--off);border:1px solid var(--border);color:var(--white);padding:6px 8px;font-family:'DM Mono',monospace;font-size:11px;cursor:pointer;outline:none;min-width:130px;}
 .prod-size-sel:focus{border-color:var(--cyan);}
 .qty-ctrl{display:flex;align-items:center;border:1px solid var(--border);}
 .qty-btn{background:none;border:none;color:var(--white);width:28px;height:28px;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;}
@@ -451,13 +452,15 @@ textarea.field-input{resize:vertical;min-height:72px;}
 // ── PRODUCTS CATALOG ──────────────────────────────────────────────────────────
 const PRODUCTS = [
   { id:'ke', code:'KE · 004', name:'Kenya Kiandu AB',       origin:'Kenya · Nyeri',            color:'#C8373E', live:true,
-    sizes:[{l:'80g',p:110},{l:'200g',p:195},{l:'400g',p:305}] },
+    // 80g out of stock — no bags on hand, ~3 week lead time on reorder (moved last + disabled so it's not the default size)
+    sizes:[{l:'200g',p:195},{l:'400g',p:305},{l:'80g',p:110,d:true}] },
   { id:'gt', code:'GT · 001', name:'Guatemala Blue Ayarza', origin:'Guatemala · Huehuetenango', color:'#0FA8DF', live:false,
     sizes:[{l:'80g',p:75},{l:'200g',p:150},{l:'1kg',p:600}] },
   { id:'mx', code:'MX · 002', name:'Mexico Ki Saya',        origin:'Mexico · Chiapas',          color:'#E1FF01', live:false,
     sizes:[{l:'80g',p:75},{l:'200g',p:148},{l:'1kg',p:592}] },
   { id:'ni', code:'NI · 005', name:'Nicaragua Las Nubes',   origin:'Nicaragua · Las Nubes',     color:'#F2F2F2', live:true,
-    sizes:[{l:'80g',p:125},{l:'200g',p:220},{l:'400g',p:345}] },
+    // 80g out of stock — no bags on hand, ~3 week lead time on reorder (moved last + disabled so it's not the default size)
+    sizes:[{l:'200g',p:220},{l:'400g',p:345},{l:'80g',p:125,d:true}] },
 ];
 
 // Known discount codes (kept in sync with main.js)
@@ -465,7 +468,8 @@ const DISC_CODES = { 'FOUNDER20': 20 };
 
 // ── STATE ─────────────────────────────────────────────────────────────────────
 let adminKey = '';
-let qtys   = {}, sizes = {}, prices = {};
+let qtys   = {}, sizes = {}, prices = {}, grinds = {};
+const GRIND_OPTIONS = ['Whole Bean','Filter / Pour Over','French Press','Espresso','Moka Pot','Cold Brew'];
 let cartLines = []; // order cart — supports multiple size/qty lines per product: {key,productId,name,size,price,qty}
 let fulfilMode   = 'courier';     // courier | pudo | collection | personal | pep
 let deliveryMode = 'deliver';     // kept for rate-fetch compat
@@ -569,9 +573,10 @@ function autofillFromName() {
 
 // ── INIT PRODUCTS ─────────────────────────────────────────────────────────────
 function productRowHtml(p) {
-  qtys[p.id] = 0; sizes[p.id] = p.sizes[0].l; prices[p.id] = p.sizes[0].p;
+  qtys[p.id] = 0; sizes[p.id] = p.sizes[0].l; prices[p.id] = p.sizes[0].p; grinds[p.id] = GRIND_OPTIONS[0];
   const tag = p.live ? '<span class="tag-live">LIVE</span>' : '<span class="tag-sold">SOLD OUT</span>';
-  const opts = p.sizes.map(s=>'<option value="'+s.l+'" data-price="'+s.p+'">'+s.l+' — R'+s.p+'</option>').join('');
+  const opts = p.sizes.map(s=>'<option value="'+s.l+'" data-price="'+s.p+'"'+(s.d?' disabled':'')+'>'+s.l+(s.d?' — Unavailable (~3 wks)':' — R'+s.p)+'</option>').join('');
+  const grindOpts = GRIND_OPTIONS.map(g=>'<option value="'+g+'">'+g+'</option>').join('');
   return '<div class="product-row">'
     +'<div class="prod-accent" style="background:'+p.color+'"></div>'
     +'<div class="prod-info">'
@@ -580,6 +585,7 @@ function productRowHtml(p) {
       +'<div class="prod-origin">'+p.origin+'</div>'
     +'</div>'
     +'<select class="prod-size-sel" id="sel-'+p.id+'" onchange="onSizeChange(\''+p.id+'\',this)">'+opts+'</select>'
+    +'<select class="prod-grind-sel" id="grind-sel-'+p.id+'" onchange="onGrindChange(\''+p.id+'\',this)">'+grindOpts+'</select>'
      +'<div class="qty-ctrl">'
       +'<button class="qty-btn" onclick="changeQty(\''+p.id+'\',-1)">−</button>'
       +'<span class="qty-val" id="qty-'+p.id+'">0</span>'
@@ -609,6 +615,9 @@ function onSizeChange(id, sel) {
   sizes[id] = opt.value; prices[id] = parseFloat(opt.dataset.price);
   updateLinePrice(id); updateSummary();
 }
+function onGrindChange(id, sel) {
+  grinds[id] = sel.value;
+}
 function changeQty(id, d) {
   qtys[id] = Math.max(0, (qtys[id]||0) + d);
   document.getElementById('qty-'+id).textContent = qtys[id];
@@ -624,11 +633,11 @@ function addLineToOrder(id) {
   var p = PRODUCTS.find(function(pr){ return pr.id===id; });
   if (!p) return;
   var qty = qtys[id]>0 ? qtys[id] : 1; // clicking Add with the stepper at 0 still adds one
-  var size = sizes[id], price = prices[id];
-  var key = id+'|'+size;
+  var size = sizes[id], price = prices[id], grind = grinds[id]||GRIND_OPTIONS[0];
+  var key = id+'|'+size+'|'+grind;
   var existing = cartLines.find(function(l){ return l.key===key; });
   if (existing) existing.qty += qty;
-  else cartLines.push({ key:key, productId:id, name:p.name, size:size, price:price, qty:qty });
+  else cartLines.push({ key:key, productId:id, name:p.name, size:size, price:price, grind:grind, qty:qty });
 
   // reset that product's picker back to 0 so the next Add starts fresh (size selection is kept)
   qtys[id] = 0;
@@ -648,7 +657,7 @@ function changeLineQty(key, d) {
   updateSummary();
 }
 function cartItemsForOrder() {
-  return cartLines.map(function(l){ return { name:l.name, size:l.size, price:l.price, qty:l.qty }; });
+  return cartLines.map(function(l){ return { name:l.name, size:l.size, price:l.price, grind:l.grind, qty:l.qty }; });
 }
 
 function switchFulfil(mode) {
@@ -734,7 +743,7 @@ function updateSummary() {
   var sumEl=document.getElementById('summary-items');
   if(!cartLines.length){ sumEl.innerHTML='<p class="sum-empty">No items added yet.</p>'; }
   else { sumEl.innerHTML=cartLines.map(function(l){ return '<div class="sum-line">'
-      +'<span class="sum-name">'+l.name+'<br><span style="color:var(--muted);font-size:11px;">'+l.size+'</span></span>'
+      +'<span class="sum-name">'+l.name+'<br><span style="color:var(--muted);font-size:11px;">'+l.size+' &middot; '+l.grind+'</span></span>'
       +'<span style="display:flex;align-items:center;gap:4px;">'
         +'<button class="qty-btn" style="width:20px;height:20px;font-size:13px;" onclick="changeLineQty(\''+l.key+'\',-1)">−</button>'
         +'<span style="color:var(--muted);font-size:11px;min-width:18px;text-align:center;">\xd7'+l.qty+'</span>'
@@ -767,7 +776,7 @@ function payViaPayFast() {
   if(!validate()) return;
   var name=document.getElementById('c-name').value.trim(), email=document.getElementById('c-email').value.trim(), phone=document.getElementById('c-phone').value.trim();
   var sub=getSub(),ship=getShip(),disc=getDisc(),total=Math.max(0,sub+ship-disc);
-  var desc=cartLines.map(function(l){ return l.qty+'x '+l.name+' ('+l.size+')'; }).join(', ');
+  var desc=cartLines.map(function(l){ return l.qty+'x '+l.name+' ('+l.size+', '+l.grind+')'; }).join(', ');
   var addr=getFulfilAddress();
   var orderNo=(docState&&docState.orderNo)||nextOrderNo();
   if(!confirm('Submit PayFast for '+name+' ('+email+')?\n\nOrder '+orderNo+'\nTotal: R'+total.toFixed(2)+'\n'+desc)) return;
@@ -834,7 +843,7 @@ async function logToSheet(kind, data) {
   data = data || docState;
   if(!SHEET_LOG_URL||!data) return;
   var ref=kind==='invoice'?(data.invoiceRef||data.ref):data.ref;
-  var items=data.items.map(function(it){return it.qty+'x '+it.name+' ('+it.size+')';}).join('; ');
+  var items=data.items.map(function(it){return it.qty+'x '+it.name+' ('+it.size+', '+it.grind+')';}).join('; ');
   var customerId=await customerUUID(data.customer.email);
   var A=function(id){ var el=document.getElementById(id); return el?el.value.trim():''; };
   var addr={ line1:A('d-address'), suburb:A('d-suburb'), city:A('d-city'), province:A('d-province'), postal:A('d-postal'), personal:A('d-personal-address') };
@@ -888,7 +897,7 @@ function showQuoteScreen(type) {
   // Build inline preview
   var previewHtml='<p class="doc-preview-title">'+ref+'</p>';
   previewHtml+='<p style="font-size:11px;color:var(--muted);margin-bottom:12px;">Order '+(docState.orderNo||'—')+' · '+docState.date+' · '+docState.customer.name+' · '+docState.customer.email+'</p>';
-  previewHtml+=docState.items.map(function(it){ return '<div class="doc-preview-line"><span>'+it.qty+'× '+it.name+' ('+it.size+')</span><span>R '+(it.price*it.qty).toFixed(2)+'</span></div>'; }).join('');
+  previewHtml+=docState.items.map(function(it){ return '<div class="doc-preview-line"><span>'+it.qty+'× '+it.name+' ('+it.size+', '+it.grind+')</span><span>R '+(it.price*it.qty).toFixed(2)+'</span></div>'; }).join('');
   previewHtml+='<div style="margin-top:12px;border-top:1px solid var(--border);padding-top:8px;">';
   previewHtml+='<div class="doc-preview-line"><span style="color:var(--muted);">Subtotal</span><span>R '+docState.sub.toFixed(2)+'</span></div>';
   if(docState.ship>0) previewHtml+='<div class="doc-preview-line"><span style="color:var(--muted);">Shipping ('+docState.fulfilLabel+')</span><span>R '+docState.ship.toFixed(2)+'</span></div>';
@@ -925,7 +934,7 @@ function sendDocWhatsApp() {
   var type=currentDocType==='invoice'?'Invoice':'Quote';
   var ref=currentDocType==='invoice'?(d.invoiceRef||d.ref):d.ref;
   var txt='Hi '+d.customer.name.split(' ')[0]+' 👋\n\nPlease find your *Artifacts Coffee '+type+'* below:\n\n*'+ref+'* · '+d.date+'\n\n';
-  txt+=d.items.map(function(it){return '· '+it.qty+'x '+it.name+' ('+it.size+') — R '+(it.price*it.qty).toFixed(2);}).join('\n');
+  txt+=d.items.map(function(it){return '· '+it.qty+'x '+it.name+' ('+it.size+', '+it.grind+') — R '+(it.price*it.qty).toFixed(2);}).join('\n');
   txt+='\n\nSubtotal: R '+d.sub.toFixed(2);
   if(d.ship>0) txt+='\nShipping: R '+d.ship.toFixed(2);
   if(d.disc>0) txt+='\nDiscount: − R'+d.disc.toFixed(2);
@@ -946,7 +955,7 @@ function sendDocEmail(type) {
   var ref=type==='invoice'?(d.invoiceRef||d.ref):d.ref;
   var subject='Artifacts Coffee '+docType+' · '+ref;
   var body='Hi '+d.customer.name.split(' ')[0]+',\n\nPlease find your '+docType.toLowerCase()+' attached:\n\n';
-  body+=d.items.map(function(it){return it.qty+'x '+it.name+' ('+it.size+') — R '+(it.price*it.qty).toFixed(2);}).join('\n');
+  body+=d.items.map(function(it){return it.qty+'x '+it.name+' ('+it.size+', '+it.grind+') — R '+(it.price*it.qty).toFixed(2);}).join('\n');
   body+='\n\nSubtotal: R '+d.sub.toFixed(2);
   if(d.ship>0) body+='\nShipping: R '+d.ship.toFixed(2);
   if(d.disc>0) body+='\nDiscount: − R'+d.disc.toFixed(2);
@@ -966,7 +975,7 @@ function buildDocHTML(type) {
   var isInv=type==='invoice';
   var ref=isInv?(d.invoiceRef||d.ref):d.ref;
   var accentColor=isInv?'#E1FF01':'#0FA8DF';
-  var itemRows=d.items.map(function(it){return '<tr><td>'+it.name+'<br><small style="color:#666;">'+it.size+'</small></td><td style="text-align:center;">'+it.qty+'</td><td style="text-align:right;">R '+it.price.toFixed(2)+'</td><td style="text-align:right;">R '+(it.price*it.qty).toFixed(2)+'</td></tr>';}).join('');
+  var itemRows=d.items.map(function(it){return '<tr><td>'+it.name+'<br><small style="color:#666;">'+it.size+' &middot; '+it.grind+'</small></td><td style="text-align:center;">'+it.qty+'</td><td style="text-align:right;">R '+it.price.toFixed(2)+'</td><td style="text-align:right;">R '+(it.price*it.qty).toFixed(2)+'</td></tr>';}).join('');
   var bankSection=isInv?'<div style="margin-top:28px;padding:16px;background:#f9f9f9;border-left:3px solid '+accentColor+';"><p style="font-size:11px;font-weight:700;letter-spacing:0.15em;text-transform:uppercase;margin-bottom:10px;">Banking Details</p><p style="font-size:13px;line-height:1.8;">First National Bank<br>Account Name: Artifacts Coffee<br>Account Number: 62929285692<br>Branch Code: 250655<br>Reference: <strong>'+ref+'</strong></p></div>':'';
   var statusLabel=isInv?'INVOICE':'QUOTE — AWAITING ACCEPTANCE';
   return '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Artifacts Coffee · '+statusLabel+'</title><link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@300;400&family=Barlow+Condensed:wght@400;600;700&display=swap" rel="stylesheet"><style>*{box-sizing:border-box;margin:0;padding:0;}body{font-family:\'DM Mono\',monospace;font-size:13px;line-height:1.6;color:#111;background:#fff;padding:48px;}@media print{body{padding:20px;}.no-print{display:none!important;}}</style></head><body><div style="max-width:640px;margin:0 auto;"><div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:32px;"><div><p style="font-family:\'Bebas Neue\',sans-serif;font-size:28px;letter-spacing:0.06em;">ARTIFACTS COFFEE</p><p style="font-size:11px;color:#666;">hello@artifactscoffee.co.za</p></div><div style="text-align:right;"><span style="display:inline-block;background:'+accentColor+';color:'+(isInv?'#111':'#111')+';font-family:\'Barlow Condensed\',sans-serif;font-size:11px;font-weight:700;letter-spacing:0.2em;padding:4px 12px;margin-bottom:8px;">'+statusLabel+'</span><p style="font-family:\'Barlow Condensed\',sans-serif;font-size:13px;font-weight:700;">'+ref+'</p><p style="font-size:11px;color:#666;">Order '+(d.orderNo||'')+'</p><p style="font-size:12px;color:#666;">'+d.date+'</p></div></div><div style="margin-bottom:24px;padding:14px;background:#f9f9f9;"><p style="font-size:10px;font-weight:700;letter-spacing:0.15em;text-transform:uppercase;color:#999;margin-bottom:6px;">To</p><p style="font-size:13px;">'+d.customer.name+'</p><p style="font-size:12px;color:#666;">'+d.customer.email+(d.customer.phone?' · '+d.customer.phone:'')+'</p></div><table style="width:100%;border-collapse:collapse;margin-bottom:20px;"><thead><tr style="border-bottom:2px solid #111;"><th style="text-align:left;padding:8px 0;font-family:\'Barlow Condensed\',sans-serif;font-size:10px;font-weight:700;letter-spacing:0.15em;text-transform:uppercase;color:#999;">Product</th><th style="text-align:center;padding:8px 0;font-family:\'Barlow Condensed\',sans-serif;font-size:10px;font-weight:700;letter-spacing:0.15em;text-transform:uppercase;color:#999;">Qty</th><th style="text-align:right;padding:8px 0;font-family:\'Barlow Condensed\',sans-serif;font-size:10px;font-weight:700;letter-spacing:0.15em;text-transform:uppercase;color:#999;">Unit</th><th style="text-align:right;padding:8px 0;font-family:\'Barlow Condensed\',sans-serif;font-size:10px;font-weight:700;letter-spacing:0.15em;text-transform:uppercase;color:#999;">Total</th></tr></thead><tbody>'+itemRows+'</tbody></table><div style="text-align:right;border-top:1px solid #eee;padding-top:14px;"><p style="font-size:12px;color:#666;padding:3px 0;">Subtotal: R '+d.sub.toFixed(2)+'</p>'+(d.ship>0?'<p style="font-size:12px;color:#666;padding:3px 0;">Shipping ('+d.fulfilLabel+'): R '+d.ship.toFixed(2)+'</p>':'')+(d.disc>0?'<p style="font-size:12px;color:#666;padding:3px 0;">Discount: − R'+d.disc.toFixed(2)+'</p>':'')+'<p style="font-family:\'Bebas Neue\',sans-serif;font-size:24px;margin-top:8px;">TOTAL: R '+d.total.toFixed(2)+'</p></div><div style="margin-top:16px;padding:10px 14px;background:#f9f9f9;font-size:12px;"><strong>Fulfilment:</strong> '+d.fulfilLabel+(d.fulfilAddress?' · '+d.fulfilAddress:'')+'</div>'+bankSection+(d.notes?'<div style="margin-top:16px;padding:10px 14px;background:#f9f9f9;font-size:12px;"><strong>Notes:</strong> '+d.notes+'</div>':'')+'<div style="margin-top:40px;padding-top:20px;border-top:1px solid #eee;font-size:11px;color:#999;text-align:center;"><p>Artifacts Coffee · hello@artifactscoffee.co.za · artifactscoffee.co.za</p>'+(isInv?'':'<p style="margin-top:4px;">This quote is valid for 7 days from the date above.</p>')+'</div><div class="no-print" style="margin-top:24px;text-align:center;"><button onclick="window.print()" style="background:#111;color:#fff;border:none;padding:10px 24px;font-family:\'Barlow Condensed\',sans-serif;font-size:14px;font-weight:700;letter-spacing:0.12em;cursor:pointer;">PRINT / SAVE PDF</button></div></div></body></html>';

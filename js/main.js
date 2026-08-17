@@ -97,6 +97,15 @@ function selectPF(btn, id, amount) {
   g.setAttribute('data-selected-size', btn.textContent.split(' —')[0].trim());
 }
 
+// ── GRIND TOGGLE ──
+function selectGrind(btn, id) {
+  const g = btn.closest('.grind-toggle');
+  const ac = (g.querySelector('[class*="sel-"]')||{className:''}).className.match(/sel-\w/);
+  g.querySelectorAll('.grind-btn').forEach(b => b.className='grind-btn');
+  btn.classList.add(ac ? ac[0] : 'sel-c');
+  g.setAttribute('data-selected-grind', btn.textContent.trim());
+}
+
 // ── QTY ──
 function changeProductQty(id, d) {
   productQtys[id] = Math.max(1, (productQtys[id]||1)+d);
@@ -117,10 +126,12 @@ function prepAddToCart(name, id) {
   const price = parseFloat((priceEl?priceEl.textContent:'0').replace(/[^0-9.]/g,''))||0;
   const sz = document.getElementById('sz-'+id);
   const size = sz ? sz.getAttribute('data-selected-size') : '1kg';
+  const gr = document.getElementById('grind-'+id);
+  const grind = gr ? gr.getAttribute('data-selected-grind') : 'Whole Bean';
   const qty = productQtys[id]||1;
-  const existing = cart.find(i => i.name===name && i.price===price && i.size===size);
+  const existing = cart.find(i => i.name===name && i.price===price && i.size===size && i.grind===grind);
   if (existing) existing.qty += qty;
-  else cart.push({ name, price, size, qty, id: id+Date.now() });
+  else cart.push({ name, price, size, grind, qty, id: id+Date.now() });
   productQtys[id] = 1;
   const qEl = document.getElementById(id+'-qty'); if (qEl) qEl.textContent = 1;
   saveCart(); updateCartBadge(); flashBtn(id);
@@ -264,7 +275,7 @@ function renderCart() {
   if (!cart.length) { el.innerHTML='<div style="text-align:center;padding:20px;color:#666;">Your cart is empty.</div>'; return; }
   el.innerHTML = cart.map((item,i) => `
     <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #222;padding:12px 0;">
-      <div style="flex:1;"><div style="font-family:'Bebas Neue',sans-serif;font-size:18px;color:white;">${item.name} <span style="font-size:14px;color:var(--cyan)">${item.size||''}</span></div><div style="font-size:12px;color:#555;">R ${item.price.toFixed(2)} each</div></div>
+      <div style="flex:1;"><div style="font-family:'Bebas Neue',sans-serif;font-size:18px;color:white;">${item.name} <span style="font-size:14px;color:var(--cyan)">${item.size||''}</span></div><div style="font-size:12px;color:#555;">${item.grind?item.grind+' &middot; ':''}R ${item.price.toFixed(2)} each</div></div>
       <div style="display:flex;align-items:center;gap:8px;margin:0 12px;">
         <button onclick="changeQty(${i},-1)" style="background:none;border:1px solid #333;color:#888;width:24px;height:24px;cursor:pointer;">-</button>
         <span style="font-family:monospace;min-width:20px;text-align:center;">${item.qty}</span>
@@ -341,7 +352,7 @@ function tryAutoApplyDiscount() {
 function updatePF(total) {
   const s=(id,v)=>{ const e=document.getElementById(id); if(e) e.value=v; };
   s('pf_amount',total.toFixed(2));
-  s('pf_item_desc',cart.map(i=>`${i.qty}x ${i.name} (${i.size||'1kg'})`).join(', '));
+  s('pf_item_desc',cart.map(i=>`${i.qty}x ${i.name} (${i.size||'1kg'}, ${i.grind||'Whole Bean'})`).join(', '));
   if (currentUser) { s('pf_name',currentUser.name); s('pf_email',currentUser.email); }
   s('pf_payment_id','ORD-'+Date.now());
   const pn=document.getElementById('pf_item_name'); if(pn&&!pn.value) pn.value='Artifacts Coffee Order';
@@ -445,7 +456,7 @@ function setDeliverMode(mode) {
 function updatePickupWhatsApp() {
   const btn = document.getElementById('pickup-wa-btn');
   if (!btn) return;
-  const items = cart.map(i=>`${i.qty}x ${i.name} (${i.size||'1kg'})`).join(', ') || 'my order';
+  const items = cart.map(i=>`${i.qty}x ${i.name} (${i.size||'1kg'}, ${i.grind||'Whole Bean'})`).join(', ') || 'my order';
   const sub   = cart.reduce((s,i)=>s+i.price*i.qty,0);
   const name  = (currentUser&&currentUser.name) || (document.getElementById('guest-name')||{}).value || '';
   const text  = `Hi Artifacts Coffee! I'd like to collect my order.\nName: ${name}\nOrder: ${items}\nTotal: R${sub.toFixed(2)}`;

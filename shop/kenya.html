@@ -91,9 +91,18 @@
       <div class="divider"></div>
       <span class="sz-label">Select Size</span>
       <div id="sz-ke" class="sz-toggle" data-selected-size="200g">
-          <button class="sz-btn" onclick="selectPF(this,'ke','110');document.getElementById('ke-note').textContent='80g &middot; whole bean';document.getElementById('ke-save').textContent=''">80g &mdash; R110</button>
-          <button class="sz-btn sel-k" onclick="selectPF(this,'ke','195');document.getElementById('ke-note').textContent='200g &middot; whole bean';document.getElementById('ke-save').textContent=''">200g &mdash; R195</button>
-          <button class="sz-btn" onclick="selectPF(this,'ke','305');document.getElementById('ke-note').textContent='400g &middot; whole bean';document.getElementById('ke-save').textContent='Save R85 vs. two 200g bags'">400g &mdash; R305</button>
+          <button class="sz-btn" disabled title="Back in stock in ~3 weeks">80g &mdash; Unavailable</button>
+          <button class="sz-btn sel-k" onclick="selectPF(this,'ke','195');document.getElementById('ke-note').textContent='200g &middot; whole bean';document.getElementById('ke-save').textContent='';updateMobicredWidget('ke','195')">200g &mdash; R195</button>
+          <button class="sz-btn" onclick="selectPF(this,'ke','305');document.getElementById('ke-note').textContent='400g &middot; whole bean';document.getElementById('ke-save').textContent='Save R85 vs. two 200g bags';updateMobicredWidget('ke','305')">400g &mdash; R305</button>
+      </div>
+      <span class="sz-label">Select Grind</span>
+      <div id="grind-ke" class="grind-toggle" data-selected-grind="Whole Bean">
+          <button class="grind-btn sel-k" onclick="selectGrind(this,'ke')">Whole Bean</button>
+          <button class="grind-btn" onclick="selectGrind(this,'ke')">Filter / Pour Over</button>
+          <button class="grind-btn" onclick="selectGrind(this,'ke')">French Press</button>
+          <button class="grind-btn" onclick="selectGrind(this,'ke')">Espresso</button>
+          <button class="grind-btn" onclick="selectGrind(this,'ke')">Moka Pot</button>
+          <button class="grind-btn" onclick="selectGrind(this,'ke')">Cold Brew</button>
       </div>
       <div class="price-row">
         <span class="p-curr">R</span>
@@ -101,6 +110,10 @@
         <span class="p-note" id="ke-note">200g &middot; whole bean</span>
       </div>
       <div class="save-note" id="ke-save" style="font-size:12px;color:var(--cyan);font-weight:700;margin-top:-8px;margin-bottom:8px;min-height:16px;"></div>
+      <!-- Mobicred instalment widget. Add data-merchantId="YOUR_ID" here once you have one from
+           Mobicred (also update MOBICRED_MERCHANT_ID near the bottom of this file so it carries
+           over when the size selector changes the amount) — see CLAUDE.md Session 16 notes. -->
+      <div id="instalment-wrap-ke" style="margin-bottom:14px;"><div id="instalmentCalc" data-amount="195" data-before="or from" data-after="/month with" data-textColor="#595959" data-bgColor="transparent" data-fontFamily="inherit" data-fontSize="12" data-fontWeight="normal" data-padding="0" data-margin="0"></div></div>
       <div class="pf-selector-wrap">
         <button id="btn-ke" class="order-btn btn-ke" onclick="prepAddToCart('Kenya Kiandu AB','ke')">Add to Cart</button>
       </div>
@@ -237,5 +250,37 @@
 </div>
 
 <script src="../js/main.js" defer></script>
+
+<!-- Mobicred instalment widget — requires jQuery. Add a Mobicred Merchant ID below once
+     you have one (Naailah Jones, onboarding), otherwise the widget still displays prices
+     but sign-ups can't be tracked back to your account. -->
+<script src="https://code.jquery.com/jquery-3.7.1.min.js" defer></script>
+<script src="https://mobicred.co.za/plugins/instalment.js" defer></script>
+<script>
+var MOBICRED_MERCHANT_ID = ''; // ← paste your Mobicred Merchant ID here once you have one
+function updateMobicredWidget(id, amount) {
+  var wrap = document.getElementById('instalment-wrap-'+id);
+  if (!wrap) return;
+  var div = document.createElement('div');
+  div.id = 'instalmentCalc';
+  div.setAttribute('data-amount', amount);
+  div.setAttribute('data-before', 'or from');
+  div.setAttribute('data-after', '/month with');
+  div.setAttribute('data-textColor', '#595959');
+  div.setAttribute('data-bgColor', 'transparent');
+  div.setAttribute('data-fontFamily', 'inherit');
+  div.setAttribute('data-fontSize', '12');
+  div.setAttribute('data-fontWeight', 'normal');
+  div.setAttribute('data-padding', '0');
+  div.setAttribute('data-margin', '0');
+  if (MOBICRED_MERCHANT_ID) div.setAttribute('data-merchantId', MOBICRED_MERCHANT_ID);
+  wrap.innerHTML = '';
+  wrap.appendChild(div);
+  // Re-append the plugin script so it re-scans the DOM for the new #instalmentCalc node
+  var s = document.createElement('script');
+  s.src = 'https://mobicred.co.za/plugins/instalment.js';
+  wrap.appendChild(s);
+}
+</script>
 </body>
 </html>

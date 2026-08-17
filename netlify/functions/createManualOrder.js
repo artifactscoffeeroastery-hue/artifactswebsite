@@ -109,7 +109,7 @@ exports.handler = async (event) => {
   const subtotal = items.reduce((s, i) => s + i.price * i.qty, 0);
   const shipAmt  = shipping?.amount ?? 0;
   const total    = Math.max(0, subtotal + shipAmt - discountAmt);
-  const itemDesc = items.map(i => `${i.qty}x ${i.name} (${i.size})`).join(', ');
+  const itemDesc = items.map(i => `${i.qty}x ${i.name} (${i.size}${i.grind ? ', ' + i.grind : ''})`).join(', ');
   const ref      = makeRef();
 
   const authHeaders = {
