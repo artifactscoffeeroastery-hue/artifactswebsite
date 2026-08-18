@@ -453,14 +453,17 @@ textarea.field-input{resize:vertical;min-height:72px;}
 const PRODUCTS = [
   { id:'ke', code:'KE · 004', name:'Kenya Kiandu AB',       origin:'Kenya · Nyeri',            color:'#C8373E', live:true,
     // 80g out of stock — no bags on hand, ~3 week lead time on reorder (moved last + disabled so it's not the default size)
-    sizes:[{l:'200g',p:195},{l:'400g',p:305},{l:'80g',p:110,d:true}] },
+    // Drip Bags label deliberately contains "20g" — payfast-notify.js's order_items parser
+    // extracts size via a (\d+)\s*g regex; keep this label in sync with PRODUCT_PRICE_MAP's
+    // prices[20] entry and shop/kenya.html's matching button if this ever changes.
+    sizes:[{l:'200g',p:195},{l:'400g',p:355},{l:'10-Pack Drip Bags (20g ea)',p:225},{l:'80g',p:110,d:true}] },
   { id:'gt', code:'GT · 001', name:'Guatemala Blue Ayarza', origin:'Guatemala · Huehuetenango', color:'#0FA8DF', live:false,
     sizes:[{l:'80g',p:75},{l:'200g',p:150},{l:'1kg',p:600}] },
   { id:'mx', code:'MX · 002', name:'Mexico Ki Saya',        origin:'Mexico · Chiapas',          color:'#E1FF01', live:false,
     sizes:[{l:'80g',p:75},{l:'200g',p:148},{l:'1kg',p:592}] },
   { id:'ni', code:'NI · 005', name:'Nicaragua Las Nubes',   origin:'Nicaragua · Las Nubes',     color:'#F2F2F2', live:true,
     // 80g out of stock — no bags on hand, ~3 week lead time on reorder (moved last + disabled so it's not the default size)
-    sizes:[{l:'200g',p:220},{l:'400g',p:345},{l:'80g',p:125,d:true}] },
+    sizes:[{l:'200g',p:220},{l:'400g',p:375},{l:'10-Pack Drip Bags (20g ea)',p:240},{l:'80g',p:125,d:true}] },
 ];
 
 // Known discount codes (kept in sync with main.js)

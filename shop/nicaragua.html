@@ -92,11 +92,14 @@
       <div class="divider"></div>
       <span class="sz-label">Select Size</span>
       <div id="sz-ni" class="sz-toggle" data-selected-size="200g">
+          <!-- 80g paused until bags are back in stock (~3wk lead) — restore this button when stock returns:
           <button class="sz-btn" disabled title="Back in stock in ~3 weeks">80g &mdash; Unavailable</button>
-          <button class="sz-btn sel-y" onclick="selectPF(this,'ni','220');document.getElementById('ni-note').textContent='200g &middot; whole bean';document.getElementById('ni-save').textContent='';updateMobicredWidget('ni','220')">200g &mdash; R220</button>
-          <button class="sz-btn" onclick="selectPF(this,'ni','345');document.getElementById('ni-note').textContent='400g &middot; whole bean';document.getElementById('ni-save').textContent='Save R95 vs. two 200g bags';updateMobicredWidget('ni','345')">400g &mdash; R345</button>
+          -->
+          <button class="sz-btn sel-y" onclick="selectPF(this,'ni','220');document.getElementById('ni-note').textContent='200g &middot; whole bean';document.getElementById('ni-save').textContent='';updateMobicredWidget('ni','220');document.getElementById('grind-label-ni').style.display='block';document.getElementById('grind-ni').style.display='flex'">200g</button>
+          <button class="sz-btn" onclick="selectPF(this,'ni','375');document.getElementById('ni-note').textContent='400g &middot; whole bean';document.getElementById('ni-save').textContent='Save R65 vs. two 200g bags';updateMobicredWidget('ni','375');document.getElementById('grind-label-ni').style.display='block';document.getElementById('grind-ni').style.display='flex'">400g</button>
+          <button class="sz-btn" onclick="selectPF(this,'ni','240');document.getElementById('sz-ni').setAttribute('data-selected-size','10-Pack Drip Bags (20g ea)');document.getElementById('ni-note').textContent='10-Pack Drip Bags (20g ea) &middot; pre-ground for pour-over';document.getElementById('ni-save').textContent='';updateMobicredWidget('ni','240');document.getElementById('grind-label-ni').style.display='none';document.getElementById('grind-ni').style.display='none';document.getElementById('grind-ni').setAttribute('data-selected-grind','Pre-Ground')">10-Pack Drip Bags</button>
       </div>
-      <span class="sz-label">Select Grind</span>
+      <span class="sz-label" id="grind-label-ni">Select Grind</span>
       <div id="grind-ni" class="grind-toggle" data-selected-grind="Whole Bean">
           <button class="grind-btn sel-y" onclick="selectGrind(this,'ni')">Whole Bean</button>
           <button class="grind-btn" onclick="selectGrind(this,'ni')">Filter / Pour Over</button>
@@ -114,7 +117,7 @@
       <!-- Mobicred instalment widget. Add data-merchantId="YOUR_ID" here once you have one from
            Mobicred (also update MOBICRED_MERCHANT_ID near the bottom of this file so it carries
            over when the size selector changes the amount) — see CLAUDE.md Session 16 notes. -->
-      <div id="instalment-wrap-ni" style="margin-bottom:14px;"><div id="instalmentCalc" data-amount="220" data-before="or from" data-after="/month with" data-textColor="#595959" data-bgColor="transparent" data-fontFamily="inherit" data-fontSize="12" data-fontWeight="normal" data-padding="0" data-margin="0"></div></div>
+      <div id="instalment-wrap-ni" style="margin-bottom:14px;min-height:20px;"><div id="instalmentCalc" data-amount="220" data-before="or from" data-after="/month with" data-textColor="#595959" data-bgColor="transparent" data-fontFamily="inherit" data-fontSize="12" data-fontWeight="normal" data-padding="0" data-margin="0"></div></div>
       <div class="pf-selector-wrap">
         <button id="btn-ni" class="order-btn btn-y" onclick="prepAddToCart('Nicaragua Las Nubes','ni')">Add to Cart</button>
       </div>
@@ -259,7 +262,16 @@
 <script src="https://mobicred.co.za/plugins/instalment.js" defer></script>
 <script>
 var MOBICRED_MERCHANT_ID = ''; // ← paste your Mobicred Merchant ID here once you have one
+// Debounced — rebuilding this widget means re-fetching the whole Mobicred plugin script
+// fresh from their CDN every time (no lighter-weight "just update the amount" hook is
+// exposed), so without debouncing, quickly clicking through 200g/400g/Drip Bags fires 3
+// overlapping network reloads. Waiting for clicks to settle collapses that to one.
+var _mobicredTimer = {};
 function updateMobicredWidget(id, amount) {
+  clearTimeout(_mobicredTimer[id]);
+  _mobicredTimer[id] = setTimeout(function () { _rebuildMobicredWidget(id, amount); }, 350);
+}
+function _rebuildMobicredWidget(id, amount) {
   var wrap = document.getElementById('instalment-wrap-'+id);
   if (!wrap) return;
   var div = document.createElement('div');

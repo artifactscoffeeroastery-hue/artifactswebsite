@@ -47,9 +47,13 @@ function parseStockItems(itemDesc) {
 // Mirrors admin-order.html's PRODUCTS array — keep the two in sync (see
 // CLAUDE.md "Live Drop Checklist"). item_description comes from
 // `${qty}x ${name} (${size})` built client-side in js/main.js's checkout flow.
+// Note: "20" is the Drip Bags 10-pack (label deliberately contains "20g" — one bag's fill
+// weight — so it matches this same size-extraction regex; the *price* at key 20 is the
+// per-pack price, same convention as 80/200/400 being per-bag prices, since order_items
+// quantity tracks number of packs/bags, not grams).
 const PRODUCT_PRICE_MAP = [
-  { keywords: ['kiandu', 'kenya'],        slug: 'kenya',     name: 'Kenya Kiandu AB',     prices: { 80: 110, 200: 195, 400: 305 } },
-  { keywords: ['las nubes', 'nicaragua'], slug: 'nicaragua', name: 'Nicaragua Las Nubes', prices: { 80: 125, 200: 220, 400: 345 } },
+  { keywords: ['kiandu', 'kenya'],        slug: 'kenya',     name: 'Kenya Kiandu AB',     prices: { 80: 110, 200: 195, 400: 355, 20: 225 } },
+  { keywords: ['las nubes', 'nicaragua'], slug: 'nicaragua', name: 'Nicaragua Las Nubes', prices: { 80: 125, 200: 220, 400: 375, 20: 240 } },
 ];
 
 /** Parse item_description → [{product_slug, product_name, quantity, unit_price_rand, grind}]
@@ -91,9 +95,12 @@ function parseOrderItems(itemDesc) {
       continue;
     }
 
+    const productName = size === 20
+      ? `${match.name} — Drip Bags 10-Pack`
+      : (size ? `${match.name} — ${size}g` : match.name);
     results.push({
       product_slug:    match.slug,
-      product_name:    size ? `${match.name} — ${size}g` : match.name,
+      product_name:    productName,
       quantity:        qty,
       unit_price_rand: unitPrice,
       grind,

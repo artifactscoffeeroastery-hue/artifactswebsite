@@ -117,8 +117,8 @@ Drop 004 Kenya and Drop 005 Nicaragua are both **Live**. GT/MX remain Sold Out a
 
 | Code | Origin | Coffee | Status |
 |------|--------|--------|--------|
-| KE · 004 | Kenya · Nyeri · Kiandu WS | Kiandu AB | **Live** — 80g R110 · 200g R195 · 400g R305 |
-| NI · 005 | Nicaragua · Las Nubes | Las Nubes Red Catuai | **Live** — 80g R125 · 200g R220 · 400g R345 |
+| KE · 004 | Kenya · Nyeri · Kiandu WS | Kiandu AB | **Live** — 80g R110 (unavailable, ~3wk lead) · 200g R195 · 400g R355 · Drip Bags 10-pack R225 |
+| NI · 005 | Nicaragua · Las Nubes | Las Nubes Red Catuai | **Live** — 80g R125 (unavailable, ~3wk lead) · 200g R220 · 400g R375 · Drip Bags 10-pack R240 |
 | GT · 001 | Guatemala · Huehuetenango | Blue Ayarza | Sold Out |
 | MX · 002 | Mexico · Chiapas | Ki Saya (Organic) | Sold Out |
 
