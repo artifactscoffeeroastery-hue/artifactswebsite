@@ -241,7 +241,7 @@
   .sel-k{background:var(--ke);color:var(--black);outline:2px solid var(--ke);outline-offset:2px;}
   .pill-ke{background:var(--ke);border-color:var(--ke);color:var(--black);}
   .btn-ke{background:var(--ke);color:var(--black);}
-  .price-row{display:flex;align-items:baseline;gap:10px;margin-bottom:24px;}
+  .price-row{display:flex;align-items:center;gap:10px;margin-bottom:24px;}
   .p-curr{font-family:'Barlow Condensed',sans-serif;font-size:24px;color:#6b6b6b;}
   .p-amount{font-family:'Bebas Neue',sans-serif;font-size:70px;line-height:1;letter-spacing:0.02em;color:var(--black);}
   .p-note{font-size:13px;color:#6b6b6b;}
