@@ -104,6 +104,15 @@ function selectGrind(btn, id) {
   g.querySelectorAll('.grind-btn').forEach(b => b.className='grind-btn');
   btn.classList.add(ac ? ac[0] : 'sel-c');
   g.setAttribute('data-selected-grind', btn.textContent.trim());
+  const note = document.getElementById('grind-disclaimer-'+id);
+  if (note) {
+    if (btn.textContent.trim() === 'Espresso') {
+      note.textContent = "Ground to a standard espresso setting — with hundreds of machines out there, results vary. Try it, and if it's not quite right, let us know and we'll dial it finer or coarser on your next order.";
+      note.style.display = 'block';
+    } else {
+      note.style.display = 'none';
+    }
+  }
 }
 
 // ── QTY ──

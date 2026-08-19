@@ -97,7 +97,7 @@
           -->
           <button class="sz-btn sel-y" onclick="selectPF(this,'ni','220');document.getElementById('ni-note').textContent='200g &middot; whole bean';document.getElementById('ni-save').textContent='';updateMobicredWidget('ni','220');document.getElementById('grind-label-ni').style.display='block';document.getElementById('grind-ni').style.display='flex'">200g</button>
           <button class="sz-btn" onclick="selectPF(this,'ni','375');document.getElementById('ni-note').textContent='400g &middot; whole bean';document.getElementById('ni-save').textContent='Save R65 vs. two 200g bags';updateMobicredWidget('ni','375');document.getElementById('grind-label-ni').style.display='block';document.getElementById('grind-ni').style.display='flex'">400g</button>
-          <button class="sz-btn" onclick="selectPF(this,'ni','240');document.getElementById('sz-ni').setAttribute('data-selected-size','10-Pack Drip Bags (20g ea)');document.getElementById('ni-note').innerHTML='10-Pack Drip Bags (20g ea)<br>pre-ground for pour-over';document.getElementById('ni-save').textContent='';updateMobicredWidget('ni','240');document.getElementById('grind-label-ni').style.display='none';document.getElementById('grind-ni').style.display='none';document.getElementById('grind-ni').setAttribute('data-selected-grind','Pre-Ground')">10-Pack Drip Bags</button>
+          <button class="sz-btn" onclick="selectPF(this,'ni','240');document.getElementById('sz-ni').setAttribute('data-selected-size','10-Pack Drip Bags (20g ea)');document.getElementById('ni-note').innerHTML='10-Pack Drip Bags (20g ea)<br>pre-ground for pour-over';document.getElementById('ni-save').textContent='';updateMobicredWidget('ni','240');document.getElementById('grind-label-ni').style.display='none';document.getElementById('grind-ni').style.display='none';document.getElementById('grind-ni').setAttribute('data-selected-grind','Pre-Ground');document.getElementById('grind-disclaimer-ni').style.display='none'">10-Pack Drip Bags</button>
       </div>
       <span class="sz-label" id="grind-label-ni">Select Grind</span>
       <div id="grind-ni" class="grind-toggle" data-selected-grind="Whole Bean">
@@ -108,6 +108,7 @@
           <button class="grind-btn" onclick="selectGrind(this,'ni')">Moka Pot</button>
           <button class="grind-btn" onclick="selectGrind(this,'ni')">Cold Brew</button>
       </div>
+      <span class="p-note grind-disclaimer" id="grind-disclaimer-ni" style="display:none;margin-top:-8px;margin-bottom:18px;line-height:1.5;max-width:420px;"></span>
       <div class="price-row">
         <span class="p-curr">R</span>
         <span class="p-amount" id="ni-p">220</span>
