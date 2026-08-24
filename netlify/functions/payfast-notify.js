@@ -6,8 +6,17 @@
  *  1. Parse URLencoded POST body
  *  2. Verify MD5 signature
  *  3. Validate with PayFast server (server-to-server)
- *  4. On COMPLETE payment → award Brew Circle points via Supabase
+ *  4. On COMPLETE payment → record the order (member or guest) + award
+ *     Brew Circle points if the buyer has an account
  *  5. Collect-from-us orders → email the roaster via Resend
+ *
+ * Session 19: `orders` here (project xpxbldyrigqjkdmrfhvh) is now the one
+ * authoritative order record for every live paid order, not just Brew
+ * Circle members — run brew-circle-orders-unify.sql once against that
+ * project before deploying this file. The separate admin-order Supabase
+ * project (hwfwnzsjcblleykegiay, used by createManualOrder.js) still has
+ * its own orders table for admin-created quotes/invoices — reconciling
+ * that one too is a follow-up, not done in this pass.
  *
  * Required env vars (set in Netlify dashboard → Environment variables):
  *   PAYFAST_PASSPHRASE      – your PayFast account passphrase (leave blank if not set)
@@ -178,32 +187,37 @@ function validateWithPayFast(rawBody) {
   });
 }
 
-/** Award purchase points and record the order in Supabase */
-async function recordOrderAndAwardPoints({ email, amountRand, paymentId, pfPaymentId, itemDesc, discountCode, shippingMethod }) {
+/** Record the order in Supabase (every paid order, member or guest) and award Brew Circle points if applicable */
+async function recordOrderAndAwardPoints({ email, amountRand, paymentId, pfPaymentId, itemDesc, discountCode, shippingMethod, customerName, phone, shippingAmount, shippingAddress }) {
   const supabaseUrl = process.env.SUPABASE_URL;
   const serviceKey  = process.env.SUPABASE_SERVICE_KEY;
 
   if (!supabaseUrl || !serviceKey) {
-    console.warn('Supabase env vars not set — skipping points award');
+    console.warn('Supabase env vars not set — skipping order recording');
     return;
   }
 
   const points = Math.floor(amountRand * POINTS_PER_RAND);
 
-  // 1. Find customer by email
-  const userRes = await fetch(
-    `${supabaseUrl}/auth/v1/admin/users?email=${encodeURIComponent(email)}`,
-    { headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` } }
-  );
-  const userData = await userRes.json();
-  const user     = userData?.users?.[0];
-
-  if (!user) {
-    console.warn(`No Brew Circle member found for ${email} — skipping points`);
-    return;
+  // 1. Find a matching Brew Circle member by email, if any. Session 19:
+  // guests (no matching account) used to make this whole function bail
+  // out via an early return, so guest checkouts never got an order row
+  // ANYWHERE in Supabase — no name, email, or shipping address persisted
+  // once the PayFast confirmation email was sent. Now we only skip the
+  // points-award steps (4-5) for guests; the order itself is always recorded.
+  let customerId = null;
+  if (email) {
+    const userRes = await fetch(
+      `${supabaseUrl}/auth/v1/admin/users?email=${encodeURIComponent(email)}`,
+      { headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` } }
+    );
+    const userData = await userRes.json();
+    customerId = userData?.users?.[0]?.id || null;
+  }
+  if (!customerId) {
+    console.log(`No Brew Circle member found for ${email || '(no email)'} — order will still be recorded, points skipped`);
   }
 
-  const customerId = user.id;
   const authHeaders = {
     'Content-Type':  'application/json',
     apikey:          serviceKey,
@@ -211,24 +225,14 @@ async function recordOrderAndAwardPoints({ email, amountRand, paymentId, pfPayme
     Prefer:          'return=minimal',
   };
 
-  // 2. Upsert order record
-  // NOTE: this `orders` table (project xpxbldyrigqjkdmrfhvh) is the Brew
-  // Circle's own lean order ledger — confirmed via information_schema it
-  // only has: id, customer_id, total_rand, payfast_payment_id,
-  // payfast_pf_payment_id, status, promo_code, discount_rand, created_at,
-  // updated_at. No email/item_description/shipping_method columns exist
-  // here (those live in the separate admin-order Supabase project's own
-  // orders table). The previous insert used entirely made-up column names
-  // (payment_id, email, amount_rand, item_description, discount_code,
-  // shipping_method) — every one of those requests would have been
-  // rejected outright, so this table has had zero rows in it, ever, until
-  // this fix. customer_id is NOT NULL, so guest checkouts (no matching
-  // Brew Circle account) still won't get a row here — that's fine, this
-  // table only tracks members' orders.
-  //
-  // We generate the id ourselves (instead of letting the DB default it)
-  // so we can immediately use it below for order_items without a second
-  // round-trip / needing return=representation.
+  // 2. Insert the order record. Session 19 migration (see
+  // brew-circle-orders-unify.sql) made customer_id nullable and added
+  // customer_name/email/phone/shipping_method/shipping_amount/
+  // shipping_address/placed_by, so this table can finally be the one
+  // authoritative order record for every paid order on the live site —
+  // not just Brew Circle members. We generate the id ourselves (instead
+  // of letting the DB default it) so it can be used below for order_items
+  // without a second round-trip.
   const orderId = crypto.randomUUID();
   const orderRes = await fetch(`${supabaseUrl}/rest/v1/orders`, {
     method:  'POST',
@@ -236,11 +240,18 @@ async function recordOrderAndAwardPoints({ email, amountRand, paymentId, pfPayme
     body: JSON.stringify({
       id:                    orderId,
       customer_id:           customerId,
+      customer_name:         customerName || null,
+      email:                 email || null,
+      phone:                 phone || null,
       total_rand:            Math.round(amountRand),
       payfast_payment_id:    paymentId,
       payfast_pf_payment_id: pfPaymentId || null,
       status:                'complete',
       promo_code:            discountCode || null,
+      shipping_method:       shippingMethod || null,
+      shipping_amount:       shippingAmount ? Math.round(parseFloat(shippingAmount)) : null,
+      shipping_address:      shippingAddress || null,
+      placed_by:             'customer',
     }),
   });
   if (!orderRes.ok) {
@@ -268,7 +279,9 @@ async function recordOrderAndAwardPoints({ email, amountRand, paymentId, pfPayme
     }
   }
 
-  // 3. Record discount code use (powers live founder counter)
+  // 3. Record discount code use (powers live founder counter) — for
+  // every order now, member or guest (previously this was unreachable
+  // for guests too, since it sat after the early-return).
   if (discountCode) {
     const discRes = await fetch(`${supabaseUrl}/rest/v1/discount_uses`, {
       method:  'POST',
@@ -278,14 +291,13 @@ async function recordOrderAndAwardPoints({ email, amountRand, paymentId, pfPayme
     if (!discRes.ok) console.error('discount_uses insert failed:', discRes.status, await discRes.text());
   }
 
-  // 4. Credit point_events
+  // 4-5. Points only apply to Brew Circle members — guests stop here,
+  // their order is already safely recorded above.
+  if (!customerId) return;
+
   // NOTE: point_events has no `reference_id` column (confirmed via
   // information_schema — real columns are id, customer_id, event_type,
-  // points, description, order_id, created_by, created_at). This insert
-  // used to send `reference_id: paymentId`, which PostgREST rejects
-  // outright — meaning this call has been failing on every single real
-  // purchase, silently, since the response was never checked. Fixed to
-  // match the real schema, and now logs if it ever fails again.
+  // points, description, order_id, created_by, created_at).
   const peRes = await fetch(`${supabaseUrl}/rest/v1/point_events`, {
     method:  'POST',
     headers: authHeaders,
@@ -294,11 +306,13 @@ async function recordOrderAndAwardPoints({ email, amountRand, paymentId, pfPayme
       event_type:  'purchase',
       points:      points,
       description: `Order ${paymentId} — R${amountRand.toFixed(2)}`,
+      order_id:    orderId,
     }),
   });
   if (!peRes.ok) console.error('point_events insert failed:', peRes.status, await peRes.text());
 
-  // 5. Update customer points balance (incremental)
+  // 5. Update customer points balance (incremental) — requires the
+  // increment_customer_points RPC created in Session 18.
   const incRes = await fetch(
     `${supabaseUrl}/rest/v1/rpc/increment_customer_points`,
     {
@@ -430,13 +444,20 @@ exports.handler = async (event) => {
       const shipMethod  = params.custom_str2 || '';
 
       await recordOrderAndAwardPoints({
-        email:          params.email_address || '',
+        email:           params.email_address || '',
         amountRand,
         paymentId,
         pfPaymentId,
-        itemDesc:       params.item_description || '',
-        discountCode:   params.custom_str1 || '',
-        shippingMethod: shipMethod,
+        itemDesc:        params.item_description || '',
+        discountCode:    params.custom_str1 || '',
+        shippingMethod:  shipMethod,
+        // Session 19: previously unread — index.html's hidden PayFast form
+        // already sends these (name_first, custom_str3, custom_str4), they
+        // just weren't being picked up on the way in.
+        customerName:    params.name_first || '',
+        phone:           params.custom_str5 || '',
+        shippingAmount:  params.custom_str3 || '',
+        shippingAddress: params.custom_str4 || '',
       });
 
       // Decrement roasted stock
