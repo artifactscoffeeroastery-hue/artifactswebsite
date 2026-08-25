@@ -383,7 +383,7 @@ textarea.field-input{resize:vertical;min-height:72px;}
     <div class="action-row">
       <button class="action-btn" onclick="openDoc('quote')">&#128196; Open / Print Quote</button>
       <button class="action-btn" onclick="sendDocWhatsApp()">&#128242; WhatsApp</button>
-      <button class="action-btn" onclick="sendDocEmail('quote')">&#9993; Email Quote</button>
+      <button class="action-btn" id="email-btn-quote" onclick="sendDocEmail('quote', this)">&#9993; Email Quote</button>
       <button class="action-btn primary" onclick="location.reload()">New Order</button>
     </div>
   </div>
@@ -401,7 +401,7 @@ textarea.field-input{resize:vertical;min-height:72px;}
     <div class="action-row" style="margin-bottom:10px;">
       <button class="action-btn" onclick="openDoc('invoice')">&#128196; Open / Print Invoice</button>
       <button class="action-btn" onclick="sendDocWhatsApp()">&#128242; WhatsApp</button>
-      <button class="action-btn" onclick="sendDocEmail('invoice')">&#9993; Email Invoice</button>
+      <button class="action-btn" id="email-btn-invoice" onclick="sendDocEmail('invoice', this)">&#9993; Email Invoice</button>
     </div>
     <div class="action-row">
       <button class="action-btn" style="background:var(--cyan);color:var(--black);border-color:var(--cyan);" onclick="payViaPayFast()">Pay via PayFast</button>
@@ -951,22 +951,61 @@ function sendDocWhatsApp() {
   window.open('https://wa.me/'+phone+'?text='+encodeURIComponent(txt),'_blank');
 }
 
-function sendDocEmail(type) {
+function showToast(msg, ok) {
+  var t = document.getElementById('toast');
+  if (!t) {
+    t = document.createElement('div');
+    t.id = 'toast';
+    t.style.cssText = 'position:fixed;bottom:24px;right:24px;z-index:99999;padding:14px 20px;font-family:"DM Mono",monospace;font-size:13px;border-radius:2px;box-shadow:0 4px 16px rgba(0,0,0,0.25);transition:opacity 0.25s;max-width:340px;';
+    document.body.appendChild(t);
+  }
+  t.style.background = ok ? 'var(--green)' : 'var(--red)';
+  t.style.color = '#fff';
+  t.textContent = msg;
+  t.style.opacity = '1';
+  clearTimeout(t._hideTimer);
+  t._hideTimer = setTimeout(function(){ t.style.opacity = '0'; }, 5000);
+}
+
+async function sendDocEmail(type, btn) {
   var d=docState;
   type=type||currentDocType;
   var docType=type==='invoice'?'Invoice':'Quote';
   var ref=type==='invoice'?(d.invoiceRef||d.ref):d.ref;
-  var subject='Artifacts Coffee '+docType+' · '+ref;
-  var body='Hi '+d.customer.name.split(' ')[0]+',\n\nPlease find your '+docType.toLowerCase()+' attached:\n\n';
-  body+=d.items.map(function(it){return it.qty+'x '+it.name+' ('+it.size+', '+it.grind+') — R '+(it.price*it.qty).toFixed(2);}).join('\n');
-  body+='\n\nSubtotal: R '+d.sub.toFixed(2);
-  if(d.ship>0) body+='\nShipping: R '+d.ship.toFixed(2);
-  if(d.disc>0) body+='\nDiscount: − R'+d.disc.toFixed(2);
-  body+='\nTotal: R '+d.total.toFixed(2);
-  body+='\n\nFulfilment: '+d.fulfilLabel;
-  if(type==='invoice') body+='\n\nBanking Details:\nFirst National Bank\nArtifacts Coffee\nAcc: 62929285692\nBranch: 250655\nRef: '+ref;
-  body+='\n\nWith care,\nDenzel\nArtifacts Coffee\nhello@artifactscoffee.co.za';
-  window.location.href='mailto:'+d.customer.email+'?subject='+encodeURIComponent(subject)+'&body='+encodeURIComponent(body);
+  if (!d.customer || !d.customer.email) { showToast('No customer email on this order.', false); return; }
+
+  var origLabel = btn ? btn.textContent : null;
+  if (btn) { btn.disabled = true; btn.textContent = 'Sending…'; }
+
+  try {
+    var res = await fetch('/.netlify/functions/sendOrderEmail', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({
+        adminKey: adminKey,
+        type: type,
+        ref: ref,
+        date: d.date,
+        customer: d.customer,
+        items: d.items,
+        sub: d.sub,
+        ship: d.ship,
+        disc: d.disc,
+        total: d.total,
+        fulfilLabel: d.fulfilLabel,
+      })
+    });
+    var data = await res.json().catch(function(){ return {}; });
+    if (res.ok && data.success) {
+      showToast(docType + ' emailed to ' + d.customer.email + ' ✓', true);
+    } else {
+      showToast('Could not send: ' + (data.error || ('HTTP ' + res.status)), false);
+    }
+  } catch (e) {
+    showToast('Could not reach the server — check your connection and try again.', false);
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = origLabel; }
+  }
 }
 
 function sendEFTFromInvoice() {
