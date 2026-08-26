@@ -985,6 +985,7 @@ async function sendDocEmail(type, btn) {
         adminKey: adminKey,
         type: type,
         ref: ref,
+        orderNo: d.orderNo,
         date: d.date,
         customer: d.customer,
         items: d.items,
@@ -993,6 +994,8 @@ async function sendDocEmail(type, btn) {
         disc: d.disc,
         total: d.total,
         fulfilLabel: d.fulfilLabel,
+        fulfilAddress: d.fulfilAddress,
+        notes: d.notes,
       })
     });
     var data = await res.json().catch(function(){ return {}; });
