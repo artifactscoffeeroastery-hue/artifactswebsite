@@ -28,11 +28,73 @@
 const crypto = require('crypto');
 const https  = require('https');
 const qs     = require('querystring');
+const { bookWithBobGo } = require('./bookShipment');
 
 // ── Constants ────────────────────────────────────────────────────────────────
 const PAYFAST_MERCHANT_ID  = '34420469';
 const PAYFAST_VALIDATE_URL = 'https://www.payfast.co.za/eng/query/validate';
 const POINTS_PER_RAND      = 1; // 1 point per R1 spent
+
+// Packaging allowances — keep in sync with getCartKg() in js/main.js so the
+// weight we book on is the weight we quoted on.
+const PACKAGING_PER_ITEM_G = 20;
+const PACKAGING_OUTER_G    = 100;
+
+/** Coffee grams for one unit of a size label ("400g", "10-Pack Drip Bags (20g ea)") */
+function sizeLabelToGrams(sizeLabel) {
+  const sz = (sizeLabel || '').toLowerCase();
+  const pack = sz.match(/(\d+)\s*-?\s*pack[^0-9]*(\d+(?:\.\d+)?)\s*g/);
+  if (pack) return parseFloat(pack[1]) * parseFloat(pack[2]);
+  const kg = sz.match(/([0-9.]+)\s*kg/);
+  if (kg) return parseFloat(kg[1]) * 1000;
+  const g = sz.match(/([0-9.]+)\s*g/);
+  if (g) return parseFloat(g[1]);
+  return 250;
+}
+
+/**
+ * Billable parcel weight straight off the PayFast item_description, which looks
+ * like "1x Kenya Kiandu AB (400g, Filter / Pour Over), 2x ... (200g, Whole Bean)".
+ * Mirrors getCartKg() on the frontend.
+ */
+function itemDescToKg(itemDesc) {
+  if (!itemDesc) return 0.3;
+  let grams = 0;
+  const parts = itemDesc.split(',');
+  for (let i = 0; i < parts.length; i++) {
+    const qtyMatch = parts[i].match(/^\s*(\d+)x/i);
+    if (!qtyMatch) continue;
+    const qty = parseInt(qtyMatch[1], 10) || 1;
+    // Size lives inside the parens, which the comma split may have broken across
+    // this fragment and the next ("(400g" + " Filter / Pour Over)").
+    const sizeSource = parts[i] + (parts[i + 1] && !/^\s*\d+x/i.test(parts[i + 1]) ? ',' + parts[i + 1] : '');
+    grams += (sizeLabelToGrams(sizeSource) + PACKAGING_PER_ITEM_G) * qty;
+  }
+  if (!grams) return 0.3;
+  return Math.max((grams + PACKAGING_OUTER_G) / 1000, 0.3);
+}
+
+/**
+ * Rebuild a structured address from the flat string custom_str4 carries, which
+ * js/main.js joins as "line1, suburb, city, province, postalCode". Parsed from
+ * the END so a street address containing its own commas ("Unit 3, 12 Main Rd")
+ * still lands in line1 rather than shifting every other field.
+ */
+function parseShippingAddress(flat) {
+  const parts = (flat || '').split(',').map(s => s.trim()).filter(Boolean);
+  if (parts.length < 3) return { street_address: flat || '', local_area: '', city: '', zone: '', code: '' };
+  const code = parts.pop();
+  const zone = parts.pop();
+  const city = parts.pop();
+  const localArea = parts.length > 1 ? parts.pop() : (parts[0] || city);
+  return {
+    street_address: parts.join(', ') || localArea,
+    local_area: localArea,
+    city,
+    zone,
+    code,
+  };
+}
 
 // Map product name keywords → drop_code for stock tracking
 const PRODUCT_STOCK_MAP = [
@@ -441,7 +503,14 @@ exports.handler = async (event) => {
       const amountRand  = parseFloat(params.amount_gross || '0');
       const paymentId   = params.m_payment_id || params.pf_payment_id || `PF-${Date.now()}`;
       const pfPaymentId = params.pf_payment_id || null;
-      const shipMethod  = params.custom_str2 || '';
+      // custom_str2 arrives as "Label|provider_slug|service_level_code" for live
+      // courier rates (see updatePF() in js/main.js). Older orders and PUDO/collect
+      // orders have no pipes, so this degrades to just the label.
+      const shipRaw     = params.custom_str2 || '';
+      const shipParts   = shipRaw.split('|');
+      const shipMethod  = shipParts[0] || '';
+      const providerSlug     = shipParts[1] || '';
+      const serviceLevelCode = shipParts[2] || '';
 
       await recordOrderAndAwardPoints({
         email:           params.email_address || '',
@@ -476,6 +545,37 @@ exports.handler = async (event) => {
         shipMethod,
         discountCode: params.custom_str1 || '',
       }).catch(e => console.error('Customer invoice error:', e.message));
+
+      // Auto-book the courier for door-to-door orders. Only fires when the
+      // checkout captured a live Bob Go rate (provider + service level present),
+      // so PUDO, collect-from-us and legacy orders are skipped. Deliberately
+      // non-fatal: the order is already paid and recorded, so a booking failure
+      // (e.g. Bob Go wallet empty) is logged and left for manual booking rather
+      // than failing the whole webhook back to PayFast.
+      if (providerSlug && serviceLevelCode && !/collect|pudo/i.test(shipMethod)) {
+        try {
+          const booking = await bookWithBobGo({
+            delivery:         parseShippingAddress(params.custom_str4 || ''),
+            contact: {
+              name:   params.name_first || '',
+              mobile: params.custom_str5 || '',
+              email:  params.email_address || '',
+            },
+            weightKg:         itemDescToKg(params.item_description || ''),
+            declaredValue:    amountRand,
+            serviceLevelCode,
+            providerSlug,
+            reference:        paymentId,
+          });
+          if (booking.success) {
+            console.log(`Auto-booked ${paymentId}: waybill ${booking.tracking_reference || booking.shipment_id} via ${booking.provider_name}${booking.pending ? ' (pending submission)' : ''}`);
+          } else {
+            console.error(`Auto-book FAILED for ${paymentId} — book this one manually in Bob Go. Reason:`, booking.error, booking.detail || '');
+          }
+        } catch (e) {
+          console.error(`Auto-book threw for ${paymentId}:`, e.message);
+        }
+      }
 
       // Collect-from-us orders: alert the roaster by email so they can arrange pickup
       if (/collect from/i.test(shipMethod)) {

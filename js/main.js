@@ -4,7 +4,7 @@ const productQtys = { gt:1, mx:1, ni:1, dp:1 };
 let currentUser = null, activeDiscount = null, activeShippingQuote = null;
 let deliverMode = 'deliver'; // 'deliver' | 'collect' (PUDO) | 'pickup' (collect from us)
 let lastQuotes = null; // cache last fetched shipping quotes
-let liveRatesOk = false; // true only when live TCG door-to-door rates are loaded (never charge a guessed rate)
+let liveRatesOk = false; // true only when live Bob Go door-to-door rates are loaded (never charge a guessed rate)
 // ── COLLECT-FROM-US CONFIG ──
 const COLLECT_WHATSAPP = '27613832478'; // your WhatsApp number, intl format, digits only
 const discountCodes = {
@@ -367,7 +367,14 @@ function updatePF(total) {
   const pn=document.getElementById('pf_item_name'); if(pn&&!pn.value) pn.value='Artifacts Coffee Order';
   s('pf_discount_code',activeDiscount?activeDiscount.code:'');
   const sel=document.getElementById('tcg-shipping'), opt=sel&&sel.options[sel.selectedIndex];
-  s('pf_shipping_method',opt?opt.textContent.trim():'');
+  // PayFast only gives us custom_str1..5 and all five are spoken for, so the
+  // courier codes ride along on the shipping-method field as
+  // "Label|provider_slug|service_level_code". payfast-notify.js splits them back
+  // apart — it needs both to auto-book the waybill with Bob Go.
+  const shipLabel=opt?opt.textContent.trim():'';
+  const prov=opt?(opt.getAttribute('data-provider')||''):'';
+  const svc=opt?(opt.getAttribute('data-service')||''):'';
+  s('pf_shipping_method',(prov&&svc)?`${shipLabel}|${prov}|${svc}`:shipLabel);
   s('pf_shipping_amount',opt?(opt.getAttribute('data-rate')||opt.value||'0'):'0');
   const a=addr(); s('pf_shipping_address',[a.line1,a.suburb,a.city,a.province,a.postalCode].filter(Boolean).join(', ').slice(0,255));
   s('pf_shipping_phone',(a.phone||'').slice(0,100));
@@ -396,14 +403,37 @@ function validatePay() {
 }
 
 // ── SHIPPING ──
+// Coffee grams for one unit of a given size label.
+// "10-Pack Drip Bags (20g ea)" must resolve to 10 x 20g = 200g, NOT 20g — a
+// naive /(\d+)\s*g/ match grabs the "20g" and under-declares the parcel by 10x,
+// which quotes a shipping price too low to cover what the courier bills.
+function sizeToGrams(sizeLabel) {
+  const sz = (sizeLabel || '').toLowerCase();
+  const pack = sz.match(/(\d+)\s*-?\s*pack[^0-9]*(\d+(?:\.\d+)?)\s*g/);
+  if (pack) return parseFloat(pack[1]) * parseFloat(pack[2]);
+  const kg = sz.match(/([0-9.]+)\s*kg/);
+  if (kg) return parseFloat(kg[1]) * 1000;
+  const g = sz.match(/([0-9.]+)\s*g/);
+  if (g) return parseFloat(g[1]);
+  return 250; // unknown size — assume a standard retail bag rather than 0
+}
+
+// Billable parcel weight: coffee + per-bag packaging + one outer mailer.
+// Couriers bill on the greater of actual vs volumetric weight, so slightly
+// over-declaring here is safer (and cheaper) than being re-billed later.
+const PACKAGING_PER_ITEM_G = 20;   // bag + label
+const PACKAGING_OUTER_G    = 100;  // flyer/box + filler
+
 function getCartKg() {
-  return cart.reduce((s,i)=>{ const sz=(i.size||'').toLowerCase(); const kg=sz.match(/([0-9.]+)\s*kg/); if(kg) return s+parseFloat(kg[1])*i.qty; const g=sz.match(/([0-9]+)\s*g/); if(g) return s+parseFloat(g[1])/1000*i.qty; return s+i.qty; },0)||1;
+  if (!cart.length) return 0.3;
+  const grams = cart.reduce((s,i) => s + (sizeToGrams(i.size) + PACKAGING_PER_ITEM_G) * i.qty, 0);
+  return Math.max((grams + PACKAGING_OUTER_G) / 1000, 0.3);
 }
 async function fetchShippingQuotes() {
   const a=addr(), stat='shipping-rate-status';
   if (!a.province||!a.postalCode) { setStatus(stat,'Select province and enter postal code first.','error'); return; }
   setStatus(stat,'Fetching courier rates...','info');
-  const pudoOnly=[{code:'pudo',label:'TCG PUDO Locker',amount:60}];
+  const pudoOnly=[{code:'pudo',label:'PUDO Locker',amount:60}];
   try {
     const res=await fetch('/.netlify/functions/getShipping',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({destination:a,cartItems:cart.map(i=>({name:i.name,size:i.size,qty:i.qty})),totalWeightKg:getCartKg(),subtotal:cart.reduce((s,i)=>s+i.price*i.qty,0)})});
     if (!res.ok) throw new Error();
@@ -415,7 +445,9 @@ async function fetchShippingQuotes() {
     setStatus(stat, liveRatesOk ? 'Rates updated.' : 'Live courier rates are unavailable right now — please use Collect (PUDO) or try again shortly.', liveRatesOk?'info':'error');
   } catch(e) { liveRatesOk=false; lastQuotes=pudoOnly; renderShipOpts(pudoOnly,a.province); setStatus(stat,'Could not reach the courier service — please use Collect (PUDO) or try again shortly.','error'); }
 }
-function shipOptHtml(q){ const a=Number(q.amount||0); return `<option value="${a}" data-rate="${a}" data-code="${q.code||''}">${q.label||'Courier'} - R${a.toFixed(2)}</option>`; }
+// data-provider / data-service carry the exact courier + service level the rate
+// came from, so the shipment we book is the one the customer actually paid for.
+function shipOptHtml(q){ const a=Number(q.amount||0); return `<option value="${a}" data-rate="${a}" data-code="${q.code||''}" data-provider="${q.provider_slug||''}" data-service="${q.service_level_code||''}">${q.label||'Courier'} - R${a.toFixed(2)}</option>`; }
 function renderShipOpts(quotes,province) {
   const sel=document.getElementById('tcg-shipping'); if (!sel) return;
   if (deliverMode==='collect') {
@@ -458,7 +490,7 @@ function setDeliverMode(mode) {
     return;
   }
   if (shipWrap) shipWrap.style.display = '';
-  const fb=[{code:'pudo',label:'TCG PUDO Locker',amount:60}];
+  const fb=[{code:'pudo',label:'PUDO Locker',amount:60}];
   renderShipOpts(lastQuotes||fb, addr().province);
 }
 // Build the WhatsApp deep-link with the customer's current order

@@ -270,7 +270,7 @@ textarea.field-input{resize:vertical;min-height:72px;}
     <div id="fw-pudo" style="display:none;">
       <div class="rate-option selected">
         <input type="radio" name="rate" checked>
-        <div class="rate-label-text"><strong>TCG PUDO Locker</strong><br><span style="font-size:11px;color:var(--muted);">Customer collects from nearest locker · nationwide</span></div>
+        <div class="rate-label-text"><strong>PUDO Locker</strong><br><span style="font-size:11px;color:var(--muted);">Customer collects from nearest locker · nationwide</span></div>
         <span class="rate-price">R60</span>
       </div>
     </div>
@@ -667,7 +667,7 @@ function switchFulfil(mode) {
   fulfilMode = mode;
   var sections = ['courier','pudo','collection','personal'];
   sections.forEach(function(s){ document.getElementById('fw-'+s).style.display = s===mode?'':'none'; });
-  if (mode==='pudo')       { selectedRate={label:'TCG PUDO Locker',price:60}; }
+  if (mode==='pudo')       { selectedRate={label:'PUDO Locker',price:60}; }
   else if (mode==='collection') { selectedRate={label:'Customer Collection',price:0}; }
   else                     { selectedRate=null; }
   updateSummary();
@@ -700,19 +700,21 @@ function renderRates(quotes) {
   var list=quotes||fallback;
   document.getElementById('rate-wrap').style.display='';
   document.getElementById('rate-list').innerHTML=list.map(function(q,i){
-    var lbl=rateLabel(q), amt=ratePrice(q), code=(q.service_level_code||q.code||''), safe=String(lbl).replace(/'/g,"\\'");
-    return '<div class="rate-option'+(i===0?' selected':'')+'" onclick="selectRate(this,\''+safe+'\','+amt+',\''+code+'\')">'
+    // provider_slug rides along with the service level code — Bob Go needs both
+    // to book the exact courier this rate came from.
+    var lbl=rateLabel(q), amt=ratePrice(q), code=(q.service_level_code||q.code||''), prov=(q.provider_slug||''), safe=String(lbl).replace(/'/g,"\\'");
+    return '<div class="rate-option'+(i===0?' selected':'')+'" onclick="selectRate(this,\''+safe+'\','+amt+',\''+code+'\',\''+prov+'\')">'
       +'<input type="radio" name="rate" '+(i===0?'checked':'')+'>'
       +'<div class="rate-label-text"><strong>'+lbl+'</strong><br><span style="font-size:11px;color:var(--muted);">'+(q.etaDays||'2–5')+' business days</span></div>'
       +'<span class="rate-price">R'+amt.toFixed(2)+'</span></div>';
   }).join('');
-  selectedRate={label:rateLabel(list[0]),price:ratePrice(list[0]),service_level_code:(list[0].service_level_code||list[0].code||'')}; updateSummary();
+  selectedRate={label:rateLabel(list[0]),price:ratePrice(list[0]),service_level_code:(list[0].service_level_code||list[0].code||''),provider_slug:(list[0].provider_slug||'')}; updateSummary();
 }
 
-function selectRate(el,label,price,code) {
+function selectRate(el,label,price,code,prov) {
   document.querySelectorAll('.rate-option').forEach(function(r){ r.classList.remove('selected'); r.querySelector('input').checked=false; });
   el.classList.add('selected'); el.querySelector('input').checked=true;
-  selectedRate={label:label,price:price,service_level_code:code||''}; updateSummary();
+  selectedRate={label:label,price:price,service_level_code:code||'',provider_slug:prov||''}; updateSummary();
 }
 
 function applyDiscount() {
@@ -724,7 +726,22 @@ function applyDiscount() {
 }
 
 function getSub()  { return cartLines.reduce(function(s,l){ return s+l.qty*l.price; },0); }
-function getKg()   { return Math.max(0.1,cartLines.reduce(function(s,l){ var sz=(l.size||'').toLowerCase(),kg=sz.match(/([0-9.]+)\s*kg/),g=sz.match(/([0-9]+)\s*g/); if(kg)return s+parseFloat(kg[1])*l.qty; if(g)return s+parseFloat(g[1])/1000*l.qty; return s+l.qty*0.25; },0)); }
+// Coffee grams for one unit. "10-Pack Drip Bags (20g ea)" is 10 x 20g = 200g —
+// a plain /(\d+)g/ match reads it as 20g and under-declares the parcel 10x.
+// Keep in sync with sizeToGrams() in js/main.js and payfast-notify.js.
+function sizeToGrams(sizeLabel) {
+  var sz=(sizeLabel||'').toLowerCase();
+  var pack=sz.match(/(\d+)\s*-?\s*pack[^0-9]*(\d+(?:\.\d+)?)\s*g/);
+  if(pack) return parseFloat(pack[1])*parseFloat(pack[2]);
+  var kg=sz.match(/([0-9.]+)\s*kg/); if(kg) return parseFloat(kg[1])*1000;
+  var g=sz.match(/([0-9.]+)\s*g/);   if(g)  return parseFloat(g[1]);
+  return 250;
+}
+function getKg() {
+  if(!cartLines.length) return 0.3;
+  var grams=cartLines.reduce(function(s,l){ return s+(sizeToGrams(l.size)+20)*l.qty; },0);
+  return Math.max((grams+100)/1000, 0.3);
+}
 function getShip() {
   var ov=parseFloat(document.getElementById('d-ship-override').value);
   if(!isNaN(ov)) return ov;
@@ -1057,12 +1074,13 @@ function showConfirmation(data,total,orderNo) {
   bookingData={
     orderNo: orderNo||ref||'',
     service: (selectedRate&&selectedRate.service_level_code)||'',
+    providerSlug: (selectedRate&&selectedRate.provider_slug)||'',
     delivery: { street_address:fv('d-address'), local_area:fv('d-suburb'), city:fv('d-city'), zone:fv('d-province'), code:fv('d-postal') },
     contact:  { name:fv('c-name'), email:fv('c-email'), phone:fv('c-phone') },
     weightKg: getKg(), declaredValue: getSub()
   };
   // Only offer courier booking for courier orders with a live service code + address
-  var canBook = fulfilMode==='courier' && bookingData.service && bookingData.delivery.street_address && bookingData.delivery.code;
+  var canBook = fulfilMode==='courier' && bookingData.service && bookingData.providerSlug && bookingData.delivery.street_address && bookingData.delivery.code;
   var wrap=document.getElementById('book-collection-wrap');
   if(wrap) wrap.style.display = canBook ? 'block' : 'none';
   var bstat=document.getElementById('book-collection-status'); if(bstat) bstat.textContent='';
@@ -1073,20 +1091,21 @@ var bookingData=null;
 async function bookOrder() {
   if(!bookingData) return;
   var btn=document.getElementById('book-collection-btn'), stat=document.getElementById('book-collection-status');
-  btn.disabled=true; btn.textContent='Booking…'; stat.style.color='var(--muted)'; stat.textContent='Creating shipment with The Courier Guy…';
+  btn.disabled=true; btn.textContent='Booking…'; stat.style.color='var(--muted)'; stat.textContent='Creating shipment with Bob Go…';
   try {
     var res=await fetch('/.netlify/functions/bookShipment',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
       adminKey:adminKey,
       delivery:{ street_address:bookingData.delivery.street_address, local_area:bookingData.delivery.local_area, city:bookingData.delivery.city, zone:bookingData.delivery.zone, code:bookingData.delivery.code, type:'residential' },
-      contact:{ name:bookingData.contact.name, mobile_number:bookingData.contact.phone, email:bookingData.contact.email },
-      weightKg:bookingData.weightKg, declaredValue:bookingData.declaredValue, serviceLevelCode:bookingData.service,
+      contact:{ name:bookingData.contact.name, mobile:bookingData.contact.phone, email:bookingData.contact.email },
+      weightKg:bookingData.weightKg, declaredValue:bookingData.declaredValue,
+      serviceLevelCode:bookingData.service, providerSlug:bookingData.providerSlug,
       reference:bookingData.orderNo, instructions:''
     })});
     var o=await res.json();
     if(o.success){
       var wb=o.tracking_reference||o.short_tracking_reference||o.shipment_id||'—';
       stat.style.color='var(--green)';
-      stat.innerHTML='✓ Booked — Waybill <strong>'+wb+'</strong>. Print the label in your Courier Guy portal (Shipments → '+wb+').';
+      stat.innerHTML='✓ Booked — Waybill <strong>'+wb+'</strong>'+(o.provider_name?' via '+o.provider_name:'')+'. Print the label in Bob Go (Shipments → '+wb+').';
       btn.textContent='Booked ✓';
     } else {
       stat.style.color='#ef4444';
