@@ -1,0 +1,1178 @@
+<!DOCTYPE html><script type="application/json" id="cowork-artifact-meta">
+{
+  "name": "Coffee Stock Tracker",
+  "schemaVersion": 1,
+  "description": "Coffee green bean stock tracker for Artifacts Coffee. Tracks green bean inventory, price calculator, accounting (expenses/sales/P&L), supplier reference tables (Zuka Green & And Sons), and live roasted stock dashboard from Supabase."
+}
+</script>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Coffee Stock Tracker</title>
+<style>
+:root { color-scheme: light; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f5f3ef; color: #1a1a1a; font-size: 14px; }
+
+/* ── HEADER ─────────────────────────────────────────────────────── */
+.header { background: #2c1a0e; color: #fff; padding: 14px 24px; display: flex; align-items: center; justify-content: space-between; }
+.header h1 { font-size: 17px; font-weight: 600; letter-spacing: 0.3px; }
+.header h1 span { color: #c8a97a; }
+.stats { display: flex; gap: 18px; }
+.stat { text-align: center; }
+.stat-num { font-size: 19px; font-weight: 700; line-height: 1; }
+.stat-num.ok   { color: #6fcf97; }
+.stat-num.warn { color: #f2c94c; }
+.stat-num.crit { color: #eb5757; }
+.stat-label { font-size: 10px; color: #c8a97a; margin-top: 2px; }
+
+/* ── TABS ───────────────────────────────────────────────────────── */
+.tabs { background: #fff; border-bottom: 1px solid #e5e0d8; display: flex; padding: 0 20px; gap: 0; overflow-x: auto; }
+.tabs::-webkit-scrollbar { display: none; }
+.tab { padding: 11px 16px; cursor: pointer; font-size: 13px; font-weight: 500; color: #666; border-bottom: 2px solid transparent; transition: all 0.15s; white-space: nowrap; flex-shrink: 0; }
+.tab:hover { color: #2c1a0e; }
+.tab.active { color: #2c1a0e; border-bottom-color: #c8a97a; font-weight: 600; }
+.tab-panel { display: none; }
+.tab-panel.active { display: block; }
+
+/* ── CONTENT / CARDS ────────────────────────────────────────────── */
+.content { padding: 18px 22px; }
+.card { background: #fff; border-radius: 10px; border: 1px solid #e5e0d8; padding: 18px; margin-bottom: 14px; }
+.card h3 { font-size: 11px; font-weight: 700; color: #888; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 14px; }
+
+/* ── BUTTONS ────────────────────────────────────────────────────── */
+.btn { padding: 7px 15px; border-radius: 6px; border: none; cursor: pointer; font-size: 13px; font-weight: 500; transition: all 0.15s; }
+.btn-primary   { background: #2c1a0e; color: #fff; }
+.btn-primary:hover { background: #3d2510; }
+.btn-email     { background: #1a3a5c; color: #fff; }
+.btn-email:hover { background: #254d7a; }
+.btn-success   { background: #1a5c2c; color: #fff; }
+.btn-success:hover { background: #246b38; }
+.btn-secondary { background: #fff; color: #444; border: 1px solid #ddd; }
+.btn-secondary:hover { background: #f5f5f5; }
+.btn-danger    { background: #fff0f0; color: #c0392b; border: 1px solid #f5c6c6; }
+.btn-danger:hover { background: #ffe0e0; }
+.btn-sm        { padding: 4px 9px; font-size: 12px; }
+.action-bar    { display: flex; gap: 10px; margin-bottom: 14px; align-items: center; flex-wrap: wrap; }
+
+/* ── TABLE ──────────────────────────────────────────────────────── */
+.table-wrap { background: #fff; border-radius: 10px; border: 1px solid #e5e0d8; overflow: hidden; }
+table { width: 100%; border-collapse: collapse; }
+thead tr { background: #f5f3ef; }
+th { padding: 9px 13px; text-align: left; font-size: 11px; font-weight: 600; color: #666; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid #e5e0d8; white-space: nowrap; }
+td { padding: 9px 13px; border-bottom: 1px solid #f0ece6; vertical-align: middle; }
+tr:last-child td { border-bottom: none; }
+tr.low-row { background: #fffbf0; }
+tr.out-row { background: #fff5f5; }
+tr:hover td { background: #faf7f4; }
+
+/* ── BADGES ─────────────────────────────────────────────────────── */
+.badge { display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 600; }
+.badge-ok       { background: #e8f8ef; color: #1a7a40; }
+.badge-low      { background: #fff8e1; color: #8a6500; }
+.badge-out      { background: #fee;    color: #c0392b; }
+.badge-limited  { background: #fff0e0; color: #7a4000; }
+.badge-instock  { background: #e8f8ef; color: #1a7a40; }
+.badge-enquire  { background: #f0f0ff; color: #4040a0; }
+.badge-pencil   { background: #f5f0ff; color: #6040a0; }
+.badge-discount { background: #e8f8ff; color: #006080; }
+.badge-zuka     { background: #e8f0e8; color: #2d5a2d; }
+.badge-andsons  { background: #e8eaf8; color: #2d3a7a; }
+
+/* ── ALERT + EMPTY ──────────────────────────────────────────────── */
+.alert-banner { background: #fff8e1; border: 1px solid #f2c94c; border-radius: 8px; padding: 11px 15px; margin-bottom: 14px; display: flex; align-items: center; gap: 10px; }
+.alert-banner.hidden { display: none; }
+.alert-banner .text { font-size: 13px; color: #7d5a00; }
+.alert-banner .text strong { color: #5a3e00; }
+.empty-state { text-align: center; padding: 50px 20px; color: #888; }
+.empty-state .icon { font-size: 36px; margin-bottom: 10px; }
+.empty-state p { font-size: 14px; margin-bottom: 14px; }
+
+/* ── EDITABLE CELLS ─────────────────────────────────────────────── */
+.editable { cursor: text; min-width: 70px; }
+.editable input { width: 70px; padding: 2px 6px; border: 1px solid #c8a97a; border-radius: 4px; font-size: 13px; text-align: right; outline: none; }
+.coffee-name   { font-weight: 500; color: #1a1a1a; }
+.coffee-origin { font-size: 11px; color: #888; margin-top: 1px; }
+.price         { font-weight: 600; color: #1a1a1a; white-space: nowrap; }
+.score-badge   { display: inline-block; background: #2c1a0e; color: #c8a97a; padding: 2px 7px; border-radius: 10px; font-size: 11px; font-weight: 700; }
+.units-left.few { color: #c0392b; font-weight: 600; }
+.units-left    { font-weight: 600; }
+.origin-group  { font-size: 11px; font-weight: 700; color: #c8a97a; text-transform: uppercase; letter-spacing: 1px; padding: 6px 13px; background: #2c1a0e; }
+.ref-note      { font-size: 12px; color: #888; margin-bottom: 12px; background: #fff; padding: 10px 13px; border-radius: 8px; border: 1px solid #e5e0d8; }
+
+/* ── MODAL ──────────────────────────────────────────────────────── */
+.modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; }
+.modal-overlay.show { display: flex; }
+.modal { background: #fff; border-radius: 12px; width: 620px; max-width: 96vw; max-height: 88vh; display: flex; flex-direction: column; overflow: hidden; }
+.modal-sm { width: 460px; }
+.modal-header { padding: 16px 20px; border-bottom: 1px solid #e5e0d8; display: flex; justify-content: space-between; align-items: center; }
+.modal-header h2 { font-size: 15px; font-weight: 600; }
+.modal-close { background: none; border: none; cursor: pointer; font-size: 20px; color: #888; line-height: 1; padding: 2px 6px; }
+.modal-close:hover { color: #333; }
+.modal-body { padding: 18px 20px; overflow-y: auto; flex: 1; }
+.modal-footer { padding: 13px 20px; border-top: 1px solid #e5e0d8; display: flex; gap: 10px; justify-content: flex-end; }
+.search-box { width: 100%; padding: 8px 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 13px; margin-bottom: 13px; outline: none; }
+.search-box:focus { border-color: #c8a97a; }
+.supplier-filter { display: flex; gap: 8px; margin-bottom: 13px; }
+.filter-btn { padding: 5px 12px; border-radius: 20px; border: 1px solid #ddd; cursor: pointer; font-size: 12px; background: #fff; color: #555; }
+.filter-btn.active { background: #2c1a0e; color: #fff; border-color: #2c1a0e; }
+.item-list { max-height: 300px; overflow-y: auto; border: 1px solid #e5e0d8; border-radius: 8px; }
+.item-option { padding: 10px 13px; cursor: pointer; border-bottom: 1px solid #f0ece6; transition: background 0.1s; display: flex; justify-content: space-between; align-items: center; }
+.item-option:last-child { border-bottom: none; }
+.item-option:hover { background: #f5f3ef; }
+.item-option.selected { background: #f0ede8; }
+.item-option .left .name { font-weight: 500; font-size: 13px; }
+.item-option .left .meta { font-size: 11px; color: #888; margin-top: 2px; }
+.item-option .right { text-align: right; }
+.item-option .right .price { font-weight: 600; font-size: 13px; }
+.threshold-row { display: flex; gap: 14px; margin-top: 14px; align-items: flex-end; }
+.form-group { flex: 1; }
+.form-group label { display: block; font-size: 12px; font-weight: 600; color: #555; margin-bottom: 4px; }
+.form-group input, .form-group select { width: 100%; padding: 7px 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 13px; outline: none; background: #fff; }
+.form-group input:focus, .form-group select:focus { border-color: #c8a97a; }
+.email-section { margin-bottom: 18px; }
+.email-section h3 { font-size: 13px; font-weight: 600; color: #2c1a0e; margin-bottom: 9px; border-bottom: 1px solid #e5e0d8; padding-bottom: 7px; }
+.email-body { background: #f9f7f4; border: 1px solid #e5e0d8; border-radius: 8px; padding: 13px; font-size: 12px; line-height: 1.7; white-space: pre-wrap; font-family: Georgia, serif; color: #222; }
+.copy-btn { margin-top: 8px; }
+
+/* ── PRICE CALCULATOR ───────────────────────────────────────────── */
+.calc-grid { display: grid; grid-template-columns: 1fr 1.2fr; gap: 14px; }
+.calc-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; gap: 8px; }
+.calc-row:last-child { margin-bottom: 0; }
+.calc-label { font-size: 13px; color: #444; flex: 1; line-height: 1.3; }
+.calc-label small { display: block; font-size: 11px; color: #999; margin-top: 1px; }
+.calc-input { width: 90px; padding: 5px 8px; border: 1px solid #ddd; border-radius: 5px; font-size: 13px; text-align: right; outline: none; flex-shrink: 0; }
+.calc-input:focus { border-color: #c8a97a; box-shadow: 0 0 0 2px rgba(200,169,122,0.15); }
+.calc-divider { border: none; border-top: 1px dashed #e5e0d8; margin: 12px 0; }
+.calc-derived { font-size: 12px; color: #c8a97a; font-weight: 600; text-align: right; background: #f9f7f4; padding: 3px 8px; border-radius: 4px; }
+.margin-wrap { margin-bottom: 10px; }
+.margin-slider { width: 100%; accent-color: #c8a97a; cursor: pointer; margin: 6px 0; }
+.margin-label-row { display: flex; justify-content: space-between; align-items: center; }
+.margin-pct-input { width: 70px; padding: 4px 8px; border: 1px solid #ddd; border-radius: 5px; font-size: 13px; text-align: right; outline: none; }
+.margin-pct-input:focus { border-color: #c8a97a; }
+
+/* Results */
+.results-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.results-table th { padding: 7px 10px; font-size: 11px; color: #888; font-weight: 600; text-transform: uppercase; letter-spacing: 0.4px; border-bottom: 2px solid #e5e0d8; }
+.results-table th:first-child { text-align: left; }
+.results-table th:not(:first-child) { text-align: right; }
+.results-table td { padding: 8px 10px; border-bottom: 1px solid #f0ece6; font-size: 13px; }
+.results-table td:not(:first-child) { text-align: right; font-variant-numeric: tabular-nums; }
+.results-table tr.total-row td { border-top: 2px solid #e5e0d8; border-bottom: 2px solid #e5e0d8; font-weight: 700; background: #f9f7f4; }
+.results-table tr.rec-row td { background: #2c1a0e; color: #c8a97a; font-weight: 700; font-size: 14px; }
+.results-table tr.rec-row td:first-child { color: #fff; }
+.results-table tr.margin-row td { font-weight: 600; }
+.results-table tr.margin-row.good td:not(:first-child) { color: #1a7a40; }
+.results-table tr.margin-row.ok-margin td:not(:first-child) { color: #8a6500; }
+.results-table tr.margin-row.tight td:not(:first-child) { color: #c0392b; }
+.batch-summary { font-size: 12px; color: #888; background: #f9f7f4; border: 1px solid #e5e0d8; border-radius: 6px; padding: 9px 12px; margin-bottom: 14px; line-height: 1.6; }
+.batch-summary strong { color: #2c1a0e; }
+.pkg-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+/* ── ACCOUNTING ─────────────────────────────────────────────────── */
+.acc-summary { display: grid; grid-template-columns: repeat(4, 1fr); gap: 2px; background: #2c1a0e; border-radius: 10px; overflow: hidden; margin-bottom: 14px; }
+.acc-sum-item { padding: 13px 14px; text-align: center; }
+.acc-sum-label { font-size: 10px; color: #c8a97a; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+.acc-sum-value { font-size: 18px; font-weight: 700; color: #fff; }
+.acc-sum-value.profit { color: #6fcf97; }
+.acc-sum-value.loss   { color: #eb5757; }
+.acc-tabs { display: flex; background: #fff; border: 1px solid #e5e0d8; border-radius: 8px; overflow: hidden; margin-bottom: 14px; }
+.acc-tab { flex: 1; padding: 8px; text-align: center; cursor: pointer; font-size: 12px; font-weight: 500; color: #666; border-right: 1px solid #e5e0d8; transition: all 0.15s; }
+.acc-tab:last-child { border-right: none; }
+.acc-tab.active { background: #2c1a0e; color: #fff; font-weight: 600; }
+.acc-panel { display: none; }
+.acc-panel.active { display: block; }
+.cat-badge { display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 600; }
+.cat-beans     { background: #e8f0e8; color: #2d5a2d; }
+.cat-packaging { background: #e8eaf8; color: #2d3a7a; }
+.cat-labels    { background: #f5f0ff; color: #6040a0; }
+.cat-equipment { background: #fff0e0; color: #7a4000; }
+.cat-shipping  { background: #e8f8ff; color: #006080; }
+.cat-marketing { background: #fff8e1; color: #8a6500; }
+.cat-other     { background: #f5f5f5; color: #555; }
+.pl-section { margin-bottom: 18px; }
+.pl-section h4 { font-size: 12px; font-weight: 700; color: #888; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 10px; }
+.pl-row { display: flex; justify-content: space-between; align-items: center; padding: 7px 0; border-bottom: 1px solid #f5f3ef; font-size: 13px; }
+.pl-row:last-child { border-bottom: none; }
+.pl-row .pl-label { color: #555; }
+.pl-row .pl-amount { font-weight: 600; font-variant-numeric: tabular-nums; }
+.pl-row.pl-total { font-weight: 700; font-size: 14px; border-top: 2px solid #e5e0d8; border-bottom: 2px solid #e5e0d8; padding: 9px 0; margin-top: 4px; }
+.pl-row.pl-total .pl-amount.profit { color: #1a7a40; }
+.pl-row.pl-total .pl-amount.loss   { color: #c0392b; }
+.drop-select { width: 100%; padding: 8px 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 13px; outline: none; background: #fff; margin-bottom: 14px; }
+.drop-select:focus { border-color: #c8a97a; }
+.drop-kpi { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 14px; }
+.drop-kpi-item { background: #f9f7f4; border: 1px solid #e5e0d8; border-radius: 8px; padding: 12px; text-align: center; }
+.drop-kpi-label { font-size: 11px; color: #888; margin-bottom: 4px; }
+.drop-kpi-value { font-size: 17px; font-weight: 700; color: #2c1a0e; }
+.drop-kpi-value.profit { color: #1a7a40; }
+.drop-kpi-value.loss   { color: #c0392b; }
+.form-row { display: flex; gap: 12px; margin-bottom: 12px; }
+.form-row .form-group { margin-bottom: 0; }
+.form-group { margin-bottom: 12px; }
+
+/* ── SAVED CALCULATIONS ─────────────────────────────────────────── */
+.snap-row { display: flex; justify-content: space-between; align-items: flex-start; padding: 10px 0; border-bottom: 1px solid #f0ece6; }
+.snap-row:last-child { border-bottom: none; }
+.snap-name { font-weight: 600; font-size: 13px; color: #1a1a1a; }
+.snap-date { font-size: 11px; color: #aaa; margin-top: 2px; }
+.snap-prices { display: flex; gap: 16px; align-items: center; }
+.snap-price-item { text-align: right; }
+.snap-price-item .size { font-size: 10px; color: #888; text-transform: uppercase; letter-spacing: 0.4px; }
+.snap-price-item .rec { font-size: 14px; font-weight: 700; color: #2c1a0e; }
+.snap-price-item .margin { font-size: 11px; color: #1a7a40; }
+.snap-del { background: none; border: none; cursor: pointer; color: #ccc; font-size: 16px; padding: 0 4px; line-height: 1; }
+.snap-del:hover { color: #c0392b; }
+
+/* ── ROAST STOCK ─────────────────────────────────────────────────── */
+.rs-kpi-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 10px; margin-bottom: 16px; }
+.rs-kpi { background: #2c1a0e; border-radius: 10px; padding: 14px 16px; text-align: center; }
+.rs-kpi-label { font-size: 10px; color: #c8a97a; text-transform: uppercase; letter-spacing: .5px; margin-bottom: 4px; }
+.rs-kpi-value { font-size: 22px; font-weight: 700; color: #fff; }
+.rs-kpi-value.good { color: #6fcf97; }
+.rs-kpi-value.warn { color: #f2c94c; }
+.rs-kpi-value.crit { color: #eb5757; }
+.rs-stock-grid { display: grid; grid-template-columns: repeat(auto-fill,minmax(270px,1fr)); gap: 12px; margin-bottom: 16px; }
+.rs-card { background: #fff; border-radius: 10px; border: 1px solid #e5e0d8; padding: 16px; }
+.rs-card-title { font-weight: 700; font-size: 14px; color: #1a1a1a; }
+.rs-card-sub { font-size: 11px; color: #c8a97a; text-transform: uppercase; letter-spacing: .5px; margin-bottom: 10px; margin-top: 2px; }
+.rs-progress-bar { height: 6px; background: #f0ece6; border-radius: 3px; overflow: hidden; margin: 8px 0; }
+.rs-progress-fill { height: 100%; background: #c8a97a; border-radius: 3px; transition: width .3s; }
+.rs-progress-fill.sold { background: #2c1a0e; }
+.rs-stat-row { display: flex; justify-content: space-between; font-size: 12px; color: #666; margin-bottom: 4px; }
+.rs-stat-row strong { color: #1a1a1a; }
+.rs-update-row { display: flex; align-items: center; gap: 8px; margin-top: 12px; border-top: 1px solid #f0ece6; padding-top: 10px; }
+.rs-update-row label { font-size: 12px; color: #666; flex: 1; }
+.rs-update-row input { width: 70px; padding: 4px 8px; border: 1px solid #ddd; border-radius: 5px; font-size: 13px; text-align: right; outline: none; }
+.rs-save-btn { padding: 4px 12px; background: #2c1a0e; color: #fff; border: none; border-radius: 5px; font-size: 12px; cursor: pointer; }
+.rs-save-btn:hover { background: #3d2510; }
+.rs-save-btn.saved { background: #1a5c2c; }
+.rs-loading { text-align: center; padding: 40px; color: #888; font-size: 14px; }
+.rs-error { background: #fff5f5; border: 1px solid #f5c6c6; border-radius: 8px; padding: 12px 16px; color: #c0392b; margin-bottom: 14px; font-size: 13px; }
+.rs-refresh-btn { padding: 5px 12px; background: #fff; border: 1px solid #ddd; border-radius: 6px; font-size: 12px; cursor: pointer; color: #555; }
+.rs-refresh-btn:hover { background: #f5f5f5; }
+
+/* ── RESPONSIVE ─────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .calc-grid { grid-template-columns: 1fr; }
+  .acc-summary { grid-template-columns: repeat(2, 1fr); }
+  .drop-kpi { grid-template-columns: repeat(2, 1fr); }
+  .rs-kpi-grid { grid-template-columns: repeat(2,1fr); }
+}
+@media (max-width: 600px) {
+  .content { padding: 14px 14px; }
+  .header { flex-direction: column; gap: 10px; align-items: flex-start; }
+  th, td { padding: 7px 9px; }
+  .pkg-grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>☕ <span>Artifacts Coffee</span> — Stock & Finance</h1>
+  <div class="stats">
+    <div class="stat"><div class="stat-num ok"   id="stat-ok">0</div><div class="stat-label">OK</div></div>
+    <div class="stat"><div class="stat-num warn"  id="stat-low">0</div><div class="stat-label">Low</div></div>
+    <div class="stat"><div class="stat-num crit"  id="stat-out">0</div><div class="stat-label">Out</div></div>
+  </div>
+</div>
+
+<div class="tabs">
+  <div class="tab active" onclick="switchTab('inventory')">My Inventory</div>
+  <div class="tab" onclick="switchTab('calculator')">💰 Price Calculator</div>
+  <div class="tab" onclick="switchTab('accounting')">📊 Accounting</div>
+  <div class="tab" onclick="switchTab('zuka')">Zuka Green</div>
+  <div class="tab" onclick="switchTab('andsons')">And Sons</div>
+  <div class="tab" onclick="switchTab('roaststock')">📦 Roast Stock</div>
+</div>
+
+<div class="content">
+
+<!-- MY INVENTORY -->
+<div class="tab-panel active" id="tab-inventory">
+  <div id="alert-banner" class="alert-banner hidden">
+    <span style="font-size:18px">⚠️</span>
+    <span class="text" id="alert-text"></span>
+  </div>
+  <div class="action-bar">
+    <button class="btn btn-primary" onclick="openAddModal()">+ Add Coffee</button>
+    <button class="btn btn-email" onclick="openEmailModal()">✉️ Draft Low Stock Email</button>
+  </div>
+  <div class="table-wrap">
+    <table id="inventory-table">
+      <thead><tr>
+        <th>Coffee</th><th>Supplier</th><th>Price/kg</th>
+        <th>Stock (kg)</th><th>Threshold (kg)</th>
+        <th>Supplier Avail.</th><th>Status</th><th></th>
+      </tr></thead>
+      <tbody id="inventory-body"></tbody>
+    </table>
+    <div id="inventory-empty" class="empty-state">
+      <div class="icon">🌱</div>
+      <p>No coffees tracked yet.</p>
+      <button class="btn btn-primary" onclick="openAddModal()">+ Add your first coffee</button>
+    </div>
+  </div>
+</div>
+
+<!-- PRICE CALCULATOR -->
+<div class="tab-panel" id="tab-calculator">
+  <div class="calc-grid">
+    <div>
+      <div class="card">
+        <h3>Batch Settings</h3>
+        <div class="calc-row" style="margin-bottom:14px;padding-bottom:12px;border-bottom:1px dashed #e5e0d8">
+          <div class="calc-label" style="font-weight:600;color:#2c1a0e">Coffee name<small>e.g. Kenya Kiandu AB</small></div>
+          <input class="calc-input" type="text" id="c-coffee-name" style="width:160px;text-align:left" placeholder="Drop name…" list="coffee-name-list" oninput="onCoffeeNameInput()">
+          <datalist id="coffee-name-list"></datalist>
+        </div>
+        <div class="calc-row">
+          <div class="calc-label">Green bean cost<small>R per kg</small></div>
+          <input class="calc-input" type="number" id="c-green-cost" min="0" step="1" value="304" oninput="saveCalcAndRender()">
+        </div>
+        <div class="calc-row">
+          <div class="calc-label">Batch size<small>kg of green beans</small></div>
+          <input class="calc-input" type="number" id="c-batch-kg" min="0.1" step="0.1" value="1" oninput="saveCalcAndRender()">
+        </div>
+        <div class="calc-row">
+          <div class="calc-label">Roast loss<small>% weight lost during roasting</small></div>
+          <input class="calc-input" type="number" id="c-roast-loss" min="1" max="30" step="0.5" value="18" oninput="saveCalcAndRender()">
+        </div>
+        <hr class="calc-divider">
+        <div class="calc-row">
+          <div class="calc-label" style="color:#888">Roasted yield</div>
+          <div class="calc-derived" id="c-roasted-yield">—</div>
+        </div>
+        <div class="calc-row">
+          <div class="calc-label" style="color:#888">200g bags possible</div>
+          <div class="calc-derived" id="c-bags-200">—</div>
+        </div>
+        <div class="calc-row">
+          <div class="calc-label" style="color:#888">80g bags possible</div>
+          <div class="calc-derived" id="c-bags-80">—</div>
+        </div>
+      </div>
+      <div class="card">
+        <h3>Electricity</h3>
+        <div class="calc-row">
+          <div class="calc-label">Tariff<small>R per kWh · City Power Step 2 incl VAT</small></div>
+          <input class="calc-input" type="number" id="c-tariff" min="0" step="0.05" value="3.49" oninput="saveCalcAndRender()">
+        </div>
+        <div class="calc-row">
+          <div class="calc-label">Roaster wattage<small>Watts (M6 ≈ 1 200 W)</small></div>
+          <input class="calc-input" type="number" id="c-watts" min="100" step="50" value="1200" oninput="saveCalcAndRender()">
+        </div>
+        <div class="calc-row">
+          <div class="calc-label">Roast time<small>Minutes per batch</small></div>
+          <input class="calc-input" type="number" id="c-minutes" min="1" step="1" value="12" oninput="saveCalcAndRender()">
+        </div>
+        <hr class="calc-divider">
+        <div class="calc-row">
+          <div class="calc-label" style="color:#888">kWh per batch</div>
+          <div class="calc-derived" id="c-kwh">—</div>
+        </div>
+        <div class="calc-row">
+          <div class="calc-label" style="color:#888">Electricity cost / batch</div>
+          <div class="calc-derived" id="c-elec-batch">—</div>
+        </div>
+      </div>
+      <div class="card">
+        <h3>Packaging &amp; Labels</h3>
+        <div class="pkg-grid">
+          <div>
+            <div style="font-size:12px;font-weight:700;color:#888;margin-bottom:8px;text-transform:uppercase;letter-spacing:0.5px">200g bag</div>
+            <div class="calc-row"><div class="calc-label">Bag cost</div><input class="calc-input" type="number" id="c-pkg200" min="0" step="0.50" value="8.00" oninput="saveCalcAndRender()"></div>
+            <div class="calc-row"><div class="calc-label">Label / print</div><input class="calc-input" type="number" id="c-lbl200" min="0" step="0.50" value="2.00" oninput="saveCalcAndRender()"></div>
+          </div>
+          <div>
+            <div style="font-size:12px;font-weight:700;color:#888;margin-bottom:8px;text-transform:uppercase;letter-spacing:0.5px">400g bag</div>
+            <div class="calc-row"><div class="calc-label">Bag cost<small>Same pouch as 200g</small></div><input class="calc-input" type="number" id="c-pkg400" min="0" step="0.50" value="8.00" oninput="saveCalcAndRender()"></div>
+            <div class="calc-row"><div class="calc-label">Label / print</div><input class="calc-input" type="number" id="c-lbl400" min="0" step="0.50" value="2.00" oninput="saveCalcAndRender()"></div>
+          </div>
+          <div>
+            <div style="font-size:12px;font-weight:700;color:#888;margin-bottom:8px;text-transform:uppercase;letter-spacing:0.5px">Drip 10-pack</div>
+            <div class="calc-row"><div class="calc-label">Drip sachet ea.<small>Empty filter pouch, landed</small></div><input class="calc-input" type="number" id="c-dripEach" min="0" step="0.01" value="5.59" oninput="saveCalcAndRender()"></div>
+            <div class="calc-row"><div class="calc-label">Sachets per pack</div><input class="calc-input" type="number" id="c-dripCount" min="1" step="1" value="10" oninput="saveCalcAndRender()"></div>
+            <div class="calc-row"><div class="calc-label">Outer bag + label</div><input class="calc-input" type="number" id="c-dripOuter" min="0" step="0.50" value="10.00" oninput="saveCalcAndRender()"></div>
+          </div>
+          <!-- 80g PAUSED — bags out of stock (~3wk lead). Uncomment this block, the
+               price input, the DEFAULT_CALC keys, and the 80g lines in computeCalc/
+               renderCalc/loadCalcInputs/readCalcInputs to bring the size back.
+          <div>
+            <div style="font-size:12px;font-weight:700;color:#888;margin-bottom:8px;text-transform:uppercase;letter-spacing:0.5px">80g bag</div>
+            <div class="calc-row"><div class="calc-label">Bag cost</div><input class="calc-input" type="number" id="c-pkg80" min="0" step="0.50" value="5.00" oninput="saveCalcAndRender()"></div>
+            <div class="calc-row"><div class="calc-label">Label / print</div><input class="calc-input" type="number" id="c-lbl80" min="0" step="0.50" value="1.50" oninput="saveCalcAndRender()"></div>
+          </div>
+          -->
+        </div>
+      </div>
+      <div class="card">
+        <h3>Target Gross Margin</h3>
+        <div class="margin-wrap">
+          <div class="margin-label-row">
+            <span style="font-size:13px;color:#444">Gross margin</span>
+            <input class="margin-pct-input" type="number" id="c-margin-num" min="0" max="99" step="1" value="65" oninput="syncMarginSlider();saveCalcAndRender()">
+          </div>
+          <input class="margin-slider" type="range" id="c-margin-slider" min="0" max="95" step="1" value="65" oninput="syncMarginNum();saveCalcAndRender()">
+          <div style="font-size:11px;color:#999;margin-top:4px">Gross margin = (price − cost) ÷ price × 100</div>
+        </div>
+      </div>
+      <div class="card">
+        <h3>Your Current Prices</h3>
+        <div class="calc-row">
+          <div class="calc-label">200g bag price<small>What you charge customers</small></div>
+          <input class="calc-input" type="number" id="c-price200" min="0" step="5" value="260" oninput="saveCalcAndRender()">
+        </div>
+        <div class="calc-row">
+          <div class="calc-label">400g bag price<small>What you charge customers</small></div>
+          <input class="calc-input" type="number" id="c-price400" min="0" step="5" value="355" oninput="saveCalcAndRender()">
+        </div>
+        <div class="calc-row">
+          <div class="calc-label">Drip 10-pack price<small>What you charge customers</small></div>
+          <input class="calc-input" type="number" id="c-priceDrip" min="0" step="5" value="225" oninput="saveCalcAndRender()">
+        </div>
+        <!-- 80g PAUSED — see note in Packaging & Labels above.
+        <div class="calc-row">
+          <div class="calc-label">80g bag price<small>What you charge customers</small></div>
+          <input class="calc-input" type="number" id="c-price80" min="0" step="5" value="110" oninput="saveCalcAndRender()">
+        </div>
+        -->
+      </div>
+    </div>
+    <div>
+      <div class="card" style="position:sticky;top:14px">
+        <h3>Cost Breakdown &amp; Pricing</h3>
+        <div class="batch-summary" id="c-batch-summary">—</div>
+        <table class="results-table">
+          <thead><tr><th>Cost component</th><th>200g bag</th><th>400g bag</th><th>Drip 10-pk</th></tr></thead>
+          <tbody id="c-results-body"></tbody>
+        </table>
+        <div style="margin-top:14px;font-size:11px;color:#999;line-height:1.6">
+          Recommended price = total cost ÷ (1 − margin). Electricity allocated per gram roasted. Excludes your labour. Excludes PayFast fees (~2.3%).
+        </div>
+        <div style="margin-top:14px;border-top:1px solid #e5e0d8;padding-top:12px">
+          <button id="calc-save-btn" class="btn btn-primary" onclick="saveCalcSnapshot()" style="width:100%">💾 Save this calculation</button>
+        </div>
+      </div>
+
+      <!-- Saved calculations -->
+      <div id="calc-saved-wrap" style="display:none;margin-top:14px">
+        <div class="card">
+          <h3 style="display:flex;justify-content:space-between;align-items:center">Saved Calculations <button onclick="clearCalcSnapshots()" style="font-size:11px;font-weight:400;background:none;border:none;color:#c0392b;cursor:pointer;text-transform:none;letter-spacing:0">Clear all</button></h3>
+          <div id="calc-saved-list"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ACCOUNTING -->
+<div class="tab-panel" id="tab-accounting">
+  <div class="acc-summary">
+    <div class="acc-sum-item"><div class="acc-sum-label">Revenue</div><div class="acc-sum-value" id="acc-revenue">R 0</div></div>
+    <div class="acc-sum-item"><div class="acc-sum-label">Expenses</div><div class="acc-sum-value" id="acc-expenses-total">R 0</div></div>
+    <div class="acc-sum-item"><div class="acc-sum-label">Net Profit</div><div class="acc-sum-value" id="acc-profit">R 0</div></div>
+    <div class="acc-sum-item"><div class="acc-sum-label">Margin</div><div class="acc-sum-value" id="acc-margin-pct">— %</div></div>
+  </div>
+  <div class="acc-tabs">
+    <div class="acc-tab active" onclick="switchAccTab('expenses')">Expenses</div>
+    <div class="acc-tab" onclick="switchAccTab('sales')">Sales</div>
+    <div class="acc-tab" onclick="switchAccTab('pl')">P&amp;L</div>
+    <div class="acc-tab" onclick="switchAccTab('drop')">By Drop</div>
+  </div>
+  <div class="acc-panel active" id="acc-expenses">
+    <div class="action-bar"><button class="btn btn-primary" onclick="openAddExpenseModal()">+ Add Expense</button></div>
+    <div class="table-wrap">
+      <table><thead><tr><th>Date</th><th>Category</th><th>Drop</th><th>Description</th><th style="text-align:right">Amount</th><th></th></tr></thead>
+      <tbody id="expenses-body"></tbody></table>
+      <div id="expenses-empty" class="empty-state"><div class="icon">📋</div><p>No expenses logged yet.</p><button class="btn btn-primary" onclick="openAddExpenseModal()">+ Add first expense</button></div>
+    </div>
+  </div>
+  <div class="acc-panel" id="acc-sales">
+    <div class="action-bar"><button class="btn btn-success" onclick="openAddSaleModal()">+ Record Sale</button></div>
+    <div class="table-wrap">
+      <table><thead><tr><th>Date</th><th>Drop</th><th>Size</th><th>Qty</th><th style="text-align:right">Unit Price</th><th style="text-align:right">Total</th><th></th></tr></thead>
+      <tbody id="sales-body"></tbody></table>
+      <div id="sales-empty" class="empty-state"><div class="icon">🛍️</div><p>No sales recorded yet.</p><button class="btn btn-success" onclick="openAddSaleModal()">+ Record first sale</button></div>
+    </div>
+  </div>
+  <div class="acc-panel" id="acc-pl"><div id="pl-content"></div></div>
+  <div class="acc-panel" id="acc-drop">
+    <select class="drop-select" id="drop-filter" onchange="renderByDrop()"><option value="">— Select a drop —</option></select>
+    <div id="by-drop-content"><div class="empty-state" style="padding:30px 20px"><p style="color:#888">Select a drop above to see its P&amp;L</p></div></div>
+  </div>
+</div>
+
+<!-- ZUKA GREEN -->
+<div class="tab-panel" id="tab-zuka">
+  <div class="ref-note">📋 Zuka Green Coffee — Johannesburg Warehouse · Effective 03 June 2026 · <strong>orders@zukagreen.coffee</strong> · JHB +27 10 025 4479</div>
+  <div class="table-wrap">
+    <table><thead><tr><th>Coffee</th><th>Approach</th><th>Bag Size</th><th>Availability</th><th>Price/kg (excl VAT)</th></tr></thead>
+    <tbody id="zuka-table-body"></tbody></table>
+  </div>
+</div>
+
+<!-- AND SONS -->
+<div class="tab-panel" id="tab-andsons">
+  <div class="ref-note">📋 And Sons Importers — JHB Warehouse · Updated 08 June 2026 · <strong>green@andsons.coffee</strong> · +27 74 151 5051</div>
+  <div class="table-wrap">
+    <table><thead><tr><th>Coffee</th><th>Origin</th><th>Process</th><th>Score</th><th>Bag (kg)</th><th>Units Left</th><th>Price/kg (excl VAT)</th><th>Status</th></tr></thead>
+    <tbody id="andsons-table-body"></tbody></table>
+  </div>
+</div>
+
+<!-- ROAST STOCK -->
+<div class="tab-panel" id="tab-roaststock">
+  <div id="rs-loading" class="rs-loading">Loading stock data…</div>
+  <div id="rs-error" class="rs-error" style="display:none"></div>
+  <div id="rs-body" style="display:none">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+      <span style="font-size:11px;color:#888">Reads from Supabase · <code>hwfwnzsjcblleykegiay</code></span>
+      <button class="rs-refresh-btn" onclick="rsLoaded=false;loadRoastStock()">↺ Refresh</button>
+    </div>
+    <div class="rs-kpi-grid" id="rs-kpi-grid"></div>
+    <div class="rs-stock-grid" id="rs-stock-grid"></div>
+    <div class="card">
+      <h3>Recent Orders <span style="font-size:10px;font-weight:400;color:#aaa;text-transform:none;letter-spacing:0">(admin DB)</span></h3>
+      <div id="rs-orders-wrap"><div class="rs-loading">Loading…</div></div>
+    </div>
+  </div>
+</div>
+
+</div><!-- /content -->
+
+<!-- Add Coffee Modal -->
+<div class="modal-overlay" id="add-modal">
+  <div class="modal">
+    <div class="modal-header"><h2>Add Coffee to Inventory</h2><button class="modal-close" onclick="closeAddModal()">×</button></div>
+    <div class="modal-body">
+      <input type="text" class="search-box" id="item-search" placeholder="Search coffees..." oninput="filterItems()">
+      <div class="supplier-filter">
+        <button class="filter-btn active" id="filter-all" onclick="setFilter('all')">All</button>
+        <button class="filter-btn" id="filter-zuka" onclick="setFilter('zuka')">Zuka Green</button>
+        <button class="filter-btn" id="filter-andsons" onclick="setFilter('andsons')">And Sons</button>
+      </div>
+      <div class="item-list" id="item-list"></div>
+      <div class="threshold-row" id="threshold-row" style="display:none">
+        <div class="form-group"><label>Current Stock (kg)</label><input type="number" id="input-stock" min="0" step="0.5" placeholder="0"></div>
+        <div class="form-group"><label>Low Stock Threshold (kg)</label><input type="number" id="input-threshold" min="0" step="0.5" placeholder="e.g. 1"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeAddModal()">Cancel</button>
+      <button class="btn btn-primary" id="confirm-add-btn" onclick="confirmAdd()" disabled>Add to Inventory</button>
+    </div>
+  </div>
+</div>
+
+<!-- Email Modal -->
+<div class="modal-overlay" id="email-modal">
+  <div class="modal">
+    <div class="modal-header"><h2>✉️ Draft Low Stock Orders</h2><button class="modal-close" onclick="closeEmailModal()">×</button></div>
+    <div class="modal-body" id="email-modal-body"></div>
+    <div class="modal-footer"><button class="btn btn-secondary" onclick="closeEmailModal()">Close</button></div>
+  </div>
+</div>
+
+<!-- Add Expense Modal -->
+<div class="modal-overlay" id="add-expense-modal">
+  <div class="modal modal-sm">
+    <div class="modal-header"><h2>Add Expense</h2><button class="modal-close" onclick="closeAddExpenseModal()">×</button></div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group"><label>Date</label><input type="date" id="exp-date"></div>
+        <div class="form-group"><label>Amount (R)</label><input type="number" id="exp-amount" min="0" step="0.01" placeholder="0.00"></div>
+      </div>
+      <div class="form-group">
+        <label>Category</label>
+        <select id="exp-category">
+          <option value="Green Beans">Green Beans</option>
+          <option value="Packaging">Packaging</option>
+          <option value="Labels">Labels / Printing</option>
+          <option value="Equipment">Equipment</option>
+          <option value="Shipping">Shipping / Courier</option>
+          <option value="Marketing">Marketing</option>
+          <option value="Other">Other</option>
+        </select>
+      </div>
+      <div class="form-group"><label>Drop (optional)</label><input type="text" id="exp-drop" placeholder="e.g. Kenya 004" list="drop-list-exp"><datalist id="drop-list-exp"></datalist></div>
+      <div class="form-group"><label>Description</label><input type="text" id="exp-desc" placeholder="e.g. And Sons Kiandu AB 4kg"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeAddExpenseModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveExpense()">Save Expense</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Sale Modal -->
+<div class="modal-overlay" id="add-sale-modal">
+  <div class="modal modal-sm">
+    <div class="modal-header"><h2>Record Sale</h2><button class="modal-close" onclick="closeAddSaleModal()">×</button></div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group"><label>Date</label><input type="date" id="sale-date"></div>
+        <div class="form-group"><label>Bag Size</label><select id="sale-size" onchange="prefillSalePrice()"><option value="200g">200g</option><option value="400g">400g</option><option value="Drip 10-pack">Drip 10-pack</option><!-- 80g PAUSED: <option value="80g">80g</option> --></select></div>
+      </div>
+      <div class="form-group"><label>Drop</label><input type="text" id="sale-drop" placeholder="e.g. Kenya 004" list="drop-list-sale"><datalist id="drop-list-sale"></datalist></div>
+      <div class="form-row">
+        <div class="form-group"><label>Qty (bags)</label><input type="number" id="sale-qty" min="1" step="1" value="1" oninput="updateSaleTotal()"></div>
+        <div class="form-group"><label>Unit Price (R)</label><input type="number" id="sale-price" min="0" step="1" value="260" oninput="updateSaleTotal()"></div>
+        <div class="form-group"><label>Total</label><input type="text" id="sale-total" readonly style="background:#f9f7f4;font-weight:700"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeAddSaleModal()">Cancel</button>
+      <button class="btn btn-success" onclick="saveSale()">Record Sale</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════════
+// SUPPLIER DATA
+// ═══════════════════════════════════════════════════════════════════
+
+const ZUKA = [
+  { id:'z1',  origin:'Brazil',    name:'Brazil GINGA Cerrado NY 3/4 Scr 13/15 FC PB UW', approach:'Cherry', bagSize:60, availability:'In Stock',      price:144.50 },
+  { id:'z2',  origin:'Brazil',    name:'Brazil Labareda Screen 16+ Natural',              approach:'Cherry', bagSize:60, availability:'In Stock',      price:149.50 },
+  { id:'z3',  origin:'Burundi',   name:'Burundi Ibukikawa Hill Screen 15+ FW',            approach:'Cherry', bagSize:60, availability:'In Stock',      price:174.50 },
+  { id:'z4',  origin:'Burundi',   name:'Burundi Ibukikawa TT Grade FW',                   approach:'Green',  bagSize:60, availability:'In Stock',      price:164.50 },
+  { id:'z5',  origin:'Burundi',   name:'Burundi Kinama Hill Natural',                     approach:'Sky',    bagSize:60, availability:'In Stock',      price:214.00 },
+  { id:'z6',  origin:'Burundi',   name:'Burundi Mutambu Hill Screen 15+ FW',              approach:'Cherry', bagSize:60, availability:'Limited stock', price:179.50 },
+  { id:'z7',  origin:'Burundi',   name:'Burundi Nyabiraba Hill Natural',                  approach:'Sky',    bagSize:60, availability:'Limited stock', price:214.00 },
+  { id:'z8',  origin:'Burundi',   name:'Burundi Nyamagana Hill Screen 15+ FW',            approach:'Cherry', bagSize:60, availability:'In Stock',      price:174.50 },
+  { id:'z9',  origin:'Colombia',  name:'Colombia Excelso EP Sugarcane Decaf FW',          approach:'Green',  bagSize:60, availability:'In Stock',      price:229.50 },
+  { id:'z10', origin:'Costa Rica',name:'Costa Rica La Pastora Tarrazu SHB/EP FW',         approach:'Cherry', bagSize:69, availability:'Limited stock', price:177.00 },
+  { id:'z11', origin:'Costa Rica',name:'Costa Rica West Valley SHB/EP FW',                approach:'Cherry', bagSize:69, availability:'In Stock',      price:179.50 },
+  { id:'z12', origin:'Ethiopia',  name:'Ethiopia Nekemte Grade 4 UW',                     approach:'Green',  bagSize:60, availability:'In Stock',      price:159.50 },
+  { id:'z13', origin:'Ethiopia',  name:'Ethiopia Sidamo Grade 2 FW',                      approach:'Green',  bagSize:60, availability:'In Stock',      price:189.50 },
+  { id:'z14', origin:'Ethiopia',  name:'Ethiopia Sidamo Undergrade FW',                   approach:'Green',  bagSize:60, availability:'In Stock',      price:144.50 },
+  { id:'z15', origin:'Ethiopia',  name:'Ethiopia Yirgacheffe Grade 2 FW',                 approach:'Green',  bagSize:60, availability:'In Stock',      price:184.50 },
+  { id:'z16', origin:'Guatemala', name:'Guatemala SHB/EP FW',                             approach:'Green',  bagSize:69, availability:'In Stock',      price:169.50 },
+  { id:'z17', origin:'Kenya',     name:'Kenya AB Grade FW',                               approach:'Green',  bagSize:60, availability:'In Stock',      price:169.50 },
+  { id:'z18', origin:'Kenya',     name:'Kenya Grinders FW',                               approach:'Green',  bagSize:60, availability:'In Stock',      price:149.50 },
+  { id:'z19', origin:'Mexico',    name:'Mexico SHG/EP FW',                                approach:'Green',  bagSize:69, availability:'In Stock',      price:179.50 },
+  { id:'z20', origin:'Nicaragua', name:'Nicaragua Rajuanse Estates SHB/EP FW RFA',        approach:'Cherry', bagSize:69, availability:'In Stock',      price:179.50 },
+  { id:'z21', origin:'Nicaragua', name:'Nicaragua Rajuanse Pacamara FW RFA',              approach:'Sky',    bagSize:69, availability:'Limited stock', price:234.00 },
+  { id:'z22', origin:'Rwanda',    name:'Rwanda Rugali Sun Dried Honey',                   approach:'Sky',    bagSize:60, availability:'*Enquire @Zuka',price:228.00 },
+  { id:'z23', origin:'Tanzania',  name:'Tanzania Kifaru Estate AA/A Grade FW RFA',        approach:'Cherry', bagSize:60, availability:'In Stock',      price:169.50 },
+  { id:'z24', origin:'Tanzania',  name:'Tanzania Masangula AA Grade FW',                  approach:'Cherry', bagSize:60, availability:'In Stock',      price:164.50 },
+  { id:'z25', origin:'Tanzania',  name:'Tanzania Masangula AB Grade FW',                  approach:'Cherry', bagSize:60, availability:'In Stock',      price:162.00 },
+  { id:'z26', origin:'Uganda',    name:'Uganda Nyabirongo Anaerobic Natural',              approach:'Sky',    bagSize:60, availability:'Limited stock', price:234.00 },
+  { id:'z27', origin:'Uganda',    name:'Uganda Nyabirongo Natural Lot 1',                 approach:'Cherry', bagSize:60, availability:'Limited stock', price:228.00 },
+  { id:'z28', origin:'Uganda',    name:'Uganda Nyabirongo Natural Lot 2',                 approach:'Cherry', bagSize:60, availability:'Limited stock', price:224.00 },
+  { id:'z29', origin:'Uganda',    name:'Uganda Rwenzori Natural',                         approach:'Green',  bagSize:60, availability:'In Stock',      price:159.50 },
+  { id:'z30', origin:'Uganda',    name:'Uganda Screen 14 UW Robusta',                     approach:'Green',  bagSize:60, availability:'In Stock',      price:104.50 },
+  { id:'z31', origin:'Uganda',    name:'Uganda Sironko Screen 15+ FW RFA',                approach:'Cherry', bagSize:60, availability:'In Stock',      price:154.50 },
+];
+
+const ANDSONS = [
+  { id:'a1',  origin:'Brazil',      name:'Fazenda Zaroca',                       sku:'ASL0196', process:'Natural',                        score:85.5,  bagSize:60,  unitsLeft:4,   price:311.00, status:'In-Stock' },
+  { id:'a2',  origin:'Brazil',      name:'Fazenda do Salto Natural Yellow Bourbon', sku:'ASL0202', process:'Natural',                      score:84.5,  bagSize:60,  unitsLeft:4,   price:322.00, status:'In-Stock' },
+  { id:'a3',  origin:'Colombia',    name:'Atunkaa Washed Sugarcane Decaf',       sku:'ASL0185', process:'Decaf Sugarcane Washed',         score:84.5,  bagSize:70,  unitsLeft:1,   price:339.00, status:'In-Stock' },
+  { id:'a4',  origin:'Colombia',    name:'Fincamigos Geisha',                    sku:'ASL0159', process:'Washed',                         score:87,    bagSize:35,  unitsLeft:1,   price:469.00, status:'Pencil Bookings' },
+  { id:'a5',  origin:'Colombia',    name:'Decaf Natural Ombligon by El Diviso',  sku:'ASL0151', process:'Anaerobic Decaf Double Natural', score:87,    bagSize:24,  unitsLeft:2,   price:649.00, status:'In-Stock' },
+  { id:'a6',  origin:'Colombia',    name:'Pink Bourbon by El Diviso',            sku:'ASL0148', process:'Ext Ferm Washed',                score:88,    bagSize:24,  unitsLeft:1,   price:549.00, status:'Pencil Bookings' },
+  { id:'a7',  origin:'Colombia',    name:'P-02 by El Paraiso',                   sku:'ASL0145', process:'Anaerobic Double Thermal Shock', score:88,    bagSize:24,  unitsLeft:1,   price:529.00, status:'In-Stock' },
+  { id:'a8',  origin:'Colombia',    name:'Y-05 by El Paraiso',                   sku:'ASL0144', process:'Anaerobic Double Thermal Shock', score:88,    bagSize:24,  unitsLeft:0,   price:529.00, status:'Pencil Bookings' },
+  { id:'a9',  origin:'Colombia',    name:'Luna Geisha by El Paraiso',            sku:'ASL0142', process:'Anaerobic Double Thermal Shock', score:90.5,  bagSize:24,  unitsLeft:0,   price:2199.00,status:'Pencil Bookings' },
+  { id:'a10', origin:'Colombia',    name:'Letty Geisha by El Paraiso',           sku:'ASL0141', process:'Anaerobic Double Thermal Shock', score:90.75, bagSize:24,  unitsLeft:0,   price:2199.00,status:'Pencil Bookings' },
+  { id:'a11', origin:'Colombia',    name:'Antimaceration Caturra by El Paraiso', sku:'ASL0140', process:'Antimaceration Natural',        score:89,    bagSize:24,  unitsLeft:1,   price:2489.00,status:'In-Stock' },
+  { id:'a12', origin:'Colombia',    name:'Antimaceration Geisha by El Paraiso',  sku:'ASL0139', process:'Antimaceration Natural',        score:91.5,  bagSize:1,   unitsLeft:12,  price:5799.00,status:'In-Stock' },
+  { id:'a13', origin:'Colombia',    name:'Inmaculada Fellows Anaerobic Geisha',  sku:'ASL0138', process:'Anaerobic Natural',              score:87.75, bagSize:24,  unitsLeft:2,   price:689.00, status:'In-Stock' },
+  { id:'a14', origin:'Colombia',    name:'Fincamigos Typica',                    sku:'ASL0136', process:'Washed',                         score:86,    bagSize:35,  unitsLeft:2,   price:319.00, status:'In-Stock' },
+  { id:'a15', origin:'Costa Rica',  name:'Las Lajas Natural Catigua',            sku:'ASL0197', process:'Natural',                        score:87,    bagSize:35,  unitsLeft:1,   price:505.00, status:'In-Stock' },
+  { id:'a16', origin:'Costa Rica',  name:'El Aguacate Alba Natural',             sku:'ASL0186', process:'Natural',                        score:87,    bagSize:35,  unitsLeft:1,   price:467.00, status:'In-Stock' },
+  { id:'a17', origin:'Costa Rica',  name:'Las Lajas Honey SL28',                 sku:'ASL0173', process:'Red Honey',                      score:86,    bagSize:35,  unitsLeft:1,   price:387.00, status:'In-Stock' },
+  { id:'a18', origin:'El Salvador', name:'La Reforma Natural SL28',              sku:'ASL0190', process:'Natural',                        score:null,  bagSize:69,  unitsLeft:0,   price:469.00, status:'Pencil Bookings' },
+  { id:'a19', origin:'El Salvador', name:'El Cipres Natural',                    sku:'ASL0191', process:'Natural',                        score:86,    bagSize:69,  unitsLeft:1,   price:319.00, status:'In-Stock' },
+  { id:'a20', origin:'El Salvador', name:'Finca Ethiopia Anaerobic Geisha',      sku:'ASL0198', process:'Anaerobic Natural',              score:87.5,  bagSize:30,  unitsLeft:1,   price:497.00, status:'In-Stock' },
+  { id:'a21', origin:'El Salvador', name:'La Hondurita',                         sku:'ASL0124', process:'Washed',                         score:85.5,  bagSize:69,  unitsLeft:2,   price:319.00, status:'In-Stock' },
+  { id:'a22', origin:'El Salvador', name:'Finca El Izotal',                      sku:'ASL0123', process:'Washed',                         score:85.5,  bagSize:69,  unitsLeft:2,   price:318.00, status:'In-Stock' },
+  { id:'a23', origin:'Ethiopia',    name:'Taferi Kela Anaerobic Honey',          sku:'ASL0120', process:'Anaerobic Honey',                score:87.75, bagSize:60,  unitsLeft:0,   price:549.00, status:'Pencil Bookings' },
+  { id:'a24', origin:'Ethiopia',    name:'Lalesa Natural',                       sku:'ASL0119', process:'Natural',                        score:87,    bagSize:60,  unitsLeft:2,   price:305.00, status:'In-Stock' },
+  { id:'a25', origin:'Ethiopia',    name:'Lalesa Black Honey',                   sku:'ASL0116', process:'Black Honey',                    score:87.5,  bagSize:60,  unitsLeft:3,   price:397.00, status:'In-Stock' },
+  { id:'a26', origin:'Ethiopia',    name:'Bochesa',                              sku:'ASL0121', process:'Washed',                         score:87.5,  bagSize:60,  unitsLeft:0.2, price:347.00, status:'In-Stock' },
+  { id:'a27', origin:'Indonesia',   name:'Pegasing Anaerobic Natural',           sku:'ASL0184', process:'Anaerobic Natural',              score:86.5,  bagSize:60,  unitsLeft:2,   price:386.00, status:'In-Stock' },
+  { id:'a28', origin:'Kenya',       name:'Ndiaini AA',                           sku:'ASL0165', process:'Washed',                         score:87,    bagSize:30,  unitsLeft:1,   price:319.00, status:'In-Stock' },
+  { id:'a29', origin:'Kenya',       name:'Karatina Ngunguru AA',                 sku:'ASL0163', process:'Washed',                         score:87,    bagSize:30,  unitsLeft:3,   price:304.00, status:'In-Stock' },
+  { id:'a30', origin:'Kenya',       name:'Mahiga AA',                            sku:'ASL0162', process:'Washed',                         score:87.75, bagSize:30,  unitsLeft:2,   price:345.00, status:'In-Stock' },
+  { id:'a31', origin:'Kenya',       name:'Kiandu AB',                            sku:'ASL0161', process:'Washed',                         score:88,    bagSize:30,  unitsLeft:4,   price:334.00, status:'In-Stock' },
+  { id:'a32', origin:'Kenya',       name:'Muthuaini AA',                         sku:'ASL0160', process:'Washed',                         score:87.5,  bagSize:30,  unitsLeft:6,   price:309.00, status:'In-Stock' },
+  { id:'a33', origin:'Nicaragua',   name:'Las Nubes Red Catuai',                 sku:'ASL0168', process:'Washed',                         score:86,    bagSize:69,  unitsLeft:2,   price:295.00, status:'In-Stock' },
+  { id:'a34', origin:'Peru',        name:'Guerrero Brothers Geisha',             sku:'ASL0199', process:'Washed',                         score:88,    bagSize:69,  unitsLeft:0,   price:549.00, status:'Pencil Bookings' },
+  { id:'a35', origin:'Peru',        name:'Las Pirias',                           sku:'ASL0200', process:'Washed',                         score:85.5,  bagSize:69,  unitsLeft:3,   price:283.00, status:'In-Stock' },
+  { id:'a36', origin:'Peru',        name:'Mikan Finca El Pate',                  sku:'ASL0126', process:'Washed',                         score:85,    bagSize:69,  unitsLeft:3,   price:289.00, status:'In-Stock' },
+  { id:'a37', origin:'Rwanda',      name:'Huye Regional Natural',                sku:'DSL0046', process:'Natural',                        score:82.5,  bagSize:17,  unitsLeft:1,   price:123.00, status:'Discount' },
+  { id:'a38', origin:'Rwanda',      name:'Karambi Washed',                       sku:'ASL0192', process:'Washed',                         score:85,    bagSize:60,  unitsLeft:4,   price:282.00, status:'In-Stock' },
+  { id:'a39', origin:'Rwanda',      name:'Rugamba Washed',                       sku:'ASL0194', process:'Washed',                         score:85.5,  bagSize:60,  unitsLeft:8,   price:296.00, status:'In-Stock' },
+  { id:'a40', origin:'Rwanda',      name:'Rugamba Honey',                        sku:'ASL0201', process:'Honey',                          score:86,    bagSize:60,  unitsLeft:1,   price:328.00, status:'Pencil Bookings' },
+  { id:'a41', origin:'Rwanda',      name:'Coproca Natural',                      sku:'ASL0203', process:'Natural',                        score:86,    bagSize:60,  unitsLeft:1,   price:310.00, status:'Pencil Bookings' },
+  { id:'a42', origin:'Uganda',      name:'Imbalu Anaerobic Natural',             sku:'ASL0204', process:'Anaerobic Natural',              score:86.5,  bagSize:60,  unitsLeft:1,   price:349.00, status:'In-Stock' },
+  { id:'a43', origin:'Uganda',      name:'Muki Fruity Anaerobic Natural',        sku:'ASL0205', process:'Anaerobic Natural',              score:86,    bagSize:60,  unitsLeft:2,   price:365.00, status:'In-Stock' },
+  { id:'a44', origin:'Uganda',      name:'Namutebi by The Coffee Gardens',       sku:'ASL0167', process:'Honey',                          score:86.5,  bagSize:60,  unitsLeft:1,   price:357.00, status:'Pencil Bookings' },
+  { id:'a45', origin:'Uganda',      name:'Job Namugowa',                         sku:'ASL0187', process:'Washed',                         score:85.5,  bagSize:60,  unitsLeft:2,   price:292.00, status:'In-Stock' },
+  { id:'a46', origin:'Panama',      name:'Altieri Chombi Natural',               sku:'ASL0158', process:'Dry Fermentation',               score:92,    bagSize:1,   unitsLeft:3,   price:5829.00,status:'In-Stock' },
+];
+
+// ═══════════════════════════════════════════════════════════════════
+// SEED DATA (pre-populated from Aug 2026 session)
+// ═══════════════════════════════════════════════════════════════════
+
+const SEED_EXPENSES = [
+  {id:'exp_001',date:'2026-02-20',category:'Packaging',  drop:'',              description:'Temu — packaging supplies',                                                   amount:286.00},
+  {id:'exp_002',date:'2026-03-02',category:'Equipment',  drop:'',              description:'Allports — packaging / equipment',                                            amount:86.30},
+  {id:'exp_003',date:'2026-03-11',category:'Green Beans',drop:'Rwanda Rugali', description:'Zuka Green — Rugali Sun Dried Honey (first ever batch)',                      amount:2776.10},
+  {id:'exp_004',date:'2026-04-07',category:'Other',      drop:'',              description:'CIPC — business registration (once-off)',                                     amount:450.00},
+  {id:'exp_005',date:'2026-04-30',category:'Other',      drop:'',              description:'Host Africa / PayFast subscription (Apr)',                                    amount:49.00},
+  {id:'exp_006',date:'2026-05-31',category:'Other',      drop:'',              description:'Netlify — hosting (May)',                                                     amount:152.28},
+  {id:'exp_007',date:'2026-05-31',category:'Other',      drop:'',              description:'Host Africa / PayFast subscription (May)',                                    amount:49.00},
+  {id:'exp_008',date:'2026-05-31',category:'Other',      drop:'',              description:'Anthropic / Claude — AI tools (May)',                                        amount:97.84},
+  {id:'exp_009',date:'2026-06-22',category:'Green Beans',drop:'Kenya 004',     description:'And Sons — Kiandu AB 4kg, order #1186',                                      amount:1662.90},
+  {id:'exp_010',date:'2026-06-30',category:'Other',      drop:'',              description:'Netlify — hosting (Jun, 4× charges — investigate for overages)',             amount:490.06},
+  {id:'exp_011',date:'2026-06-30',category:'Other',      drop:'',              description:'Host Africa / PayFast subscription (Jun)',                                    amount:49.00},
+  {id:'exp_012',date:'2026-06-30',category:'Other',      drop:'',              description:'Anthropic / Claude — AI tools (Jun)',                                        amount:385.69},
+  {id:'exp_013',date:'2026-07-01',category:'Shipping',   drop:'',              description:'The Courier Guy — courier top-ups (Jul)',                                    amount:500.00},
+  {id:'exp_014',date:'2026-07-31',category:'Other',      drop:'',              description:'Netlify — hosting (Jul)',                                                     amount:321.24},
+  {id:'exp_015',date:'2026-07-31',category:'Other',      drop:'',              description:'Host Africa / PayFast subscription (Jul)',                                    amount:49.00},
+  {id:'exp_016',date:'2026-07-31',category:'Other',      drop:'',              description:'Anthropic / Claude — AI tools (Jul)',                                        amount:389.02},
+  {id:'exp_017',date:'2026-08-03',category:'Green Beans',drop:'',              description:'And Sons — 1kg Coproca (test) + 2kg Kiandu + 2kg Las Nubes, order #1198',   amount:1948.85},
+  {id:'exp_018',date:'2026-08-13',category:'Green Beans',drop:'',              description:'And Sons — 1kg Kiandu AB + 2kg Las Nubes, order #1201',                      amount:1062.60},
+  {id:'exp_019',date:'2026-08-25',category:'Shipping',   drop:'',              description:'Bob Pay / BobGo — wallet top-up (live rates now active)',                    amount:200.00},
+  {id:'exp_020',date:'2026-08-27',category:'Packaging',  drop:'',              description:'Coffee Bag Company — bags (Aug)',                                            amount:661.83},
+  {id:'exp_021',date:'2026-08-27',category:'Other',      drop:'',              description:'Anthropic / Claude — AI tools (Aug, est.)',                                  amount:383.35},
+  {id:'exp_022',date:'2026-08-27',category:'Green Beans',drop:'',              description:'And Sons — 2kg Kiandu AB + 1kg Fazenda do Salto Natural Yellow Bourbon',    amount:1248.50},
+];
+
+const SEED_SALES = [
+  {id:'sale_001',date:'2025-11-06',drop:'Pre-launch',   size:'200g',qty:1, unitPrice:231.86,total:231.86},
+  {id:'sale_002',date:'2025-11-29',drop:'Pre-launch',   size:'200g',qty:1, unitPrice:289.82,total:289.82},
+  {id:'sale_003',date:'2026-04-06',drop:'',              size:'200g',qty:1, unitPrice:140.00,total:140.00},
+  {id:'sale_004',date:'2026-06-04',drop:'Kenya 004',     size:'80g', qty:1, unitPrice:160.00,total:160.00},
+  {id:'sale_005',date:'2026-06-09',drop:'',              size:'200g',qty:1, unitPrice:140.00,total:140.00},
+  {id:'sale_006',date:'2026-06-10',drop:'',              size:'200g',qty:1, unitPrice:175.00,total:175.00},
+  {id:'sale_007',date:'2026-06-15',drop:'Guatemala 001', size:'200g',qty:2, unitPrice:150.00,total:300.00},
+  {id:'sale_008',date:'2026-06-29',drop:'',              size:'200g',qty:1, unitPrice:438.00,total:438.00},
+  {id:'sale_009',date:'2026-07-01',drop:'Kenya 004',     size:'200g',qty:1, unitPrice:650.00,total:650.00},
+  {id:'sale_010',date:'2026-08-07',drop:'Nicaragua 005', size:'200g',qty:1, unitPrice:540.00,total:540.00},
+  {id:'sale_011',date:'2026-08-07',drop:'',              size:'200g',qty:1, unitPrice:455.00,total:455.00},
+  {id:'sale_012',date:'2026-08-13',drop:'Kenya 004',     size:'200g',qty:1, unitPrice:995.00,total:995.00},
+  {id:'sale_013',date:'2026-08-24',drop:'Kenya 004',     size:'200g',qty:1, unitPrice:929.00,total:929.00},
+];
+
+// ═══════════════════════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════════════════════
+
+let inventory    = JSON.parse(localStorage.getItem('coffeeInventory_v1') || '[]');
+let expenses     = JSON.parse(localStorage.getItem('coffeeExpenses_v1')  || JSON.stringify(SEED_EXPENSES));
+let sales        = JSON.parse(localStorage.getItem('coffeeSales_v1')     || JSON.stringify(SEED_SALES));
+let selectedItemId = null;
+let activeFilter   = 'all';
+let activeAccTab   = 'expenses';
+
+// 80g keys retained but PAUSED (bags out of stock, ~3wk lead) - see commented UI blocks.
+const DEFAULT_CALC = { greenCostPerKg:334,batchKg:1,roastLoss:18,tariff:3.49,watts:1200,minutes:12,pkg200:8.00,lbl200:2.00,pkg400:8.00,lbl400:2.00,dripEach:5.59,dripCount:10,dripOuter:10.00,pkg80:5.00,lbl80:1.50,margin:53,price200:195,price400:355,priceDrip:225,price80:110 };
+let calcSettings = Object.assign({}, DEFAULT_CALC, JSON.parse(localStorage.getItem('coffeeCalc_v1') || '{}'));
+
+function save()     { localStorage.setItem('coffeeInventory_v1', JSON.stringify(inventory)); }
+function saveExp()  { localStorage.setItem('coffeeExpenses_v1',  JSON.stringify(expenses)); }
+function saveSales(){ localStorage.setItem('coffeeSales_v1',     JSON.stringify(sales)); }
+function saveCalc() { localStorage.setItem('coffeeCalc_v1',      JSON.stringify(calcSettings)); }
+function r(n, d)    { return 'R ' + n.toFixed(d !== undefined ? d : 2); }
+function pct(n)     { return n.toFixed(1) + '%'; }
+
+// ═══════════════════════════════════════════════════════════════════
+// INVENTORY
+// ═══════════════════════════════════════════════════════════════════
+
+function getStatus(item) { return item.stockKg <= 0 ? 'out' : item.stockKg < item.thresholdKg ? 'low' : 'ok'; }
+function getSupplierItem(item) { return item.supplier === 'Zuka Green' ? ZUKA.find(z=>z.id===item.sourceId) : ANDSONS.find(a=>a.id===item.sourceId); }
+function availBadge(avail, status) {
+  if (status) { var s=status.toLowerCase(); if(s.includes('in-stock')||s.includes('in stock'))return'<span class="badge badge-instock">'+status+'</span>'; if(s.includes('pencil'))return'<span class="badge badge-pencil">Pencil</span>'; if(s.includes('discount'))return'<span class="badge badge-discount">Discount</span>'; return'<span class="badge">'+status+'</span>'; }
+  if(!avail)return''; var a=avail.toLowerCase(); if(a.includes('limited'))return'<span class="badge badge-limited">Limited</span>'; if(a.includes('in stock'))return'<span class="badge badge-instock">In Stock</span>'; if(a.includes('enquire'))return'<span class="badge badge-enquire">Enquire</span>'; return'<span class="badge">'+avail+'</span>';
+}
+function zukaAvailBadge(avail) { return availBadge(avail, null); }
+function andsonsStatusBadge(s) { return availBadge(null, s); }
+
+function renderInventory() {
+  var tbody=document.getElementById('inventory-body'), empty=document.getElementById('inventory-empty'), table=document.getElementById('inventory-table');
+  if(!inventory.length){table.style.display='none';empty.style.display='block';updateStats();updateAlertBanner();return;}
+  table.style.display='table';empty.style.display='none';
+  tbody.innerHTML=inventory.map(function(item){
+    var status=getStatus(item),supItem=getSupplierItem(item);
+    var supAvail=item.supplier==='Zuka Green'?(supItem?zukaAvailBadge(supItem.availability):'–'):(supItem?andsonsStatusBadge(supItem.status):'–');
+    var rowClass=status==='out'?'out-row':status==='low'?'low-row':'';
+    var statusBadge=status==='ok'?'<span class="badge badge-ok">OK</span>':status==='low'?'<span class="badge badge-low">⚠ Low</span>':'<span class="badge badge-out">✕ Out</span>';
+    var supplierBadge=item.supplier==='Zuka Green'?'<span class="badge badge-zuka">Zuka</span>':'<span class="badge badge-andsons">And Sons</span>';
+    return'<tr class="'+rowClass+'"><td><div class="coffee-name">'+item.name+'</div><div class="coffee-origin">'+item.origin+'</div></td><td>'+supplierBadge+'</td><td class="price">R'+item.pricePerKg.toFixed(2)+'</td><td class="editable" onclick="editCell(this,\''+item.id+'\',\'stockKg\')"><span class="cell-val">'+item.stockKg+' kg</span></td><td class="editable" onclick="editCell(this,\''+item.id+'\',\'thresholdKg\')"><span class="cell-val">'+item.thresholdKg+' kg</span></td><td>'+supAvail+'</td><td>'+statusBadge+'</td><td><button class="btn btn-danger btn-sm" onclick="removeItem(\''+item.id+'\')">Remove</button></td></tr>';
+  }).join('');
+  updateStats();updateAlertBanner();
+}
+function updateStats() { document.getElementById('stat-ok').textContent=inventory.filter(i=>getStatus(i)==='ok').length; document.getElementById('stat-low').textContent=inventory.filter(i=>getStatus(i)==='low').length; document.getElementById('stat-out').textContent=inventory.filter(i=>getStatus(i)==='out').length; }
+function updateAlertBanner() { var banner=document.getElementById('alert-banner'),text=document.getElementById('alert-text'),lowItems=inventory.filter(i=>getStatus(i)!=='ok'); if(!lowItems.length){banner.classList.add('hidden');return;} banner.classList.remove('hidden'); text.innerHTML=lowItems.length+' item'+(lowItems.length>1?'s':'')+' need attention: '+lowItems.map(i=>'<strong>'+i.name+'</strong>').join(', '); }
+function editCell(td,itemId,field){if(td.querySelector('input'))return;var item=inventory.find(i=>i.id===itemId);td.innerHTML='<input type="number" min="0" step="0.5" value="'+item[field]+'" onblur="saveCell(this,\''+itemId+'\',\''+field+'\')" onkeydown="if(event.key===\'Enter\'){this.blur()}if(event.key===\'Escape\'){renderInventory()}">';td.querySelector('input').focus();td.querySelector('input').select();}
+function saveCell(input,itemId,field){var item=inventory.find(i=>i.id===itemId),val=parseFloat(input.value);if(!isNaN(val)&&val>=0)item[field]=val;save();renderInventory();}
+function removeItem(itemId){inventory=inventory.filter(i=>i.id!==itemId);save();renderInventory();}
+
+var filteredItems=[];
+function openAddModal(){selectedItemId=null;document.getElementById('item-search').value='';document.getElementById('input-stock').value='';document.getElementById('input-threshold').value='';document.getElementById('threshold-row').style.display='none';document.getElementById('confirm-add-btn').disabled=true;setFilter('all');document.getElementById('add-modal').classList.add('show');document.getElementById('item-search').focus();}
+function closeAddModal(){document.getElementById('add-modal').classList.remove('show');}
+function setFilter(f){activeFilter=f;['all','zuka','andsons'].forEach(function(id){document.getElementById('filter-'+id).classList.toggle('active',id===f);});filterItems();}
+function filterItems(){var q=document.getElementById('item-search').value.toLowerCase(),existingIds=inventory.map(i=>i.sourceId),pool=[];if(activeFilter!=='andsons')pool=pool.concat(ZUKA.map(z=>Object.assign({},z,{supplier:'Zuka Green'})));if(activeFilter!=='zuka')pool=pool.concat(ANDSONS.map(a=>Object.assign({},a,{supplier:'And Sons'})));filteredItems=pool.filter(function(item){return!existingIds.includes(item.id)&&(item.name.toLowerCase().includes(q)||item.origin.toLowerCase().includes(q)||(item.sku&&item.sku.toLowerCase().includes(q)));});var list=document.getElementById('item-list');if(!filteredItems.length){list.innerHTML='<div style="padding:18px;text-align:center;color:#888">No results</div>';return;}list.innerHTML=filteredItems.map(function(item){var supplierLabel=item.supplier==='Zuka Green'?'<span style="color:#2d5a2d;font-weight:600">Zuka</span>':'<span style="color:#2d3a7a;font-weight:600">And Sons</span>';var meta=item.supplier==='Zuka Green'?item.origin+' · '+supplierLabel+' · '+item.bagSize+'kg bag':item.origin+' · '+supplierLabel+' · '+(item.sku||'');var avail=item.supplier==='Zuka Green'?item.availability:item.status;return'<div class="item-option" data-id="'+item.id+'" onclick="selectItem(\''+item.id+'\')"><div class="left"><div class="name">'+item.name+'</div><div class="meta">'+meta+'</div></div><div class="right"><div class="price">R'+item.price.toFixed(2)+'/kg</div><div class="avail" style="color:#888">'+avail+'</div></div></div>';}).join('');}
+function selectItem(id){selectedItemId=id;document.querySelectorAll('.item-option').forEach(function(el){el.classList.toggle('selected',el.dataset.id===id);});document.getElementById('threshold-row').style.display='flex';document.getElementById('confirm-add-btn').disabled=false;var all=ZUKA.map(z=>Object.assign({},z,{supplier:'Zuka Green'})).concat(ANDSONS.map(a=>Object.assign({},a,{supplier:'And Sons'})));var item=all.find(i=>i.id===id);if(item&&!document.getElementById('input-threshold').value)document.getElementById('input-threshold').value=1;}
+function confirmAdd(){if(!selectedItemId)return;var all=ZUKA.map(z=>Object.assign({},z,{supplier:'Zuka Green'})).concat(ANDSONS.map(a=>Object.assign({},a,{supplier:'And Sons'})));var item=all.find(i=>i.id===selectedItemId);if(!item)return;inventory.push({id:'inv_'+Date.now(),sourceId:item.id,supplier:item.supplier,name:item.name,origin:item.origin,pricePerKg:item.price,packSize:item.bagSize,stockKg:parseFloat(document.getElementById('input-stock').value)||0,thresholdKg:parseFloat(document.getElementById('input-threshold').value)||1});save();closeAddModal();renderInventory();}
+
+window._emailDrafts={};
+function openEmailModal(){var lowItems=inventory.filter(i=>getStatus(i)!=='ok'),body=document.getElementById('email-modal-body');window._emailDrafts={};if(!lowItems.length){body.innerHTML='<p style="text-align:center;color:#888;padding:28px">All coffees are above threshold — no orders needed.</p>';document.getElementById('email-modal').classList.add('show');return;}var zukaItems=lowItems.filter(i=>i.supplier==='Zuka Green'),andsonsItems=lowItems.filter(i=>i.supplier==='And Sons'),html='';if(zukaItems.length){var lines=zukaItems.map(function(item){var src=ZUKA.find(z=>z.id===item.sourceId);return'  - '+item.name+' ('+item.stockKg+'kg in stock, threshold '+item.thresholdKg+'kg) ['+(src?src.availability:'check avail.')+']';}).join('\n');window._emailDrafts.zuka='To: orders@zukagreen.coffee\nSubject: Green Bean Replenishment Order\n\nDear ZUKA Green Team,\n\nI hope you\'re well. My stock on the below is running low and I\'d like to place a replenishment order:\n\n'+lines+'\n\nCould you please confirm availability and send a pro-forma invoice? Please advise lead times for any limited items.\n\nKind regards,\nDenzel\nArtifacts Coffee';html+='<div class="email-section"><h3>✉️ Zuka Green Coffee</h3><div class="email-body" id="email-body-zuka"></div><button class="btn btn-secondary btn-sm copy-btn" onclick="copyEmailDraft(this,\'zuka\')">Copy Email</button></div>';}if(andsonsItems.length){var aLines=andsonsItems.map(function(item){var src=ANDSONS.find(a=>a.id===item.sourceId);return'<div style="padding:5px 0;border-bottom:1px solid #f0ece6;font-size:13px"><strong>'+item.name+'</strong>'+(src?' <span style=\'color:#888;font-size:11px\'>('+src.sku+')</span>':'')+' — '+item.stockKg+'kg in stock'+(src?', '+src.unitsLeft+' unit(s) avail.':'')+' <span class="badge" style="background:#f5f5f5;color:#555">'+(src?src.status:'')+'</span></div>';}).join('');html+='<div class="email-section"><h3>🛒 And Sons Importers — Order Online</h3><div style="background:#f0f4ff;border:1px solid #c8d8f8;border-radius:8px;padding:12px 14px;margin-bottom:8px;font-size:13px;color:#2d3a7a">And Sons uses <strong>online ordering</strong> — visit <a href="https://andsons.coffee" target="_blank" style="color:#2d3a7a;font-weight:600">andsons.coffee</a> to place your order.<br><span style="color:#888;font-size:12px">Contact: green@andsons.coffee · +27 74 151 5051</span></div><div style="margin-top:8px">'+aLines+'</div></div>';}body.innerHTML=html;if(window._emailDrafts.zuka){var el=document.getElementById('email-body-zuka');if(el)el.textContent=window._emailDrafts.zuka;}document.getElementById('email-modal').classList.add('show');}
+function closeEmailModal(){document.getElementById('email-modal').classList.remove('show');}
+function copyEmailDraft(btn,key){var text=window._emailDrafts[key];if(!text)return;navigator.clipboard.writeText(text).then(function(){btn.textContent='✓ Copied!';setTimeout(function(){btn.textContent='Copy Email';},2000)});}
+
+// ═══════════════════════════════════════════════════════════════════
+// PRICE CALCULATOR
+// ═══════════════════════════════════════════════════════════════════
+
+function readCalcSettings(){var num=function(id,d){var e=document.getElementById(id);return e?(parseFloat(e.value)||0):(d||0);};calcSettings.coffeeName=(document.getElementById('c-coffee-name').value||'').trim();calcSettings.greenCostPerKg=num('c-green-cost');calcSettings.batchKg=num('c-batch-kg')||1;calcSettings.roastLoss=num('c-roast-loss')||18;calcSettings.tariff=num('c-tariff');calcSettings.watts=num('c-watts');calcSettings.minutes=num('c-minutes');calcSettings.pkg200=num('c-pkg200');calcSettings.lbl200=num('c-lbl200');calcSettings.pkg400=num('c-pkg400',8);calcSettings.lbl400=num('c-lbl400',2);calcSettings.dripEach=num('c-dripEach',5.59);calcSettings.dripCount=num('c-dripCount',10)||10;calcSettings.dripOuter=num('c-dripOuter',10);calcSettings.pkg80=num('c-pkg80',calcSettings.pkg80);calcSettings.lbl80=num('c-lbl80',calcSettings.lbl80);calcSettings.margin=num('c-margin-num')||65;calcSettings.price200=num('c-price200');calcSettings.price400=num('c-price400');calcSettings.priceDrip=num('c-priceDrip');calcSettings.price80=num('c-price80',calcSettings.price80);}
+function computeCalc(){var s=calcSettings,roastedKg=s.batchKg*(1-s.roastLoss/100),roastedGrams=roastedKg*1000,bags200=Math.floor(roastedGrams/200),bags400=Math.floor(roastedGrams/400),bags80=Math.floor(roastedGrams/80),kWh=(s.watts/1000)*(s.minutes/60),electricBatch=kWh*s.tariff,electricPerGram=roastedGrams>0?electricBatch/roastedGrams:0,greenPerGram=s.greenCostPerKg/1000/(1-s.roastLoss/100),g200=greenPerGram*200,g400=greenPerGram*400,g80=greenPerGram*80,/* drip pack holds dripCount x 20g = same 200g of coffee as a 200g bag */dripGrams=(s.dripCount||10)*20,gDrip=greenPerGram*dripGrams,e200=electricPerGram*200,e400=electricPerGram*400,e80=electricPerGram*80,eDrip=electricPerGram*dripGrams,p200=s.pkg200+s.lbl200,p400=s.pkg400+s.lbl400,p80=s.pkg80+s.lbl80,/* drip packaging = empty filter sachets + outer retail bag */pDrip=(s.dripCount||10)*s.dripEach+s.dripOuter,cost200=g200+e200+p200,cost400=g400+e400+p400,cost80=g80+e80+p80,costDrip=gDrip+eDrip+pDrip,m=s.margin/100,rec200=m<1?cost200/(1-m):0,rec400=m<1?cost400/(1-m):0,rec80=m<1?cost80/(1-m):0,recDrip=m<1?costDrip/(1-m):0,margin200=s.price200>0?(s.price200-cost200)/s.price200*100:0,margin400=s.price400>0?(s.price400-cost400)/s.price400*100:0,margin80=s.price80>0?(s.price80-cost80)/s.price80*100:0,marginDrip=s.priceDrip>0?(s.priceDrip-costDrip)/s.priceDrip*100:0;return{roastedKg,roastedGrams,bags200,bags400,bags80,kWh,electricBatch,g200,g400,g80,gDrip,e200,e400,e80,eDrip,p200,p400,p80,pDrip,cost200,cost400,cost80,costDrip,rec200,rec400,rec80,recDrip,margin200,margin400,margin80,marginDrip,dripGrams};}
+function renderCalc(){var c=computeCalc(),s=calcSettings;document.getElementById('c-roasted-yield').textContent=c.roastedKg.toFixed(3)+' kg';document.getElementById('c-bags-200').textContent=c.bags200+' bags';var b80=document.getElementById('c-bags-80');if(b80)b80.textContent=c.bags80+' bags';document.getElementById('c-kwh').textContent=c.kWh.toFixed(4)+' kWh';document.getElementById('c-elec-batch').textContent='R '+c.electricBatch.toFixed(2);document.getElementById('c-batch-summary').innerHTML='<strong>'+s.batchKg+'kg green</strong> → <strong>'+c.roastedKg.toFixed(3)+'kg roasted</strong> ('+s.roastLoss+'% loss) · <strong>'+c.bags200+'× 200g</strong> or <strong>'+c.bags400+'× 400g</strong> or <strong>'+c.bags200+'× drip 10-packs</strong> · Electricity: R '+c.electricBatch.toFixed(2)+' per batch ('+c.kWh.toFixed(4)+' kWh)';function marginClass(m){return m>=60?'good':m>=45?'ok-margin':'tight';}function marginIcon(m){return m>=60?'✓':m>=45?'~':'⚠';}var rows='';rows+='<tr><td>Green beans</td><td>'+r(c.g200)+'</td><td>'+r(c.g400)+'</td><td>'+r(c.gDrip)+'</td></tr>';rows+='<tr><td>Electricity</td><td>'+r(c.e200)+'</td><td>'+r(c.e400)+'</td><td>'+r(c.eDrip)+'</td></tr>';rows+='<tr><td>Packaging + label</td><td>'+r(c.p200)+'</td><td>'+r(c.p400)+'</td><td>'+r(c.pDrip)+'</td></tr>';rows+='<tr class="total-row"><td>Total cost / unit</td><td>'+r(c.cost200)+'</td><td>'+r(c.cost400)+'</td><td>'+r(c.costDrip)+'</td></tr>';rows+='<tr class="rec-row"><td>Recommended at '+s.margin+'% margin</td><td>'+r(c.rec200,0)+'</td><td>'+r(c.rec400,0)+'</td><td>'+r(c.recDrip,0)+'</td></tr>';rows+='<tr><td>Your current price</td><td>R '+s.price200.toFixed(0)+'</td><td>R '+s.price400.toFixed(0)+'</td><td>R '+s.priceDrip.toFixed(0)+'</td></tr>';rows+='<tr class="margin-row '+marginClass(c.margin200)+'"><td>Actual margin</td><td>'+marginIcon(c.margin200)+' '+pct(c.margin200)+'</td><td>'+marginIcon(c.margin400)+' '+pct(c.margin400)+'</td><td>'+marginIcon(c.marginDrip)+' '+pct(c.marginDrip)+'</td></tr>';document.getElementById('c-results-body').innerHTML=rows;}
+function saveCalcAndRender(){readCalcSettings();saveCalc();renderCalc();}
+
+function populateCoffeeNameList() {
+  var dl = document.getElementById('coffee-name-list');
+  if (!dl) return;
+  var all = ANDSONS.map(function(a){ return { name: a.name, origin: a.origin, price: a.price }; })
+    .concat(ZUKA.map(function(z){ return { name: z.name, origin: z.origin, price: z.price }; }));
+  dl.innerHTML = all.map(function(item){
+    return '<option value="' + item.name + '" data-price="' + item.price + '">' + item.origin + ' — R' + item.price.toFixed(0) + '/kg</option>';
+  }).join('');
+}
+
+function onCoffeeNameInput() {
+  var val = document.getElementById('c-coffee-name').value.trim().toLowerCase();
+  var all = ANDSONS.concat(ZUKA);
+  var match = all.find(function(item){ return item.name.toLowerCase() === val; });
+  if (!match) match = all.find(function(item){ return item.name.toLowerCase().includes(val) && val.length >= 3; });
+  if (match) {
+    var costEl = document.getElementById('c-green-cost');
+    if (costEl && parseFloat(costEl.value) !== match.price) {
+      costEl.value = match.price;
+      costEl.style.borderColor = '#c8a97a';
+      setTimeout(function(){ costEl.style.borderColor = ''; }, 1200);
+    }
+  }
+  saveCalcAndRender();
+}
+
+function syncMarginSlider(){document.getElementById('c-margin-slider').value=document.getElementById('c-margin-num').value;}
+function syncMarginNum(){document.getElementById('c-margin-num').value=document.getElementById('c-margin-slider').value;}
+function loadCalcInputs(){var s=calcSettings;var set=function(id,v){var e=document.getElementById(id);if(e)e.value=v;};if(s.coffeeName)set('c-coffee-name',s.coffeeName);set('c-green-cost',s.greenCostPerKg);set('c-batch-kg',s.batchKg);set('c-roast-loss',s.roastLoss);set('c-tariff',s.tariff);set('c-watts',s.watts);set('c-minutes',s.minutes);set('c-pkg200',s.pkg200);set('c-lbl200',s.lbl200);set('c-pkg400',s.pkg400);set('c-lbl400',s.lbl400);set('c-dripEach',s.dripEach);set('c-dripCount',s.dripCount);set('c-dripOuter',s.dripOuter);set('c-pkg80',s.pkg80);set('c-lbl80',s.lbl80);set('c-margin-num',s.margin);set('c-margin-slider',s.margin);set('c-price200',s.price200);set('c-price400',s.price400);set('c-priceDrip',s.priceDrip);set('c-price80',s.price80);}
+
+// ═══════════════════════════════════════════════════════════════════
+// ACCOUNTING
+// ═══════════════════════════════════════════════════════════════════
+
+function getAllDropNames(){var fromExp=expenses.map(e=>e.drop).filter(Boolean),fromSale=sales.map(s=>s.drop).filter(Boolean);return Array.from(new Set(fromExp.concat(fromSale))).sort();}
+function populateDropLists(){var drops=getAllDropNames(),opts=drops.map(d=>'<option value="'+d+'">').join('');['drop-list-exp','drop-list-sale'].forEach(function(id){var el=document.getElementById(id);if(el)el.innerHTML=opts;});var sel=document.getElementById('drop-filter');if(!sel)return;var current=sel.value;sel.innerHTML='<option value="">— Select a drop —</option>'+drops.map(d=>'<option value="'+d+'"'+(d===current?' selected':'')+'>'+d+'</option>').join('');}
+function catBadge(cat){var map={'Green Beans':'cat-beans','Packaging':'cat-packaging','Labels':'cat-labels','Equipment':'cat-equipment','Shipping':'cat-shipping','Marketing':'cat-marketing','Other':'cat-other'};return'<span class="cat-badge '+(map[cat]||'cat-other')+'">'+cat+'</span>';}
+function formatDate(d){if(!d)return'—';var parts=d.split('-');return parts[2]+'/'+parts[1]+'/'+parts[0];}
+function todayStr(){return new Date().toISOString().split('T')[0];}
+function renderAccSummary(){var totalRevenue=sales.reduce(function(s,x){return s+x.total;},0),totalExpenses=expenses.reduce(function(s,x){return s+x.amount;},0),netProfit=totalRevenue-totalExpenses,margin=totalRevenue>0?netProfit/totalRevenue*100:0;document.getElementById('acc-revenue').textContent=r(totalRevenue,0);document.getElementById('acc-expenses-total').textContent=r(totalExpenses,0);var profitEl=document.getElementById('acc-profit');profitEl.textContent=r(Math.abs(netProfit),0);profitEl.className='acc-sum-value '+(netProfit>=0?'profit':'loss');if(netProfit<0)profitEl.textContent='-'+r(Math.abs(netProfit),0);var marginEl=document.getElementById('acc-margin-pct');marginEl.textContent=totalRevenue>0?pct(margin):'—';marginEl.className='acc-sum-value '+(margin>=40?'profit':margin>0?'':'loss');}
+function openAddExpenseModal(){document.getElementById('exp-date').value=todayStr();document.getElementById('exp-amount').value='';document.getElementById('exp-category').value='Green Beans';document.getElementById('exp-drop').value='';document.getElementById('exp-desc').value='';populateDropLists();document.getElementById('add-expense-modal').classList.add('show');}
+function closeAddExpenseModal(){document.getElementById('add-expense-modal').classList.remove('show');}
+function saveExpense(){var amount=parseFloat(document.getElementById('exp-amount').value),desc=document.getElementById('exp-desc').value.trim();if(!amount||amount<=0){alert('Please enter an amount.');return;}expenses.push({id:'exp_'+Date.now(),date:document.getElementById('exp-date').value||todayStr(),category:document.getElementById('exp-category').value,drop:document.getElementById('exp-drop').value.trim(),description:desc||'—',amount:amount});saveExp();closeAddExpenseModal();renderExpenses();renderAccSummary();renderPL();populateDropLists();}
+function deleteExpense(id){expenses=expenses.filter(e=>e.id!==id);saveExp();renderExpenses();renderAccSummary();renderPL();populateDropLists();}
+function renderExpenses(){var tbody=document.getElementById('expenses-body'),empty=document.getElementById('expenses-empty');if(!expenses.length){tbody.innerHTML='';empty.style.display='block';return;}empty.style.display='none';var sorted=expenses.slice().sort(function(a,b){return b.date.localeCompare(a.date);});tbody.innerHTML=sorted.map(function(e){return'<tr><td style="white-space:nowrap">'+formatDate(e.date)+'</td><td>'+catBadge(e.category)+'</td><td style="color:#888;font-size:12px">'+(e.drop||'—')+'</td><td>'+e.description+'</td><td style="text-align:right;font-weight:600">'+r(e.amount)+'</td><td><button class="btn btn-danger btn-sm" onclick="deleteExpense(\''+e.id+'\')">✕</button></td></tr>';}).join('');}
+function openAddSaleModal(){document.getElementById('sale-date').value=todayStr();document.getElementById('sale-drop').value='';document.getElementById('sale-size').value='200g';document.getElementById('sale-qty').value='1';document.getElementById('sale-price').value='260';updateSaleTotal();populateDropLists();document.getElementById('add-sale-modal').classList.add('show');}
+function closeAddSaleModal(){document.getElementById('add-sale-modal').classList.remove('show');}
+function prefillSalePrice(){var size=document.getElementById('sale-size').value,p;if(size==='400g')p=calcSettings.price400;else if(size==='Drip 10-pack')p=calcSettings.priceDrip;else if(size==='80g')p=calcSettings.price80;else p=calcSettings.price200;document.getElementById('sale-price').value=p;updateSaleTotal();}
+function updateSaleTotal(){var qty=parseFloat(document.getElementById('sale-qty').value)||0,price=parseFloat(document.getElementById('sale-price').value)||0;document.getElementById('sale-total').value='R '+(qty*price).toFixed(2);}
+function saveSale(){var qty=parseInt(document.getElementById('sale-qty').value)||0,price=parseFloat(document.getElementById('sale-price').value)||0,drop=document.getElementById('sale-drop').value.trim();if(!qty||qty<1){alert('Please enter quantity.');return;}if(!price||price<=0){alert('Please enter unit price.');return;}sales.push({id:'sale_'+Date.now(),date:document.getElementById('sale-date').value||todayStr(),drop:drop,size:document.getElementById('sale-size').value,qty:qty,unitPrice:price,total:qty*price});saveSales();closeAddSaleModal();renderSales();renderAccSummary();renderPL();populateDropLists();}
+function deleteSale(id){sales=sales.filter(s=>s.id!==id);saveSales();renderSales();renderAccSummary();renderPL();populateDropLists();}
+function renderSales(){var tbody=document.getElementById('sales-body'),empty=document.getElementById('sales-empty');if(!sales.length){tbody.innerHTML='';empty.style.display='block';return;}empty.style.display='none';var sorted=sales.slice().sort(function(a,b){return b.date.localeCompare(a.date);});tbody.innerHTML=sorted.map(function(s){return'<tr><td style="white-space:nowrap">'+formatDate(s.date)+'</td><td style="color:#888;font-size:12px">'+(s.drop||'—')+'</td><td><span class="badge" style="background:#f9f7f4;color:#555">'+s.size+'</span></td><td style="text-align:center">'+s.qty+'</td><td style="text-align:right">'+r(s.unitPrice)+'</td><td style="text-align:right;font-weight:600">'+r(s.total)+'</td><td><button class="btn btn-danger btn-sm" onclick="deleteSale(\''+s.id+'\')">✕</button></td></tr>';}).join('');}
+function renderPL(){var totalRevenue=sales.reduce(function(s,x){return s+x.total;},0),totalExpenses=expenses.reduce(function(s,x){return s+x.amount;},0),netProfit=totalRevenue-totalExpenses,el=document.getElementById('pl-content');if(!sales.length&&!expenses.length){el.innerHTML='<div class="empty-state" style="padding:40px 20px"><div class="icon">📊</div><p>Add expenses and record sales to see your P&L</p></div>';return;}var byDrop={};sales.forEach(function(s){var key=s.drop||'Unassigned';byDrop[key]=(byDrop[key]||0)+s.total;});var revenueRows=Object.keys(byDrop).map(function(d){return'<div class="pl-row"><span class="pl-label">'+d+'</span><span class="pl-amount">'+r(byDrop[d])+'</span></div>';}).join('');var byCat={};expenses.forEach(function(e){byCat[e.category]=(byCat[e.category]||0)+e.amount;});var expRows=Object.keys(byCat).sort().map(function(c){return'<div class="pl-row"><span class="pl-label">'+catBadge(c)+'</span><span class="pl-amount">('+r(byCat[c])+')</span></div>';}).join('');var profitClass=netProfit>=0?'profit':'loss',profitStr=(netProfit<0?'(':'')+r(Math.abs(netProfit))+(netProfit<0?')':'');el.innerHTML='<div class="card"><div class="pl-section"><h4>Revenue</h4>'+revenueRows+'<div class="pl-row" style="font-weight:600;border-top:1px solid #e5e0d8;padding-top:8px;margin-top:4px"><span class="pl-label">Total Revenue</span><span class="pl-amount">'+r(totalRevenue)+'</span></div></div><div class="pl-section" style="margin-top:16px"><h4>Expenses</h4>'+expRows+'<div class="pl-row" style="font-weight:600;border-top:1px solid #e5e0d8;padding-top:8px;margin-top:4px"><span class="pl-label">Total Expenses</span><span class="pl-amount">('+r(totalExpenses)+')</span></div></div><div class="pl-row pl-total"><span class="pl-label">Net Profit / Loss</span><span class="pl-amount '+profitClass+'">'+profitStr+'</span></div>'+(totalRevenue>0?'<div class="pl-row" style="margin-top:6px;color:#888;font-size:12px"><span>Gross margin</span><span>'+pct(netProfit/totalRevenue*100)+'</span></div>':'')+'</div>';}
+function renderByDrop(){var drop=document.getElementById('drop-filter').value,el=document.getElementById('by-drop-content');if(!drop){el.innerHTML='<div class="empty-state" style="padding:30px 20px"><p style="color:#888">Select a drop above</p></div>';return;}var dropExp=expenses.filter(e=>e.drop===drop),dropSale=sales.filter(s=>s.drop===drop),totalRev=dropSale.reduce(function(s,x){return s+x.total;},0),totalExp=dropExp.reduce(function(s,x){return s+x.amount;},0),net=totalRev-totalExp,bagsSold=dropSale.reduce(function(s,x){return s+x.qty;},0);el.innerHTML='<div class="drop-kpi"><div class="drop-kpi-item"><div class="drop-kpi-label">Revenue</div><div class="drop-kpi-value">'+r(totalRev,0)+'</div></div><div class="drop-kpi-item"><div class="drop-kpi-label">Expenses</div><div class="drop-kpi-value">'+r(totalExp,0)+'</div></div><div class="drop-kpi-item"><div class="drop-kpi-label">Net P/L</div><div class="drop-kpi-value '+(net>=0?'profit':'loss')+'">'+(net<0?'-':'')+r(Math.abs(net),0)+'</div></div></div>'+(bagsSold?'<div style="font-size:12px;color:#888;margin-bottom:14px">'+bagsSold+' bags sold · avg '+r(totalRev/bagsSold)+' per bag</div>':'')+(dropExp.length?'<div class="card" style="margin-bottom:14px"><h3>Expenses</h3>'+dropExp.sort(function(a,b){return b.date.localeCompare(a.date);}).map(function(e){return'<div class="pl-row"><span class="pl-label">'+formatDate(e.date)+' · '+catBadge(e.category)+' · '+e.description+'</span><span class="pl-amount">('+r(e.amount)+')</span></div>';}).join('')+'</div>':'')+(dropSale.length?'<div class="card"><h3>Sales</h3>'+dropSale.sort(function(a,b){return b.date.localeCompare(a.date);}).map(function(s){return'<div class="pl-row"><span class="pl-label">'+formatDate(s.date)+' · '+s.size+' × '+s.qty+' @ R'+s.unitPrice+'</span><span class="pl-amount">'+r(s.total)+'</span></div>';}).join('')+'</div>':'')+((!dropExp.length&&!dropSale.length)?'<div class="empty-state" style="padding:30px"><p>No data for this drop yet</p></div>':'');}
+function switchAccTab(name){activeAccTab=name;document.querySelectorAll('.acc-tab').forEach(function(t,i){var names=['expenses','sales','pl','drop'];t.classList.toggle('active',names[i]===name);});document.querySelectorAll('.acc-panel').forEach(function(p){p.classList.remove('active');});document.getElementById('acc-'+name).classList.add('active');if(name==='pl')renderPL();if(name==='drop'){populateDropLists();renderByDrop();}}
+
+// ═══════════════════════════════════════════════════════════════════
+// SAVED CALCULATIONS (price calculator snapshots)
+// ═══════════════════════════════════════════════════════════════════
+
+var calcSnapshots = JSON.parse(localStorage.getItem('coffeeCalcSnapshots_v1') || '[]');
+var editingSnapId = null;
+
+function saveCalcSnapshot() {
+  var name = (document.getElementById('c-coffee-name').value || '').trim();
+  if (!name) { alert('Add a coffee name first.'); document.getElementById('c-coffee-name').focus(); return; }
+  readCalcSettings();
+  var c = computeCalc();
+  var s = calcSettings;
+  var entry = {
+    id: editingSnapId || ('snap_' + Date.now()),
+    name: name,
+    date: new Date().toLocaleDateString('en-ZA'),
+    batchKg: s.batchKg,
+    greenCostPerKg: s.greenCostPerKg,
+    roastLoss: s.roastLoss,
+    margin: s.margin,
+    cost200: c.cost200, rec200: c.rec200, margin200: c.margin200, price200: s.price200,
+    cost80:  c.cost80,  rec80:  c.rec80,  margin80:  c.margin80,  price80:  s.price80,
+    bags200: c.bags200, bags80: c.bags80
+  };
+  if (editingSnapId) {
+    var idx = calcSnapshots.findIndex(function(s){ return s.id === editingSnapId; });
+    if (idx !== -1) calcSnapshots[idx] = entry; else calcSnapshots.unshift(entry);
+  } else {
+    calcSnapshots.unshift(entry);
+  }
+  editingSnapId = null;
+  localStorage.setItem('coffeeCalcSnapshots_v1', JSON.stringify(calcSnapshots));
+  renderCalcSnapshots();
+  updateSaveBtn();
+  var btn = document.getElementById('calc-save-btn');
+  if (btn) { btn.textContent = '✓ Updated!'; setTimeout(function(){ updateSaveBtn(); }, 1800); }
+}
+
+function updateSaveBtn() {
+  var btn = document.getElementById('calc-save-btn');
+  if (!btn) return;
+  btn.textContent = editingSnapId ? '💾 Update calculation' : '💾 Save this calculation';
+}
+
+function deleteCalcSnapshot(id) {
+  calcSnapshots = calcSnapshots.filter(function(s){ return s.id !== id; });
+  localStorage.setItem('coffeeCalcSnapshots_v1', JSON.stringify(calcSnapshots));
+  renderCalcSnapshots();
+}
+
+function clearCalcSnapshots() {
+  if (!confirm('Clear all saved calculations?')) return;
+  calcSnapshots = [];
+  localStorage.setItem('coffeeCalcSnapshots_v1', JSON.stringify(calcSnapshots));
+  renderCalcSnapshots();
+}
+
+function loadCalcSnapshot(id) {
+  var snap = calcSnapshots.find(function(s){ return s.id === id; });
+  if (!snap) return;
+  editingSnapId               = id;
+  calcSettings.coffeeName     = snap.name;
+  calcSettings.greenCostPerKg = snap.greenCostPerKg;
+  calcSettings.batchKg        = snap.batchKg;
+  calcSettings.roastLoss      = snap.roastLoss;
+  calcSettings.margin         = snap.margin;
+  calcSettings.price200       = snap.price200;
+  calcSettings.price80        = snap.price80;
+  saveCalc();
+  loadCalcInputs();
+  renderCalc();
+  updateSaveBtn();
+  switchTab('calculator');
+  window.scrollTo(0, 0);
+}
+
+function renderCalcSnapshots() {
+  var wrap = document.getElementById('calc-saved-wrap');
+  var list = document.getElementById('calc-saved-list');
+  if (!wrap || !list) return;
+  if (!calcSnapshots.length) { wrap.style.display = 'none'; return; }
+  wrap.style.display = 'block';
+  list.innerHTML = calcSnapshots.map(function(snap) {
+    return '<div class="snap-row">' +
+      '<div style="flex:1;min-width:0">' +
+        '<div class="snap-name" style="cursor:pointer;text-decoration:underline;text-underline-offset:2px" onclick="loadCalcSnapshot(\'' + snap.id + '\')">' + snap.name + '</div>' +
+        '<div class="snap-date">' + snap.date + ' · ' + snap.batchKg + 'kg · ' + snap.roastLoss + '% roast loss · R' + snap.greenCostPerKg + '/kg</div>' +
+      '</div>' +
+      '<div class="snap-prices">' +
+        '<div class="snap-price-item"><div class="size">200g</div><div class="rec">R' + Math.round(snap.rec200) + ' rec</div><div class="margin">✓ ' + snap.margin200.toFixed(1) + '%</div></div>' +
+        '<div class="snap-price-item"><div class="size">80g</div><div class="rec">R' + Math.round(snap.rec80) + ' rec</div><div class="margin">✓ ' + snap.margin80.toFixed(1) + '%</div></div>' +
+        '<button class="btn btn-secondary btn-sm" onclick="loadCalcSnapshot(\'' + snap.id + '\')" style="font-size:11px;padding:3px 9px;align-self:center" title="Load into calculator">↑ Edit</button>' +
+        '<button class="snap-del" onclick="deleteCalcSnapshot(\'' + snap.id + '\')">×</button>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// TAB SWITCHING
+// ═══════════════════════════════════════════════════════════════════
+
+function switchTab(name) {
+  document.querySelectorAll('.tab').forEach(function(t, i) {
+    var names = ['inventory','calculator','accounting','zuka','andsons','roaststock'];
+    t.classList.toggle('active', names[i] === name);
+  });
+  document.querySelectorAll('.tab-panel').forEach(function(p) { p.classList.remove('active'); });
+  document.getElementById('tab-' + name).classList.add('active');
+  if (name === 'roaststock') loadRoastStock();
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// SUPPLIER REF TABLES
+// ═══════════════════════════════════════════════════════════════════
+
+function renderZukaTable(){var tbody=document.getElementById('zuka-table-body'),lastOrigin='';tbody.innerHTML=ZUKA.map(function(item){var originRow='';if(item.origin!==lastOrigin){originRow='<tr><td colspan="5" class="origin-group">'+item.origin+'</td></tr>';lastOrigin=item.origin;}return originRow+'<tr><td class="coffee-name">'+item.name+'</td><td><span class="badge" style="background:#f0ece8;color:#555">'+item.approach+'</span></td><td style="color:#555">'+item.bagSize+' kg</td><td>'+zukaAvailBadge(item.availability)+'</td><td class="price">R'+item.price.toFixed(2)+'</td></tr>';}).join('');}
+function renderAndsonsTable(){var tbody=document.getElementById('andsons-table-body'),lastOrigin='';tbody.innerHTML=ANDSONS.map(function(item){var originRow='';if(item.origin!==lastOrigin){originRow='<tr><td colspan="8" class="origin-group">'+item.origin+'</td></tr>';lastOrigin=item.origin;}var unitsClass=item.unitsLeft<=1?'units-left few':'units-left',scoreHtml=item.score?'<span class="score-badge">'+item.score+'</span>':'–';return originRow+'<tr><td><div class="coffee-name">'+item.name+'</div><div class="coffee-origin">'+item.sku+'</div></td><td style="color:#555;font-size:12px">'+item.origin+'</td><td style="color:#555;font-size:12px">'+item.process+'</td><td>'+scoreHtml+'</td><td style="color:#555">'+item.bagSize+' kg</td><td class="'+unitsClass+'">'+item.unitsLeft+'</td><td class="price">R'+item.price.toFixed(2)+'</td><td>'+andsonsStatusBadge(item.status)+'</td></tr>';}).join('');}
+
+// ═══════════════════════════════════════════════════════════════════
+// ROAST STOCK — live Supabase via MCP
+// ═══════════════════════════════════════════════════════════════════
+
+var RS_PROJECT = 'hwfwnzsjcblleykegiay';
+var rsLoaded = false;
+
+async function sqlCleanRS(query) {
+  try {
+    var res = await window.cowork.callMcpTool(
+      'mcp__c6c33441-2da7-48db-b251-f1d435cad0ea__execute_sql',
+      { project_id: RS_PROJECT, query: query }
+    );
+    var text = '';
+    if (res.structuredContent && res.structuredContent.result) text = res.structuredContent.result;
+    else if (res.content && res.content[0] && res.content[0].text) text = res.content[0].text;
+    else text = JSON.stringify(res.structuredContent || '');
+    var tagMatch = text.match(/<untrusted-data[^>]*>([\s\S]*?)<\/untrusted-data[^>]*>/);
+    if (tagMatch) { try { return JSON.parse(tagMatch[1].trim()); } catch(e) {} }
+    var arrMatch = text.match(/\[[\s\S]*\]/);
+    if (arrMatch) { try { return JSON.parse(arrMatch[0]); } catch(e) {} }
+    return [];
+  } catch(e) { console.error('sqlCleanRS:', e); return []; }
+}
+
+async function loadRoastStock() {
+  if (rsLoaded) return;
+  document.getElementById('rs-loading').style.display = 'block';
+  document.getElementById('rs-body').style.display = 'none';
+  document.getElementById('rs-error').style.display = 'none';
+  try {
+    var stock = await sqlCleanRS('SELECT id,drop_code,product_name,size_grams,bags_roasted,bags_sold,updated_at FROM roasted_stock ORDER BY drop_code,size_grams DESC');
+    var orders = await sqlCleanRS('SELECT id,created_at,status,subtotal,shipping_total FROM orders ORDER BY created_at DESC LIMIT 20');
+    document.getElementById('rs-loading').style.display = 'none';
+    document.getElementById('rs-body').style.display = 'block';
+    renderRSKPIs(stock);
+    renderRSCards(stock);
+    renderRSOrders(orders);
+    rsLoaded = true;
+  } catch(e) {
+    document.getElementById('rs-loading').style.display = 'none';
+    var err = document.getElementById('rs-error');
+    err.style.display = 'block';
+    err.textContent = 'Error loading stock: ' + e.message;
+  }
+}
+
+function rsKpi(label, val, cls) {
+  return '<div class="rs-kpi"><div class="rs-kpi-label">'+label+'</div><div class="rs-kpi-value '+cls+'">'+val+'</div></div>';
+}
+
+function renderRSKPIs(stock) {
+  var roasted = stock.reduce(function(s,row){return s+(row.bags_roasted||0);},0);
+  var sold    = stock.reduce(function(s,row){return s+(row.bags_sold||0);},0);
+  var rem     = roasted - sold;
+  var pctSold = roasted > 0 ? Math.round(sold/roasted*100) : 0;
+  document.getElementById('rs-kpi-grid').innerHTML =
+    rsKpi('Bags Roasted', roasted, '') +
+    rsKpi('Sold', sold, 'warn') +
+    rsKpi('Remaining', rem, rem <= 10 ? 'crit' : 'good') +
+    rsKpi('Sold %', pctSold + '%', pctSold > 70 ? 'warn' : 'good');
+}
+
+function renderRSCards(stock) {
+  var el = document.getElementById('rs-stock-grid');
+  if (!stock.length) {
+    el.innerHTML = '<div class="empty-state" style="padding:40px 20px;grid-column:1/-1"><div class="icon">📦</div><p>No stock entries. Run the roasted_stock migration in Supabase.</p></div>';
+    return;
+  }
+  el.innerHTML = stock.map(function(row) {
+    var rem = (row.bags_roasted||0) - (row.bags_sold||0);
+    var pctSold = row.bags_roasted > 0 ? Math.round((row.bags_sold||0)/row.bags_roasted*100) : 0;
+    var size = row.size_grams >= 1000 ? (row.size_grams/1000)+'kg' : row.size_grams+'g';
+    var remColor = rem <= 5 ? '#c0392b' : rem <= 15 ? '#8a6500' : '#1a7a40';
+    return '<div class="rs-card">'+
+      '<div class="rs-card-title">'+row.product_name+' · '+size+'</div>'+
+      '<div class="rs-card-sub">'+row.drop_code+'</div>'+
+      '<div class="rs-stat-row"><span>Roasted</span><strong>'+(row.bags_roasted||0)+' bags</strong></div>'+
+      '<div class="rs-stat-row"><span>Sold</span><strong>'+(row.bags_sold||0)+' bags</strong></div>'+
+      '<div class="rs-progress-bar"><div class="rs-progress-fill sold" style="width:'+pctSold+'%"></div></div>'+
+      '<div class="rs-stat-row"><span>Remaining</span><strong style="color:'+remColor+'">'+rem+' bags</strong></div>'+
+      '<div class="rs-update-row">'+
+        '<label>Bags roasted:</label>'+
+        '<input type="number" id="rs-in-'+row.id+'" min="0" step="1" value="'+(row.bags_roasted||0)+'">'+
+        '<button class="rs-save-btn" onclick="updateRSBags('+row.id+','+(row.bags_sold||0)+')">Save</button>'+
+      '</div>'+
+    '</div>';
+  }).join('');
+}
+
+function renderRSOrders(orders) {
+  var wrap = document.getElementById('rs-orders-wrap');
+  if (!orders || !orders.length) {
+    wrap.innerHTML = '<div class="empty-state" style="padding:20px"><p>No orders in admin DB. Customer orders are in the live site project.</p></div>';
+    return;
+  }
+  wrap.innerHTML = '<div class="table-wrap"><table>'+
+    '<thead><tr><th>#</th><th>Date</th><th>Status</th><th style="text-align:right">Subtotal</th><th style="text-align:right">Shipping</th></tr></thead>'+
+    '<tbody>'+orders.map(function(o){
+      var dt = o.created_at ? new Date(o.created_at).toLocaleDateString('en-ZA') : '—';
+      var sc = o.status==='complete'?'#1a7a40':o.status==='awaiting_payment'?'#8a6500':'#555';
+      return '<tr>'+
+        '<td style="color:#888;font-size:12px">'+o.id+'</td>'+
+        '<td style="white-space:nowrap">'+dt+'</td>'+
+        '<td><span class="badge" style="background:#f5f5f5;color:'+sc+'">'+(o.status||'—')+'</span></td>'+
+        '<td style="text-align:right;font-weight:600">'+(o.subtotal?'R '+parseFloat(o.subtotal).toFixed(2):'—')+'</td>'+
+        '<td style="text-align:right">'+(o.shipping_total?'R '+parseFloat(o.shipping_total).toFixed(2):'R 0')+'</td>'+
+      '</tr>';
+    }).join('')+'</tbody></table></div>';
+}
+
+async function updateRSBags(rowId, currentSold) {
+  var input = document.getElementById('rs-in-'+rowId);
+  if (!input) return;
+  var newVal = parseInt(input.value);
+  if (isNaN(newVal)||newVal<0) { alert('Enter a valid number.'); return; }
+  if (newVal < currentSold) { alert('Cannot be less than bags already sold ('+currentSold+').'); return; }
+  var btn = input.nextElementSibling;
+  btn.textContent = '…'; btn.disabled = true;
+  try {
+    await sqlCleanRS('UPDATE roasted_stock SET bags_roasted='+newVal+', updated_at=NOW() WHERE id='+rowId);
+    btn.textContent = '✓'; btn.classList.add('saved');
+    rsLoaded = false;
+    setTimeout(function() { rsLoaded = false; loadRoastStock(); }, 900);
+  } catch(e) {
+    btn.textContent = '!'; btn.disabled = false;
+    alert('Save failed: '+e.message);
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// MODAL OVERLAY CLOSE
+// ═══════════════════════════════════════════════════════════════════
+
+['add-modal','email-modal','add-expense-modal','add-sale-modal'].forEach(function(id) {
+  var el = document.getElementById(id);
+  el.addEventListener('click', function(e) { if (e.target === this) this.classList.remove('show'); });
+});
+
+// ═══════════════════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════════════════
+
+loadCalcInputs();
+renderCalc();
+renderCalcSnapshots();
+populateCoffeeNameList();
+renderInventory();
+renderZukaTable();
+renderAndsonsTable();
+// Persist seed data to localStorage on first open (if it came from SEED_EXPENSES/SEED_SALES)
+if (!localStorage.getItem('coffeeExpenses_v1')) saveExp();
+if (!localStorage.getItem('coffeeSales_v1'))    saveSales();
+renderExpenses();
+renderSales();
+renderAccSummary();
+populateDropLists();
+</script>
+</body>
+</html>
