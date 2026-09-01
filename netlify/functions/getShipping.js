@@ -14,15 +14,17 @@
 const BOBGO_API = 'https://api.bobgo.co.za/v2/rates';
 const BOBGO_KEY = process.env.BOBGO_API_KEY;
 
-// Artifacts Coffee collection address (Roodepoort)
+// Artifacts Coffee collection address. Driven by the SHOP_* env vars — same
+// source of truth bookShipment.js uses, so the address we quote from is always
+// the address we collect from. Falls back to the current address if unset.
 const COLLECTION = {
-  street_address: '864 Bongo Street',
-  company:        'Artifacts Coffee Roastery',
-  local_area:     'Allens Nek',
-  city:           'Roodepoort',
-  zone:           'Gauteng',
+  street_address: process.env.SHOP_ADDRESS_LINE1 || '864 Bongo Street',
+  company:        process.env.SHOP_NAME          || 'Artifacts Coffee Roastery',
+  local_area:     process.env.SHOP_SUBURB        || 'Allens Nek',
+  city:           process.env.SHOP_CITY          || 'Roodepoort',
+  zone:           process.env.SHOP_ZONE          || 'Gauteng',
   country:        'ZA',
-  code:           '1709',
+  code:           process.env.SHOP_POSTAL_CODE   || '1709',
 };
 
 function weightKgToParcel(kg) {
@@ -54,6 +56,7 @@ exports.handler = async (event) => {
   };
 
   let liveRates = [];
+  let addressCheck = null;
 
   if (BOBGO_KEY) {
     try {
@@ -75,7 +78,25 @@ exports.handler = async (event) => {
 
       if (res.ok) {
         const data = await res.json();
-        console.log('Bob Go raw response:', JSON.stringify(data).slice(0, 3000)); // TEMP DEBUG — remove once rates confirmed working
+
+        // Bob Go geocodes the delivery address via Google and hands back what it
+        // actually resolved to. We keep those signals so the checkout can catch a
+        // mistyped postal code BEFORE the customer pays: the rate is quoted off
+        // the postal code, but the parcel is physically delivered to the real
+        // address — if they disagree, the courier bills the true (higher) rate
+        // and the shortfall comes out of the Bob Go wallet, silently.
+        // Costs nothing extra — it's already in the response we just paid for.
+        const da = data.delivery_address || {};
+        addressCheck = {
+          geocoded:   da.status === 'gs_success',
+          partial:    !!da.geo_partial_match,
+          // zone_name is the province Google resolved the address to
+          zone:       da.zone_name || da.zone || '',
+          city:       da.geo_city || da.city || '',
+          localArea:  da.geo_local_area || da.local_area || '',
+          precision:  da.geo_location_type || '',
+        };
+
         for (const provider of (data.provider_rate_requests || [])) {
           if (provider.status !== 'success') continue;
           for (const r of (provider.responses || [])) {
@@ -107,7 +128,7 @@ exports.handler = async (event) => {
 
   return {
     statusCode: 200,
-    body: JSON.stringify({ quotes, source: liveRates.length ? 'live' : 'fallback' }),
+    body: JSON.stringify({ quotes, source: liveRates.length ? 'live' : 'fallback', addressCheck }),
   };
 };
 

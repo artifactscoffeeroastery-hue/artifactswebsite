@@ -96,15 +96,15 @@
       "review": [
         {
           "@type": "Review",
-          "author": { "@type": "Person", "name": "Lethabo M." },
+          "author": { "@type": "Person", "name": "Gillian Kamoo" },
           "reviewRating": { "@type": "Rating", "ratingValue": "5", "bestRating": "5" },
-          "reviewBody": "The Guatemala Blue Ayarza is the best coffee I've had in South Africa. Stone fruit on the nose, clean finish. Arrived two days after I ordered. Will not be going back to supermarket beans."
+          "reviewBody": "New filter coffee on the block, bold flavors and a great start to everyday. Blue Ayarza is my first blend, can't wait to explore the other options on offer."
         },
         {
           "@type": "Review",
-          "author": { "@type": "Person", "name": "Andre v.d.W." },
+          "author": { "@type": "Person", "name": "allistair jeffries" },
           "reviewRating": { "@type": "Rating", "ratingValue": "5", "bestRating": "5" },
-          "reviewBody": "Fast shipping, fresh roast date on the bag, and the flavour is noticeably better than anything I've bought from a chain roastery. Supporting local has never tasted this good."
+          "reviewBody": "By far the best coffee I have tasted, love the different flavours."
         }
       ],
       "offers": [
@@ -195,9 +195,9 @@
       "review": [
         {
           "@type": "Review",
-          "author": { "@type": "Person", "name": "Priya N." },
+          "author": { "@type": "Person", "name": "Ash DP" },
           "reviewRating": { "@type": "Rating", "ratingValue": "5", "bestRating": "5" },
-          "reviewBody": "Ordered the Mexico Ki Saya for the office and the whole team noticed the difference immediately. The caramel sweetness is something else. Already on our second bag."
+          "reviewBody": "There is something special about knowing that whichever bag you order is made specially for you. You can tell from the first sip that a lot of care went into its creation. Ordering and delivery were a breeze. Mexico KI SAYA is my favourite so far."
         }
       ],
       "offers": [
@@ -642,26 +642,28 @@
       <span class="testi-agg-label" id="testi-agg-label">5.0 &nbsp;&middot;&nbsp; 4 verified reviews</span>
     </div>
     <div class="testi-grid" id="testi-grid">
-      <!-- reviews loaded dynamically; static fallback below is replaced on load -->
+      <!-- Reviews load live from Google via loadReviews(); these are the fallback
+           shown if that call fails. They are REAL reviews left on our Google
+           Business Profile — do not replace them with invented copy. -->
       <div class="testi-card">
         <div class="testi-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
-        <p class="testi-quote">&ldquo;The Guatemala Blue Ayarza is the best coffee I&rsquo;ve had in South Africa. Stone fruit on the nose, clean finish. Arrived two days after I ordered. Will not be going back to supermarket beans.&rdquo;</p>
-        <div class="testi-meta"><span class="testi-name">Lethabo M.</span><span class="testi-origin">Sandton, Johannesburg</span></div>
+        <p class="testi-quote">&ldquo;There is something special about knowing that whichever bag you order is made specially for you. Nothing beats waking up to the aroma and taste of freshly brewed coffee. You can tell from the first sip that a lot of care went into its creation. Ordering and delivery were a breeze.&rdquo;</p>
+        <div class="testi-meta"><span class="testi-name">Ash DP</span><span class="testi-origin">Google review</span></div>
       </div>
       <div class="testi-card">
         <div class="testi-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
-        <p class="testi-quote">&ldquo;Ordered the Mexico Ki Saya for the office and the whole team noticed the difference immediately. The caramel sweetness is something else. Already on our second bag.&rdquo;</p>
-        <div class="testi-meta"><span class="testi-name">Priya N.</span><span class="testi-origin">Rosebank, Johannesburg</span></div>
+        <p class="testi-quote">&ldquo;New filter coffee on the block, bold flavors and a great start to everyday. Blue Ayarza is my first blend, can&rsquo;t wait to explore the other options on offer.&rdquo;</p>
+        <div class="testi-meta"><span class="testi-name">Gillian Kamoo</span><span class="testi-origin">Google review</span></div>
       </div>
       <div class="testi-card">
         <div class="testi-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
-        <p class="testi-quote">&ldquo;Tried the Nicaragua as my first specialty bean and I finally understand what &lsquo;tasting notes&rsquo; means. Chocolate and hazelnut, exactly as described. Packaging is sharp too.&rdquo;</p>
-        <div class="testi-meta"><span class="testi-name">Ryan K.</span><span class="testi-origin">Pretoria</span></div>
+        <p class="testi-quote">&ldquo;By far the best coffee I have tasted, love the different flavours.&rdquo;</p>
+        <div class="testi-meta"><span class="testi-name">allistair jeffries</span><span class="testi-origin">Google review</span></div>
       </div>
       <div class="testi-card">
         <div class="testi-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
-        <p class="testi-quote">&ldquo;Fast shipping, fresh roast date on the bag, and the flavour is noticeably better than anything I&rsquo;ve bought from a chain roastery. Supporting local has never tasted this good.&rdquo;</p>
-        <div class="testi-meta"><span class="testi-name">Andr&eacute; v.d.W.</span><span class="testi-origin">Cape Town</span></div>
+        <p class="testi-quote">&ldquo;I find, in life, you generally get what you pay for &mdash; and this is no exception. It&rsquo;s well worth splashing out on if I fancy some caffeine based, self-indulgence and luxury. It&rsquo;s great if you like perfect.&rdquo;</p>
+        <div class="testi-meta"><span class="testi-name">Donavan Turton</span><span class="testi-origin">Google review</span></div>
       </div>
     </div>
     <div class="testi-trust-bar">
@@ -753,6 +755,7 @@
         <option value="150">Rest of SA Door-to-Door - R150.00</option>
       </select>
       <div id="shipping-rate-status" style="font-size:11px;color:var(--muted);margin-top:8px;">Enter province &amp; postal code to load live rates.</div>
+      <div id="address-warning" style="display:none;font-size:12px;line-height:1.5;color:#8a5a00;background:#fff8e1;border-left:3px solid #E1FF01;padding:10px 12px;margin-top:10px;"></div>
     </div>
     <!-- PUDO INFO (collect mode only) -->
     <div id="pudo-info" class="shipping-box" style="display:none;margin-top:10px;">

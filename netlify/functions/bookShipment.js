@@ -31,20 +31,23 @@ const CORS = {
   'Content-Type': 'application/json',
 };
 
-// Roastery collection point (must match getShipping.js COLLECTION)
+// Roastery collection point. Driven by the SHOP_* env vars so the address lives
+// in one place instead of being duplicated across this file and getShipping.js —
+// change premises and you only touch Netlify. Falls back to the current address
+// if the vars aren't set, so nothing breaks if one is missing.
 const COLLECTION = {
-  company:        'Artifacts Coffee Roastery',
-  street_address: '864 Bongo Street',
-  local_area:     'Allens Nek',
-  city:           'Roodepoort',
-  zone:           'Gauteng',
+  company:        process.env.SHOP_NAME         || 'Artifacts Coffee Roastery',
+  street_address: process.env.SHOP_ADDRESS_LINE1|| '864 Bongo Street',
+  local_area:     process.env.SHOP_SUBURB       || 'Allens Nek',
+  city:           process.env.SHOP_CITY         || 'Roodepoort',
+  zone:           process.env.SHOP_ZONE         || 'Gauteng',
   country:        'ZA',
-  code:           '1709',
+  code:           process.env.SHOP_POSTAL_CODE  || '1709',
 };
 const COLLECTION_CONTACT = {
-  name:   'Artifacts Coffee',
-  mobile: '0613832478',
-  email:  'hello@artifactscoffee.co.za',
+  name:   process.env.SHOP_CONTACT_NAME || 'Artifacts Coffee',
+  mobile: process.env.SHOP_PHONE        || '0613832478',
+  email:  process.env.SHOP_EMAIL        || 'hello@artifactscoffee.co.za',
 };
 
 // Bob Go submission statuses (from their API)

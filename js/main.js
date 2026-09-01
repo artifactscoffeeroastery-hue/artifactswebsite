@@ -443,10 +443,54 @@ async function fetchShippingQuotes() {
     liveRatesOk = d.source==='live' && q.some(x=>x.code!=='pudo');
     lastQuotes=q; activeShippingQuote=q[0]; renderShipOpts(q,a.province);
     setStatus(stat, liveRatesOk ? 'Rates updated.' : 'Live courier rates are unavailable right now — please use Collect (PUDO) or try again shortly.', liveRatesOk?'info':'error');
+    checkAddressMatch(d.addressCheck, a);
   } catch(e) { liveRatesOk=false; lastQuotes=pudoOnly; renderShipOpts(pudoOnly,a.province); setStatus(stat,'Could not reach the courier service — please use Collect (PUDO) or try again shortly.','error'); }
 }
 // data-provider / data-service carry the exact courier + service level the rate
 // came from, so the shipment we book is the one the customer actually paid for.
+// ── ADDRESS SANITY CHECK ──
+// The shipping rate is quoted off the postal code, but the parcel is physically
+// delivered to the real address. If they disagree (wrong postal code typed), the
+// courier bills the true, higher rate and we absorb the shortfall silently.
+// Bob Go geocodes the address via Google and tells us what it resolved to, so we
+// compare that against what the customer entered and warn BEFORE they pay.
+// Deliberately province-level only: suburb/city names from a geocoder are noisy
+// (it returns things like "City of Cape Town Metropolitan Municipality"), so
+// comparing those would cry wolf on perfectly good addresses.
+const PROVINCE_ALIASES = {
+  'western cape':'western cape','wc':'western cape',
+  'eastern cape':'eastern cape','ec':'eastern cape',
+  'northern cape':'northern cape','nc':'northern cape',
+  'north west':'north west','nw':'north west','north-west':'north west',
+  'kwazulu-natal':'kwazulu-natal','kwazulu natal':'kwazulu-natal','kzn':'kwazulu-natal',
+  'free state':'free state','fs':'free state',
+  'gauteng':'gauteng','gp':'gauteng',
+  'mpumalanga':'mpumalanga','mp':'mpumalanga',
+  'limpopo':'limpopo','lp':'limpopo','lim':'limpopo'
+};
+const normProvince = v => PROVINCE_ALIASES[String(v||'').trim().toLowerCase()] || String(v||'').trim().toLowerCase();
+
+function checkAddressMatch(chk, entered) {
+  const el = document.getElementById('address-warning');
+  if (!el) return;
+  if (!chk) { el.style.display='none'; el.textContent=''; return; }
+
+  let msg = '';
+  if (chk.geocoded === false) {
+    msg = "We couldn't verify this address. Please double-check the street, suburb and postal code.";
+  } else {
+    const said = normProvince(entered.province), got = normProvince(chk.zone);
+    if (said && got && said !== got) {
+      msg = `Your postal code ${entered.postalCode} looks like it's in ${chk.zone}, but you selected ${entered.province}. Please check — an incorrect postal code can mean your parcel is delayed or returned.`;
+    } else if (chk.partial) {
+      msg = "We could only partly match this address. Please double-check the street name and postal code so your parcel isn't delayed.";
+    }
+  }
+
+  if (msg) { el.textContent = msg; el.style.display='block'; }
+  else     { el.style.display='none'; el.textContent=''; }
+}
+
 function shipOptHtml(q){ const a=Number(q.amount||0); return `<option value="${a}" data-rate="${a}" data-code="${q.code||''}" data-provider="${q.provider_slug||''}" data-service="${q.service_level_code||''}">${q.label||'Courier'} - R${a.toFixed(2)}</option>`; }
 function renderShipOpts(quotes,province) {
   const sel=document.getElementById('tcg-shipping'); if (!sel) return;
