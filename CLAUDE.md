@@ -148,8 +148,8 @@ Drop 004 Kenya and Drop 005 Nicaragua are both **Live**. GT/MX remain Sold Out a
 
 | Code | Origin | Coffee | Status |
 |------|--------|--------|--------|
-| KE · 004 | Kenya · Nyeri · Kiandu WS | Kiandu AB | **Live** — 80g R110 (unavailable, ~3wk lead) · 200g R195 · 400g R355 · Drip Bags 10-pack R225 |
-| NI · 005 | Nicaragua · Las Nubes | Las Nubes Red Catuai | **Live** — 80g R125 (unavailable, ~3wk lead) · 200g R220 · 400g R375 · Drip Bags 10-pack R240 |
+| KE · 004 | Kenya · Nyeri · Kiandu WS | Kiandu AB | **Live** — 80g R115 (unavailable, ~3wk lead) · 200g R205 · 400g R370 · Drip Bags 10-pack R235 |
+| NI · 005 | Nicaragua · Las Nubes | Las Nubes Red Catuai | **Live** — 80g R130 (unavailable, ~3wk lead) · 200g R230 · 400g R390 · Drip Bags 10-pack R250 |
 | GT · 001 | Guatemala · Huehuetenango | Blue Ayarza | Sold Out |
 | MX · 002 | Mexico · Chiapas | Ki Saya (Organic) | Sold Out |
 
@@ -350,6 +350,15 @@ No build step/templating on this site, so nothing here updates itself — every 
 - **TCG purged from the live site.** `netlify.toml` CSP dropped `api.thecourierguy.co.za` + `api.portal.thecourierguy.co.za` from `connect-src` (Bob Go is only ever called server-side from Netlify functions, so it needs no CSP entry at all). "TCG PUDO Locker" → "PUDO Locker" across `index.html`, `archive.html`, all 4 `shop/*.html`, and `js/main.js` fallbacks. Legal/marketing copy in `terms.html`, `return.html`, `privacy.html`, `paia.html`, `index.html` made courier-agnostic — except `privacy.html`'s third-party disclosure, which now correctly names Bob Go *and* the couriers it books through (that disclosure should name real recipients). The `old site/` folder was left untouched — it's an archive.
 - **Not yet done / worth knowing:** no live paid order has exercised the auto-booking path yet. Also, **Bob Go balance was R79.77 at time of writing, below the cheapest live door-to-door rate (~R93)** — auto-booking will hard-fail with "Insufficient funds" until topped up, and the failure only shows in Netlify function logs. Worth keeping a buffer of several shipments' worth rather than topping up per-order.
 - **Packaging implication of always booking the cheapest rate:** the courier that wins on price varies per order (RAM, Internet Express, SkyNet, Fastway, MTE Xpress, TCG have all come back cheapest at different times), so branded flyer sleeves from any single courier won't cover every shipment. Either stock A3 flyers from the couriers that win most often, or use neutral/own-branded packaging and let Bob Go's waybill label do the carrier identification.
+
+---
+
+### Session 21 (PayFast fee recovery price rise + real fee data, 2026-09-08)
+- **Found the real PayFast cost from actual tax invoices** (`Payfast/Invoice07.pdf`, `Invoice08.pdf`) — earlier work used a ~2.3% guess taken from a code comment in `coffee-stock-tracker.html`, which was well off. July 2026: R31.49 excl VAT (R36.22 incl). August 2026: R73.70 excl VAT (R84.76 incl), made up of Payout R8.69, Credit Card Local 3DSecure R31.73, Apple Pay R19.28, Immediate Payout R14.00.
+- **Critical: the 15% VAT PayFast charges is NOT reclaimable** — Artifacts Coffee is not VAT-registered (`BIZ.vat` is empty in `payfast-notify.js`, which is why customer emails say "Receipt" not "Tax Invoice"). So the headline "3.5% + R2" tier is really **4.03% + R2.30 effective**. Reverse-checking the invoice line items against 3.5%+R2 implies order values of ~R594, ~R849, ~R494, which matches real basket sizes — but the tier has not been confirmed in the PayFast dashboard, so treat it as strongly-indicated rather than proven.
+- **All live prices raised to recover the percentage component** (the fixed ~R2.30 is charged once per *order*, not per item, so adding it to every product would over-recover on multi-item baskets — deliberately not done). Kenya: 80g R110→R115, 200g R195→R205, 400g R355→R370, Drip R225→R235. Nicaragua: 80g R125→R130, 200g R220→R230, 400g R375→R390, Drip R240→R250. Updated in all seven places per the Live Drop Checklist: both `shop/*.html` size buttons + Mobicred amounts + default `p-amount`, the "Save Rxx vs. two 200g bags" copy (Kenya R35→R40, Nicaragua R65→R70), `index.html` JSON-LD offers + shop-grid cards + head-to-head compare table, `admin-order.html` PRODUCTS, `payfast-notify.js` PRODUCT_PRICE_MAP, and `coffee-stock-tracker.html` DEFAULT_CALC + input defaults.
+- **Correction to the Session 16 note that 400g "reuses the existing 200g bag":** Denzel confirmed 400g currently ships as **two 200g bags**, so packaging is R20 not R10, and 400g margin is lower than previously recorded. He is ordering larger bags + new logo stickers for 400g, after which this becomes a single-pouch SKU again and `pkg400` in the tracker should drop back to one bag's cost. Note also that while it is two bags, a 400g sale costs exactly the same to fulfil as two 200g sales — so the "Save Rxx" discount is pure margin give-away with no offsetting cost saving (justified only as a basket-size lever).
+- **Also worth knowing:** August's R14.00 "Immediate Payout" fee is optional — standard payouts carry only the R8.69. And at current low volume the fixed monthly payout fee spreads over few transactions, so the all-in effective rate is materially worse than the headline; it improves with volume without any further price change.
 
 ---
 

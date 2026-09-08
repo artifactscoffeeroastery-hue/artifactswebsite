@@ -9,9 +9,24 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex,nofollow">
 <title>Coffee Stock Tracker</title>
 <style>
 :root { color-scheme: light; }
+
+/* ── Access gate ── Internal tool: cost base, supplier pricing and P&L.
+   Verified server-side against ADMIN_ORDER_KEY, same as admin-order.html. */
+#gate{position:fixed;inset:0;background:#1c1310;z-index:99999;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:18px;padding:20px;}
+#gate h1{color:#f5efe8;font-size:26px;margin:0;font-weight:700;}
+#gate p{color:#a89a8d;font-size:13px;margin:0;text-align:center;}
+#gate-input{background:#fff;border:1px solid #cbbfae;color:#1c1310;padding:12px 16px;font-size:15px;letter-spacing:0.08em;width:min(280px,90vw);text-align:center;border-radius:6px;outline:none;}
+#gate-input:focus{border-color:#c98a3f;}
+#gate-btn{background:#c98a3f;color:#1c1310;border:none;padding:12px 32px;font-size:15px;font-weight:700;cursor:pointer;width:min(280px,90vw);border-radius:6px;}
+#gate-btn:hover:not(:disabled){opacity:0.9;}
+#gate-btn:disabled{opacity:0.6;cursor:default;}
+#gate-err{color:#e06666;font-size:12px;display:none;max-width:340px;}
+#app-wrap{display:none;}
+
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f5f3ef; color: #1a1a1a; font-size: 14px; }
 
@@ -270,6 +285,16 @@ tr:hover td { background: #faf7f4; }
 </head>
 <body>
 
+<div id="gate">
+  <h1>Artifacts Coffee — Stock &amp; Finance</h1>
+  <p>Internal tool. Enter your admin code to continue.</p>
+  <input id="gate-input" type="password" placeholder="Admin code" autocomplete="off">
+  <button id="gate-btn" onclick="checkGate()">Enter</button>
+  <p id="gate-err"></p>
+</div>
+
+<div id="app-wrap">
+
 <div class="header">
   <h1>☕ <span>Artifacts Coffee</span> — Stock & Finance</h1>
   <div class="stats">
@@ -423,20 +448,20 @@ tr:hover td { background: #faf7f4; }
         <h3>Your Current Prices</h3>
         <div class="calc-row">
           <div class="calc-label">200g bag price<small>What you charge customers</small></div>
-          <input class="calc-input" type="number" id="c-price200" min="0" step="5" value="260" oninput="saveCalcAndRender()">
+          <input class="calc-input" type="number" id="c-price200" min="0" step="5" value="205" oninput="saveCalcAndRender()">
         </div>
         <div class="calc-row">
           <div class="calc-label">400g bag price<small>What you charge customers</small></div>
-          <input class="calc-input" type="number" id="c-price400" min="0" step="5" value="355" oninput="saveCalcAndRender()">
+          <input class="calc-input" type="number" id="c-price400" min="0" step="5" value="370" oninput="saveCalcAndRender()">
         </div>
         <div class="calc-row">
           <div class="calc-label">Drip 10-pack price<small>What you charge customers</small></div>
-          <input class="calc-input" type="number" id="c-priceDrip" min="0" step="5" value="225" oninput="saveCalcAndRender()">
+          <input class="calc-input" type="number" id="c-priceDrip" min="0" step="5" value="235" oninput="saveCalcAndRender()">
         </div>
         <!-- 80g PAUSED — see note in Packaging & Labels above.
         <div class="calc-row">
           <div class="calc-label">80g bag price<small>What you charge customers</small></div>
-          <input class="calc-input" type="number" id="c-price80" min="0" step="5" value="110" oninput="saveCalcAndRender()">
+          <input class="calc-input" type="number" id="c-price80" min="0" step="5" value="115" oninput="saveCalcAndRender()">
         </div>
         -->
       </div>
@@ -706,7 +731,8 @@ const ANDSONS = [
   { id:'a34', origin:'Peru',        name:'Guerrero Brothers Geisha',             sku:'ASL0199', process:'Washed',                         score:88,    bagSize:69,  unitsLeft:0,   price:549.00, status:'Pencil Bookings' },
   { id:'a35', origin:'Peru',        name:'Las Pirias',                           sku:'ASL0200', process:'Washed',                         score:85.5,  bagSize:69,  unitsLeft:3,   price:283.00, status:'In-Stock' },
   { id:'a36', origin:'Peru',        name:'Mikan Finca El Pate',                  sku:'ASL0126', process:'Washed',                         score:85,    bagSize:69,  unitsLeft:3,   price:289.00, status:'In-Stock' },
-  { id:'a37', origin:'Rwanda',      name:'Huye Regional Natural',                sku:'DSL0046', process:'Natural',                        score:82.5,  bagSize:17,  unitsLeft:1,   price:123.00, status:'Discount' },
+  { id:'a37', origin:'Peru',         name:'Guerrero Brothers Geisha (DISCOUNT)',   sku:'DSL0046', process:'Washed',                         score:85.5,  bagSize:1,   unitsLeft:17,  price:123.00, status:'Discount' },
+  { id:'a37b',origin:'Rwanda',      name:'Huye Regional Natural',                sku:'ASL0193', process:'Natural',                        score:82.5,  bagSize:60,  unitsLeft:4,   price:282.00, status:'In-Stock' },
   { id:'a38', origin:'Rwanda',      name:'Karambi Washed',                       sku:'ASL0192', process:'Washed',                         score:85,    bagSize:60,  unitsLeft:4,   price:282.00, status:'In-Stock' },
   { id:'a39', origin:'Rwanda',      name:'Rugamba Washed',                       sku:'ASL0194', process:'Washed',                         score:85.5,  bagSize:60,  unitsLeft:8,   price:296.00, status:'In-Stock' },
   { id:'a40', origin:'Rwanda',      name:'Rugamba Honey',                        sku:'ASL0201', process:'Honey',                          score:86,    bagSize:60,  unitsLeft:1,   price:328.00, status:'Pencil Bookings' },
@@ -775,7 +801,7 @@ let activeFilter   = 'all';
 let activeAccTab   = 'expenses';
 
 // 80g keys retained but PAUSED (bags out of stock, ~3wk lead) - see commented UI blocks.
-const DEFAULT_CALC = { greenCostPerKg:334,batchKg:1,roastLoss:18,tariff:3.49,watts:1200,minutes:12,pkg200:8.00,lbl200:2.00,pkg400:8.00,lbl400:2.00,dripEach:5.59,dripCount:10,dripOuter:10.00,pkg80:5.00,lbl80:1.50,margin:53,price200:195,price400:355,priceDrip:225,price80:110 };
+const DEFAULT_CALC = { greenCostPerKg:334,batchKg:1,roastLoss:18,tariff:3.49,watts:1200,minutes:12,pkg200:8.00,lbl200:2.00,pkg400:8.00,lbl400:2.00,dripEach:5.59,dripCount:10,dripOuter:10.00,pkg80:5.00,lbl80:1.50,margin:53,price200:205,price400:370,priceDrip:235,price80:115 };
 let calcSettings = Object.assign({}, DEFAULT_CALC, JSON.parse(localStorage.getItem('coffeeCalc_v1') || '{}'));
 
 function save()     { localStorage.setItem('coffeeInventory_v1', JSON.stringify(inventory)); }
@@ -1155,6 +1181,49 @@ async function updateRSBags(rowId, currentSold) {
   el.addEventListener('click', function(e) { if (e.target === this) this.classList.remove('show'); });
 });
 
+
+// ═══════════════════════════════════════════════════════════════════
+// ACCESS GATE
+// This file is served publicly by Netlify, and holds green bean costs,
+// supplier price lists and P&L. The code is checked server-side via
+// createManualOrder's {ping:true} fast-path so the real key never ships
+// to the browser. sessionStorage keeps it unlocked for the tab only.
+// ═══════════════════════════════════════════════════════════════════
+function unlockApp() {
+  document.getElementById('gate').style.display = 'none';
+  document.getElementById('app-wrap').style.display = 'block';
+}
+async function checkGate() {
+  var v = document.getElementById('gate-input').value.trim();
+  if (!v) return;
+  var btn = document.getElementById('gate-btn'), err = document.getElementById('gate-err');
+  err.style.display = 'none';
+  btn.disabled = true; btn.textContent = 'Checking…';
+  try {
+    var res = await fetch('/.netlify/functions/createManualOrder', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ adminKey: v, ping: true })
+    });
+    if (!res.ok) {
+      err.textContent = res.status === 401
+        ? 'Incorrect — re-enter your admin code.'
+        : 'Server error (HTTP ' + res.status + ") — not a wrong-code issue. Check ADMIN_ORDER_KEY in Netlify and that the latest deploy is live.";
+      err.style.display = 'block';
+      return;
+    }
+  } catch (e) {
+    err.textContent = 'Could not reach the server — check your connection and try again.';
+    err.style.display = 'block';
+    return;
+  } finally {
+    btn.disabled = false; btn.textContent = 'Enter';
+  }
+  sessionStorage.setItem('acStockGate', v);
+  unlockApp();
+}
+document.getElementById('gate-input').addEventListener('keydown', function(e){ if (e.key === 'Enter') checkGate(); });
+if (sessionStorage.getItem('acStockGate')) unlockApp();
+
 // ═══════════════════════════════════════════════════════════════════
 // INIT
 // ═══════════════════════════════════════════════════════════════════
@@ -1174,5 +1243,6 @@ renderSales();
 renderAccSummary();
 populateDropLists();
 </script>
+</div>
 </body>
 </html>

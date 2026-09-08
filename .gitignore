@@ -1,3 +1,10 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# IMPORTANT: this repo IS the live website. Netlify deploys whatever is
+# committed, so anything tracked here becomes publicly reachable at
+# https://artifactscoffee.co.za/<path> — even if nothing links to it.
+# Never commit financial records, supplier pricing, or private documents.
+# ─────────────────────────────────────────────────────────────────────────────
+
 # Local Netlify folder
 .netlify
 
@@ -25,3 +32,50 @@ artifacts-coffee-userflow.svg
 artifacts_coffee_discovery_postcard_v3.svg
 brand-design-consultant.skill
 instagram_content_calendar_4weeks.md
+
+# A/B reference snapshot — frozen pre-redesign copy, never pushed/committed
+old site/
+
+# ── Financial records & private business documents ───────────────────────────
+# Tax invoices, supplier price lists and compliance paperwork. Publishing these
+# would expose your cost base (and, for the invoices, your financial position).
+Payfast/
+Invoice*.pdf
+Bob Go/
+Green coffee price list/
+*.docx
+financial-summary-*.md
+management-accounting-analysis.md
+
+# ── Reference material ───────────────────────────────────────────────────────
+# Third-party PDFs (textbooks, supplier offer lists) — copyrighted, and ~12MB.
+Books/
+
+# ── Internal working notes (not part of the site) ────────────────────────────
+HANDOFF-SUMMARY.md
+brand-conversion-audit.md
+competitor-analysis.md
+outstanding-tasks-checklist.md
+m6-diagnostic-test-roast-130g.md
+
+# ── Design explorations, mockups & screenshots ───────────────────────────────
+# ~30MB of work-in-progress that never needs to ship.
+mockups/
+screenshots/
+design/
+_handoff-assets/
+brand-assets/
+site-mockup-*.html
+preview.html
+
+# ── One-off SQL migrations ───────────────────────────────────────────────────
+# Run manually against Supabase; kept locally for reference, not deployed.
+# (supabase/migrations/ stays tracked — that's the real migration history.)
+brew-circle-*.sql
+
+# ── Instagram post renders ───────────────────────────────────────────────────
+# Exported PNGs of the post templates; the .html sources stay tracked.
+instagram_posts/**/*.png
+
+# ── Misc ─────────────────────────────────────────────────────────────────────
+deno.lock

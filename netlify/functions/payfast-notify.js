@@ -123,8 +123,8 @@ function parseStockItems(itemDesc) {
 // per-pack price, same convention as 80/200/400 being per-bag prices, since order_items
 // quantity tracks number of packs/bags, not grams).
 const PRODUCT_PRICE_MAP = [
-  { keywords: ['kiandu', 'kenya'],        slug: 'kenya',     name: 'Kenya Kiandu AB',     prices: { 80: 110, 200: 195, 400: 355, 20: 225 } },
-  { keywords: ['las nubes', 'nicaragua'], slug: 'nicaragua', name: 'Nicaragua Las Nubes', prices: { 80: 125, 200: 220, 400: 375, 20: 240 } },
+  { keywords: ['kiandu', 'kenya'],        slug: 'kenya',     name: 'Kenya Kiandu AB',     prices: { 80: 115, 200: 205, 400: 370, 20: 235 } },
+  { keywords: ['las nubes', 'nicaragua'], slug: 'nicaragua', name: 'Nicaragua Las Nubes', prices: { 80: 130, 200: 230, 400: 390, 20: 250 } },
 ];
 
 /** Parse item_description → [{product_slug, product_name, quantity, unit_price_rand, grind}]
