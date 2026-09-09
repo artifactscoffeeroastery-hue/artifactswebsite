@@ -525,21 +525,20 @@ async function checkGate() {
   loadClients();
 }
 
-// ── CLIENT AUTOFILL (reads deduped client list from the Google Sheet via JSONP) ──
+// ── CLIENT AUTOFILL (reads deduped client list via the sheetLog proxy) ──
+// Was a JSONP <script src> hit directly on the Apps Script URL with the
+// shared token exposed in the query string; now a same-origin POST to our
+// own Netlify function, which holds the real URL/token server-side.
 var CLIENTS = [];
 function loadClients() {
-  if(!SHEET_LOG_URL) return;
-  var cb='__clientsCb'+Date.now();
-  var s=document.createElement('script');
-  window[cb]=function(res){
-    CLIENTS=(res&&res.clients)||[];
+  if(!adminKey) return;
+  fetch('/.netlify/functions/sheetLog', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ adminKey: adminKey, action: 'clients' })
+  }).then(function(r){ return r.json(); }).then(function(res){
+    CLIENTS = (res && res.clients) || [];
     buildClientDatalists();
-    try{ delete window[cb]; }catch(e){ window[cb]=undefined; }
-    if(s.parentNode) s.parentNode.removeChild(s);
-  };
-  s.src=SHEET_LOG_URL+'?callback='+cb+'&token='+encodeURIComponent(SHEET_LOG_TOKEN);
-  s.onerror=function(){ try{ delete window[cb]; }catch(e){} if(s.parentNode) s.parentNode.removeChild(s); };
-  document.body.appendChild(s);
+  }).catch(function(e){ console.warn('loadClients failed:', e); });
 }
 function escHtml(v){ return String(v||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;'); }
 function buildClientDatalists() {
@@ -846,9 +845,12 @@ async function payViaEFT() {
 }
 
 // ── CLIENT LIST / QUOTE-INVOICE LOG → GOOGLE SHEET ──
-// Apps Script Web App URL (ends in /exec) + shared secret token (must match the .gs script)
-var SHEET_LOG_URL   = 'https://script.google.com/macros/s/AKfycbxn7qMGoMsen_CXycUn-kc6knfNXioErIW2YkTchIkJfPPo6BN756tQ0-m-iptGszvE/exec';
-var SHEET_LOG_TOKEN = 'aC7logKq9mZ2xR4t';
+// Routed through /.netlify/functions/sheetLog as of 2026-09-09 — the Apps
+// Script URL and shared token used to be plain `var`s here, publicly
+// readable in page source (the admin gate only hides the UI, not the
+// source). Both now live server-side only; this page sends the admin gate
+// code instead, same trust boundary as createManualOrder/sendOrderEmail.
+var SHEET_LOG_PROXY = '/.netlify/functions/sheetLog';
 // Stable customer UUID from email — same email always yields the same id (no storage/lookup needed)
 async function customerUUID(email){
   var e=(email||'').trim().toLowerCase();
@@ -861,21 +863,21 @@ async function customerUUID(email){
 }
 async function logToSheet(kind, data) {
   data = data || docState;
-  if(!SHEET_LOG_URL||!data) return;
+  if(!adminKey||!data) return;
   var ref=kind==='invoice'?(data.invoiceRef||data.ref):data.ref;
   var items=data.items.map(function(it){return it.qty+'x '+it.name+' ('+it.size+', '+it.grind+')';}).join('; ');
   var customerId=await customerUUID(data.customer.email);
   var A=function(id){ var el=document.getElementById(id); return el?el.value.trim():''; };
   var addr={ line1:A('d-address'), suburb:A('d-suburb'), city:A('d-city'), province:A('d-province'), postal:A('d-postal'), personal:A('d-personal-address') };
-  var payload={ token:SHEET_LOG_TOKEN, customerId:customerId, orderNo:data.orderNo||'', type:kind, ref:ref, timestamp:new Date().toISOString(),
+  var payload={ adminKey:adminKey, action:'log', customerId:customerId, orderNo:data.orderNo||'', kind:kind, ref:ref, timestamp:new Date().toISOString(),
     name:data.customer.name, email:data.customer.email, phone:data.customer.phone,
     items:items, subtotal:data.sub, shipping:data.ship, discount:data.disc, total:data.total,
     fulfilment:data.fulfilLabel, address:data.fulfilAddress||'', notes:data.notes||'', addressData:JSON.stringify(addr) };
   var body=JSON.stringify(payload);
   try {
     // sendBeacon survives an immediate page redirect (e.g. PayFast); fetch can get cancelled mid-flight
-    if (navigator.sendBeacon) navigator.sendBeacon(SHEET_LOG_URL, new Blob([body],{type:'text/plain;charset=utf-8'}));
-    else fetch(SHEET_LOG_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain;charset=utf-8'},body:body});
+    if (navigator.sendBeacon) navigator.sendBeacon(SHEET_LOG_PROXY, new Blob([body],{type:'application/json'}));
+    else fetch(SHEET_LOG_PROXY,{method:'POST',mode:'same-origin',headers:{'Content-Type':'application/json'},body:body});
   } catch(e){ console.warn('Sheet log failed:',e); }
 }
 // Human-readable order number — sequential per admin device, timestamp fallback

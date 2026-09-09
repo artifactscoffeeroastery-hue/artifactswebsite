@@ -73,9 +73,20 @@ preview.html
 # (supabase/migrations/ stays tracked — that's the real migration history.)
 brew-circle-*.sql
 
-# ── Instagram post renders ───────────────────────────────────────────────────
-# Exported PNGs of the post templates; the .html sources stay tracked.
-instagram_posts/**/*.png
+# ── Instagram content tool (not part of the live site) ───────────────────────
+# Denzel's own drafting tool for post/card templates — was fully tracked (thus
+# publicly served at artifactscoffee.co.za/instagram_posts/... with an
+# _index.html "tool for me" that shouldn't be public). Untracked 2026-09-09.
+instagram_posts/
+instagram_cards/
+
+# ── Google Apps Script source (contains the shared sheet-logging secret) ─────
+# Was tracked, so google-sheet-logger.gs (with SHEET_LOG_TOKEN in plaintext)
+# was publicly downloadable regardless of the admin gate. The live copy lives
+# in the Apps Script editor, not here — this file is now local-only reference.
+# Untracked 2026-09-09; token rotated; site now calls it via
+# netlify/functions/sheetLog.js instead of embedding the token client-side.
+google-sheet-logger.gs
 
 # ── Misc ─────────────────────────────────────────────────────────────────────
 deno.lock
